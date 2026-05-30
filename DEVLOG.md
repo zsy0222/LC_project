@@ -306,8 +306,8 @@
 
 | 文件 | 路径 |
 |------|------|
-| 项目代码 | `C:\Users\chenm\Desktop\program\LC_project\` |
-| 设计文档 | `C:\Users\chenm\Desktop\校园低碳回收追踪系统-项目设计文档.docx` |
-| 开发日志 | `C:\Users\chenm\Desktop\program\LC_project\DEVLOG.md` |
-| README | `C:\Users\chenm\Desktop\program\LC_project\README.md` |
-| CLAUDE.md | `C:\Users\chenm\Desktop\program\LC_project\CLAUDE.md` |
+| 项目代码 | `~/Desktop/program/LC_project/` |
+| 设计文档 | `~/Desktop/校园低碳回收追踪系统-项目设计文档.docx` |
+| 开发日志 | `~/Desktop/program/LC_project/DEVLOG.md` |
+| README | `~/Desktop/program/LC_project/README.md` |
+| CLAUDE.md | `~/Desktop/program/LC_project/CLAUDE.md` |

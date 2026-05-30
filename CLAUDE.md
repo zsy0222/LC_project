@@ -24,7 +24,7 @@
 5. 补充异常处理与边界情况
 
 ## 项目路径
-- 代码：`C:\Users\chenm\Desktop\program\LC_project`
-- 设计文档：`C:\Users\chenm\Desktop\校园低碳回收追踪系统-项目设计文档.docx`
-- 开发日志：`C:\Users\chenm\Desktop\program\LC_project\DEVLOG.md`（记录选题→设计→AI辅助→问题→迭代全过程，用于制作PPT）
+- 代码：`~/Desktop/program/LC_project`
+- 设计文档：`~/Desktop/校园低碳回收追踪系统-项目设计文档.docx`
+- 开发日志：`~/Desktop/program/LC_project/DEVLOG.md`（记录选题→设计→AI辅助→问题→迭代全过程，用于制作PPT）
 - 启动：`python run.py`，访问 http://127.0.0.1:8000/
