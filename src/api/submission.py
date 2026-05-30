@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from ..config import (
     LOCATION_MAX_DISTANCE_M, COOLDOWN_SECONDS,
     PHOTO_SIMILARITY_THRESHOLD, PHOTO_SIMILARITY_RECENT,
-    ITEM_COUNT_MIN, ITEM_COUNT_MAX,
+    ITEM_COUNT_MIN, ITEM_COUNT_MAX, DEMO_MODE,
 )
 from ..database import get_db
 from ..models import Point, User, Submission
@@ -53,15 +53,16 @@ def create_submission(data: SubmissionCreate, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="用户不存在")
 
-    # ---- 2. 定位校验 ----
-    point_lat, point_lng = _parse_gps(point.gps)
-    if point_lat and point_lng and data.user_lat and data.user_lng:
-        dist = _haversine(data.user_lat, data.user_lng, point_lat, point_lng)
-        if dist > LOCATION_MAX_DISTANCE_M:
-            raise HTTPException(
-                status_code=400,
-                detail=f"定位校验失败：您距回收点约 {dist:.0f} 米（最大允许 {LOCATION_MAX_DISTANCE_M} 米），请到达点位后再投递",
-            )
+    # ---- 2. 定位校验（Demo 模式跳过） ----
+    if not DEMO_MODE:
+        point_lat, point_lng = _parse_gps(point.gps)
+        if point_lat and point_lng and data.user_lat and data.user_lng:
+            dist = _haversine(data.user_lat, data.user_lng, point_lat, point_lng)
+            if dist > LOCATION_MAX_DISTANCE_M:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"定位校验失败：您距回收点约 {dist:.0f} 米（最大允许 {LOCATION_MAX_DISTANCE_M} 米），请到达点位后再投递",
+                )
 
     # ---- 3. 30s 冷却检查（同点位） ----
     cutoff = datetime.utcnow() - timedelta(seconds=COOLDOWN_SECONDS)

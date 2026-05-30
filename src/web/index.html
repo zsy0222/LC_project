@@ -193,6 +193,11 @@
       <h2>📍 选择回收点</h2>
       <div class="point-grid" id="pointGrid"><div class="empty">加载中...</div></div>
       <div style="margin-top:6px;font-size:0.75rem;color:var(--gray);" id="selectedPoint">👆 请点击选择一个回收点</div>
+      <div id="gpsDebug" style="display:none;margin-top:6px;padding:8px;background:#f9f9f9;border-radius:6px;font-size:0.7rem;font-family:monospace;line-height:1.6;">
+        <div>📍 你的位置: <span id="dbMyLat">-</span>, <span id="dbMyLng">-</span></div>
+        <div>🎯 点位坐标: <span id="dbPtLat">-</span>, <span id="dbPtLng">-</span></div>
+        <div>📏 距离: <span id="dbDist">-</span> 米</div>
+      </div>
     </section>
     <section>
       <h2>📸 拍照投递</h2>
@@ -310,6 +315,7 @@ const API = '/api';
 let currentUser = null, currentPoint = null, currentPhotoUrl = '', currentAiResult = null;
 let claimTarget = null, reuseTarget = null, reusePhotoUrl = '';
 let locationVerified = false, photoHash = '', cooldownRemain = 0;
+let demoMode = false;
 
 // ==================== 登录 ====================
 async function initLogin() {
@@ -430,6 +436,13 @@ function selectPoint(el, qr, name, lat, lng) {
 }
 
 function verifyLocation(pointLat, pointLng) {
+  if (demoMode) {
+    locationVerified = true;
+    document.getElementById('selectedPoint').innerHTML = document.getElementById('selectedPoint').innerHTML.replace(' 📍 定位中...', '');
+    toast('🔧 Demo 模式：定位已跳过');
+    checkSubmitReady();
+    return;
+  }
   if (!navigator.geolocation) {
     toast('⚠ 浏览器不支持定位，跳过位置校验');
     locationVerified = true;
@@ -439,7 +452,15 @@ function verifyLocation(pointLat, pointLng) {
   document.getElementById('selectedPoint').innerHTML += ' 📍 定位中...';
   navigator.geolocation.getCurrentPosition(
     pos => {
-      const d = haversine(pos.coords.latitude, pos.coords.longitude, pointLat, pointLng);
+      const myLat = pos.coords.latitude, myLng = pos.coords.longitude;
+      // 显示调试信息
+      document.getElementById('gpsDebug').style.display = 'block';
+      document.getElementById('dbMyLat').textContent = myLat.toFixed(6);
+      document.getElementById('dbMyLng').textContent = myLng.toFixed(6);
+      document.getElementById('dbPtLat').textContent = pointLat.toFixed(6);
+      document.getElementById('dbPtLng').textContent = pointLng.toFixed(6);
+      const d = haversine(myLat, myLng, pointLat, pointLng);
+      document.getElementById('dbDist').textContent = d.toFixed(1);
       if (d <= 100) {
         locationVerified = true;
         document.getElementById('selectedPoint').innerHTML = document.getElementById('selectedPoint').innerHTML.replace(' 📍 定位中...', '');
@@ -709,7 +730,10 @@ document.querySelectorAll('.modal-overlay').forEach(ov => { ov.addEventListener(
 function toast(msg) { const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2500); }
 
 // 启动
-initLogin();
+(async function init() {
+  try { const r = await fetch(`${API}/config/demo`); const d = await r.json(); demoMode = d.demo_mode; } catch(e) {}
+  initLogin();
+})();
 </script>
 </body>
 </html>

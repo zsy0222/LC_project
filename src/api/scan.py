@@ -8,7 +8,15 @@ from ..database import get_db
 from ..models import Point
 from ..schemas import ScanResp, PointOut
 
+from ..config import DEMO_MODE, LOCATION_MAX_DISTANCE_M
+
 router = APIRouter(tags=["scan"])
+
+
+@router.get("/config/demo")
+def demo_config():
+    """返回 Demo 模式状态，前端据此决定是否跳过定位"""
+    return {"demo_mode": DEMO_MODE, "location_max_distance_m": LOCATION_MAX_DISTANCE_M}
 
 
 @router.post("/scan", response_model=ScanResp)
