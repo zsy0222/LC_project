@@ -130,6 +130,97 @@ def _predict_mock(img: Image.Image) -> Tuple[str, float]:
     return "玻璃", round(random.uniform(0.58, 0.80), 3)
 
 
+# ---------- 纸箱计数：边缘投影峰值检测 ----------
+def _smooth(data: list[float], window: int = 5) -> list[float]:
+    """简单移动平均平滑"""
+    half = window // 2
+    result = []
+    for i in range(len(data)):
+        lo, hi = max(0, i - half), min(len(data), i + half + 1)
+        result.append(sum(data[lo:hi]) / (hi - lo))
+    return result
+
+
+def _count_segments(proj: list[float]) -> int:
+    """
+    对投影曲线做阈值分割：找到高密度区域（物体），低密度区域（间隙）。
+    统计被显著间隙分隔的高密度段数，每段 ≈ 一个回收物。
+    """
+    if max(proj) <= 0:
+        return 1
+    threshold = max(proj) * 0.25
+    min_width = 14       # 最小段宽（像素），过滤噪点
+    min_gap = 12         # 最小间隙宽
+    active = [1 if v > threshold else 0 for v in proj]
+    segments = []
+    in_seg = False
+    seg_start = 0
+    for i, v in enumerate(active):
+        if v == 1 and not in_seg:
+            in_seg = True
+            seg_start = i
+        elif v == 0 and in_seg:
+            width = i - seg_start
+            if width >= min_width:
+                segments.append((seg_start, i))
+            in_seg = False
+    if in_seg:
+        width = len(active) - seg_start
+        if width >= min_width:
+            segments.append((seg_start, len(active)))
+    # 合并间隙过小的相邻段
+    if len(segments) <= 1:
+        return max(1, len(segments))
+    merged = [segments[0]]
+    for seg in segments[1:]:
+        gap = seg[0] - merged[-1][1]
+        if gap < min_gap:
+            merged[-1] = (merged[-1][0], seg[1])
+        else:
+            merged.append(seg)
+    return max(1, len(merged))
+
+
+def count_boxes(image_bytes: bytes) -> int:
+    """
+    边缘投影分割：估算照片中回收物数量。
+
+    算法：
+    1. 256×256 灰度 → 边缘检测 (FIND_EDGES)
+    2. 水平投影 + 垂直投影
+    3. 平滑 → 阈值分割 → 合并近距离段 → 统计段数
+    4. 取水平/垂直结果的最大值，下限 1，上限 20
+    """
+    img = Image.open(io.BytesIO(image_bytes)).convert("L").resize((256, 256))
+    w, h = img.size
+    px = list(img.getdata())
+
+    # 纸箱通常比背景暗，用均值做阈值分割
+    avg_brightness = sum(px) / len(px)
+    # 二值化：比均值暗 15% 以上的像素视为"物体"
+    dark_thresh = avg_brightness * 0.85
+    binary = [1 if p < dark_thresh else 0 for p in px]
+
+    # 水平投影（每列暗像素密度）
+    h_proj = [0.0] * w
+    for y in range(h):
+        row_start = y * w
+        for x in range(w):
+            h_proj[x] += binary[row_start + x]
+    h_proj = [v / h for v in h_proj]
+    h_count = _count_segments(_smooth(h_proj, 5))
+
+    # 垂直投影
+    v_proj = [0.0] * h
+    for y in range(h):
+        row_start = y * w
+        v_proj[y] = sum(binary[row_start:row_start + w]) / w
+    v_count = _count_segments(_smooth(v_proj, 5))
+
+    count = max(h_count, v_count, 1)
+    return min(count, 20)
+
+
 # ---------- 对外主函数 ----------
 def predict_image(image_bytes: bytes) -> dict:
     """主入口：输入图片字节，返回识别结果 dict"""
@@ -149,6 +240,7 @@ def predict_image(image_bytes: bytes) -> dict:
             "recommend": "C",
             "recommend_desc": "无法识别，请重新拍摄回收物照片",
             "co2_estimate": 0.0,
+            "box_count": 0,
             "need_recheck": True,
         }
 
@@ -156,7 +248,8 @@ def predict_image(image_bytes: bytes) -> dict:
     score = round((cat_score * 0.6 + grade_score * 0.4), 3)
 
     recommend = PATH_MAP[grade]
-    co2_estimate = _estimate_co2(category, recommend)
+    box_count = count_boxes(image_bytes)
+    co2_estimate = round(_estimate_co2(category, recommend) * box_count, 3)
 
     return {
         "category": category,
@@ -165,6 +258,7 @@ def predict_image(image_bytes: bytes) -> dict:
         "recommend": recommend,
         "recommend_desc": PATH_DESC[recommend],
         "co2_estimate": co2_estimate,
+        "box_count": box_count,
         "need_recheck": score < AI_CONFIDENCE_THRESHOLD,
     }
 

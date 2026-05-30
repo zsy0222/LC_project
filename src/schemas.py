@@ -41,7 +41,8 @@ class PredictResp(BaseModel):
     score: float           # 置信度
     recommend: str         # A / B / C
     recommend_desc: str
-    co2_estimate: float
+    co2_estimate: float    # 减碳预估（已含数量叠加）
+    box_count: int = 1     # AI 识别的回收物数量
     need_recheck: bool     # 置信度过低时提示重拍
 
 

@@ -212,10 +212,8 @@
         <div style="font-size:0.75rem;">置信度: <strong id="aiScore">-</strong> | 预估减碳: <strong id="aiCo2">-</strong> kg</div>
         <div class="ai-warn" id="aiWarn" style="display:none">⚠ 置信度较低，建议重新拍摄</div>
       </div>
-      <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
-        <label style="font-size:0.8rem;white-space:nowrap;">📦 回收物数量：</label>
-        <input type="number" id="itemCount" value="1" min="1" max="20" style="width:60px;padding:4px 8px;border:1px solid var(--gray-border);border-radius:6px;font-size:0.9rem;" onchange="updateCo2Estimate()">
-        <span style="font-size:0.7rem;color:var(--gray);">（多件同时投递，碳减排叠加）</span>
+      <div id="boxCountBar" style="display:none;margin-top:8px;padding:8px 12px;background:var(--blue-bg);border-radius:8px;font-size:0.8rem;">
+        📦 AI 识别到 <strong id="boxCountText">1</strong> 个回收物，预估减碳 <strong id="boxCo2Text">-</strong> kg
       </div>
       <div id="cooldownBar" style="display:none;margin-top:8px;padding:8px 12px;background:var(--amber-bg);border-radius:8px;font-size:0.8rem;color:var(--amber);font-weight:bold;"><span id="cooldownText">⏳ 冷却中</span></div>
       <button class="btn btn-primary" id="submitBtn" disabled onclick="submitDelivery()">✅ 确认投递</button>
@@ -470,13 +468,6 @@ function haversine(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-function updateCo2Estimate() {
-  if (!currentAiResult) return;
-  const count = parseInt(document.getElementById('itemCount').value) || 1;
-  const total = (currentAiResult.co2_estimate || 0) * count;
-  document.getElementById('aiCo2').textContent = total.toFixed(3);
-}
-
 async function handleFile(e) {
   const file = e.target.files[0]; if (!file) return;
   const reader = new FileReader();
@@ -506,6 +497,11 @@ async function handleFile(e) {
   document.getElementById('aiCo2').textContent = currentAiResult.co2_estimate.toFixed(3);
   document.getElementById('aiWarn').style.display = currentAiResult.need_recheck ? 'block' : 'none';
   document.getElementById('aiResult').classList.add('show');
+  // 显示 AI 识别的数量
+  const cnt = currentAiResult.box_count || 1;
+  document.getElementById('boxCountBar').style.display = 'block';
+  document.getElementById('boxCountText').textContent = cnt;
+  document.getElementById('boxCo2Text').textContent = currentAiResult.co2_estimate.toFixed(3);
   checkSubmitReady();
 }
 function checkSubmitReady() {
@@ -553,7 +549,7 @@ async function submitDelivery() {
   const btn = document.getElementById('submitBtn');
   btn.disabled = true; btn.textContent = '提交中...';
   try {
-    const itemCount = parseInt(document.getElementById('itemCount').value) || 1;
+    const itemCount = currentAiResult.box_count || 1;
     let userLat = 0, userLng = 0;
     // 尝试再次获取当前位置
     if (navigator.geolocation) {
@@ -570,6 +566,7 @@ async function submitDelivery() {
     toast(`✅ 投递成功！批次 ${sub.batch_id}，减碳 ${sub.co2_saved?.toFixed(3)} kg`);
     currentAiResult = null; currentPhotoUrl = ''; photoHash = ''; locationVerified = false;
     document.getElementById('cooldownBar').style.display = 'none';
+    document.getElementById('boxCountBar').style.display = 'none';
     document.getElementById('previewImg').style.display = 'none';
     document.getElementById('uploadHint').style.display = 'block';
     document.getElementById('uploadZone').classList.remove('has-image');
