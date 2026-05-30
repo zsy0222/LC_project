@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>校园低碳回收追踪</title>
+<style>
+  :root {
+    --green: #2e7d32; --green-light: #4caf50; --green-bg: #e8f5e9;
+    --amber: #ff8f00; --amber-bg: #fff8e1;
+    --blue: #1565c0; --blue-bg: #e3f2fd;
+    --purple: #7b1fa2; --purple-bg: #f3e5f5;
+    --gray: #666; --gray-border: #ddd; --radius: 12px;
+    --tab-h: 56px; --header-h: 50px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f5f5f5; color: #333; max-width: 600px; margin: 0 auto; min-height: 100vh; overflow-x: hidden; }
+
+  /* ====== 登录页 ====== */
+  #loginPage { display: flex; flex-direction: column; min-height: 100vh; background: #fff; }
+  .login-hero { background: linear-gradient(135deg, #1b5e20, #43a047); color: #fff; padding: 48px 24px 32px; text-align: center; }
+  .login-hero .icon { font-size: 3rem; display: block; margin-bottom: 12px; }
+  .login-hero h1 { font-size: 1.4rem; margin-bottom: 4px; }
+  .login-hero p { font-size: 0.8rem; opacity: 0.85; }
+  .login-card { margin: -16px 16px 0; background: #fff; border-radius: var(--radius); padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,.1); position: relative; z-index: 2; }
+  .login-card h2 { font-size: 1rem; margin-bottom: 12px; }
+  .login-card select { width: 100%; padding: 10px; border: 1px solid var(--gray-border); border-radius: 8px; font-size: 0.95rem; margin-bottom: 12px; background: #fafafa; }
+  .login-card .btn { width: 100%; }
+  .login-public { margin: 20px 16px; }
+  .login-public h3 { font-size: 0.9rem; margin-bottom: 8px; color: var(--gray); }
+  .login-public .rank-preview { background: #fafafa; border-radius: 8px; padding: 8px; max-height: 200px; overflow-y: auto; }
+  .login-public .rp-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; font-size: 0.8rem; border-bottom: 1px solid #f0f0f0; }
+  .login-public .rp-item:last-child { border-bottom: none; }
+  .rp-rank { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.7rem; background: #eee; flex-shrink: 0; }
+  .rp-rank.r1 { background: #ffd700; color: #fff; } .rp-rank.r2 { background: #c0c0c0; color: #fff; } .rp-rank.r3 { background: #cd7f32; color: #fff; }
+  .rp-name { flex:1; font-weight: bold; } .rp-co2 { color: var(--green); font-weight: bold; }
+
+  /* ====== 主界面 ====== */
+  #appPage { display: none; flex-direction: column; min-height: 100vh; padding-bottom: var(--tab-h); }
+  #appPage.show { display: flex; }
+  .app-header { position: sticky; top: 0; z-index: 10; background: linear-gradient(135deg, var(--green), var(--green-light)); color: #fff; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; height: var(--header-h); }
+  .app-header .user-info { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
+  .app-header .user-role { font-size: 0.7rem; opacity: 0.8; background: rgba(255,255,255,.2); padding: 2px 8px; border-radius: 10px; }
+  .app-header .btn-logout { background: rgba(255,255,255,.2); border: none; color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+  .tab-content { display: none; flex: 1; padding: 12px; }
+  .tab-content.active { display: block; }
+
+  /* ====== 底栏 ====== */
+  .tab-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 600px; height: var(--tab-h); background: #fff; border-top: 1px solid var(--gray-border); display: flex; z-index: 20; }
+  .tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: none; background: none; font-size: 0.7rem; color: #999; cursor: pointer; transition: .2s; gap: 2px; }
+  .tab-btn .tb-icon { font-size: 1.2rem; }
+  .tab-btn.active { color: var(--green); }
+  .tab-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* ====== 通用组件 ====== */
+  section { background: #fff; margin-bottom: 12px; border-radius: var(--radius); padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+  section h2 { font-size: 0.95rem; margin-bottom: 10px; }
+  .btn { display: block; width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: .2s; margin-top: 8px; }
+  .btn-primary { background: var(--green); color: #fff; }
+  .btn-primary:hover { background: var(--green-light); }
+  .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
+  .btn-accent { background: var(--purple); color: #fff; }
+  .btn-outline { background: #fff; color: var(--green); border: 1px solid var(--green); }
+  .btn-sm { display: inline-block; width: auto; padding: 5px 12px; font-size: 0.75rem; }
+  .empty { text-align: center; color: #aaa; padding: 20px; font-size: 0.85rem; }
+  .spinner { display: none; width: 20px; height: 20px; border: 3px solid #ddd; border-top-color: var(--green); border-radius: 50%; animation: spin .6s linear infinite; margin: 10px auto; }
+  .spinner.show { display: block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* 点位 */
+  .point-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .point-card { border: 2px solid var(--gray-border); border-radius: 8px; padding: 10px; cursor: pointer; transition: .2s; text-align: center; }
+  .point-card:hover { border-color: var(--green-light); background: var(--green-bg); }
+  .point-card.selected { border-color: var(--green); background: var(--green-bg); }
+  .point-card .name { font-weight: bold; font-size: 0.9rem; }
+  .point-card .loc { font-size: 0.7rem; color: var(--gray); }
+
+  /* 上传区 */
+  .upload-zone { border: 2px dashed var(--gray-border); border-radius: var(--radius); padding: 24px; text-align: center; cursor: pointer; transition: .2s; }
+  .upload-zone:hover { border-color: var(--green-light); background: #fafafa; }
+  .upload-zone.has-image { padding: 0; border: none; }
+  .upload-zone img { max-width: 100%; max-height: 220px; border-radius: var(--radius); }
+  .ai-result { display: none; margin-top: 10px; padding: 10px; background: #f9f9f9; border-radius: 8px; }
+  .ai-result.show { display: block; }
+  .ai-tags { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0; }
+  .ai-tag { padding: 3px 10px; border-radius: 16px; font-size: 0.75rem; font-weight: bold; }
+  .tag-cat { background: var(--blue-bg); color: var(--blue); }
+  .tag-grade { background: var(--amber-bg); color: var(--amber); }
+  .tag-path { background: var(--green-bg); color: var(--green); }
+  .ai-warn { color: #d32f2f; font-size: 0.75rem; margin-top: 4px; }
+
+  /* 投递列表 */
+  .sub-item { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+  .sub-item:last-child { border-bottom: none; }
+  .sub-thumb { width: 44px; height: 44px; object-fit: cover; border-radius: 6px; background: #eee; }
+  .sub-info { flex: 1; min-width: 0; }
+  .sub-info .meta { font-size: 0.75rem; color: var(--gray); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sub-co2 { font-weight: bold; color: var(--green); font-size: 0.85rem; white-space: nowrap; }
+
+  /* 批次卡片 */
+  .batch-card { border: 1px solid var(--gray-border); border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+  .batch-card .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .batch-card .id { font-weight: bold; font-size: 0.85rem; word-break: break-all; }
+  .status { padding: 2px 8px; border-radius: 10px; font-size: 0.65rem; font-weight: bold; }
+  .status-pending { background: var(--amber-bg); color: var(--amber); }
+  .status-claimed { background: var(--blue-bg); color: var(--blue); }
+  .status-done { background: var(--green-bg); color: var(--green); }
+  .batch-card .meta { font-size: 0.75rem; color: var(--gray); }
+  .batch-card .actions { margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; }
+
+  /* 排行榜 */
+  .rank-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+  .rank-item:last-child { border-bottom: none; }
+  .rank-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem; flex-shrink: 0; background: #eee; color: var(--gray); }
+  .rank-1 { background: #ffd700; color: #fff; } .rank-2 { background: #c0c0c0; color: #fff; } .rank-3 { background: #cd7f32; color: #fff; }
+  .rank-info { flex: 1; }
+  .rank-name { font-weight: bold; font-size: 0.9rem; }
+  .rank-count { font-size: 0.7rem; color: var(--gray); }
+  .rank-co2 { font-weight: bold; color: var(--green); font-size: 0.9rem; white-space: nowrap; }
+  .stats-bar { display: flex; justify-content: space-around; padding: 10px 0; margin-bottom: 10px; }
+  .stat-item { text-align: center; }
+  .stat-value { font-size: 1.3rem; font-weight: bold; color: var(--green); }
+  .stat-label { font-size: 0.65rem; color: var(--gray); }
+
+  /* 徽章 */
+  .badge-list { display: flex; gap: 6px; flex-wrap: wrap; }
+  .badge-item { text-align: center; width: 62px; }
+  .badge-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin: 0 auto 2px; }
+  .badge-on { background: #ffd54f; } .badge-off { background: #eee; opacity: 0.35; }
+  .badge-name { font-size: 0.65rem; }
+
+  /* 弹窗 */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 100; justify-content: center; align-items: center; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: #fff; border-radius: var(--radius); padding: 18px; max-width: 500px; width: 92%; max-height: 80vh; overflow-y: auto; }
+  .modal h3 { margin-bottom: 10px; }
+  .modal .close { float: right; background: none; border: none; font-size: 1.4rem; cursor: pointer; line-height: 1; }
+  .modal label { display: block; font-weight: bold; font-size: 0.8rem; margin: 8px 0 4px; }
+  .modal select, .modal textarea { width: 100%; padding: 8px; border: 1px solid var(--gray-border); border-radius: 6px; font-size: 0.9rem; }
+  .modal textarea { resize: vertical; min-height: 50px; }
+  .timeline { position: relative; padding-left: 18px; margin-top: 8px; }
+  .timeline::before { content: ''; position: absolute; left: 5px; top: 0; bottom: 0; width: 2px; background: var(--green-light); }
+  .tl-item { position: relative; margin-bottom: 12px; }
+  .tl-item::before { content: ''; position: absolute; left: -17px; top: 3px; width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+  .tl-title { font-weight: bold; font-size: 0.8rem; } .tl-detail { font-size: 0.75rem; color: var(--gray); } .tl-time { font-size: 0.65rem; color: #aaa; }
+
+  /* toast */
+  .toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 22px; border-radius: 20px; font-size: 0.85rem; z-index: 200; opacity: 0; transition: opacity .3s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+
+  /* filter */
+  .filter-bar { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+  .filter-bar select { padding: 5px 8px; border: 1px solid var(--gray-border); border-radius: 6px; font-size: 0.8rem; }
+  .filter-bar button { padding: 5px 10px; background: var(--green); color: #fff; border: none; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
+  footer { text-align: center; padding: 12px; font-size: 0.65rem; color: #aaa; }
+</style>
+</head>
+<body>
+
+<!-- ==================== 登录页 ==================== -->
+<div id="loginPage">
+  <div class="login-hero">
+    <span class="icon">🌱</span>
+    <h1>校园低碳回收追踪</h1>
+    <p>扫码 → AI识别 → 归入批次 → 去向反馈</p>
+  </div>
+  <div class="login-card">
+    <h2>👤 选择身份进入</h2>
+    <select id="loginUserSelect"><option value="">-- 选择用户 --</option></select>
+    <button class="btn btn-primary" onclick="doLogin()" disabled id="loginBtn">进入系统</button>
+  </div>
+  <div class="login-public">
+    <h3>🏆 公开排行榜</h3>
+    <div class="rank-preview" id="rankPreview"><div class="empty">加载中...</div></div>
+  </div>
+  <footer style="margin-top:auto;">🌍 校园低碳回收追踪 · Demo v0.2</footer>
+</div>
+
+<!-- ==================== 主界面 ==================== -->
+<div id="appPage">
+  <div class="app-header">
+    <div class="user-info">
+      <span id="appNickname">-</span>
+      <span class="user-role" id="appRole">-</span>
+      <span style="font-size:0.75rem;" id="appCarbon"></span>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">退出</button>
+  </div>
+
+  <!-- 投递 tab -->
+  <div class="tab-content" id="tab-delivery">
+    <section>
+      <h2>📍 选择回收点</h2>
+      <div class="point-grid" id="pointGrid"><div class="empty">加载中...</div></div>
+      <div style="margin-top:6px;font-size:0.75rem;color:var(--gray);" id="selectedPoint">👆 请点击选择一个回收点</div>
+    </section>
+    <section>
+      <h2>📸 拍照投递</h2>
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+        <div id="uploadHint">📷<br>点击上传回收物照片</div>
+        <img id="previewImg" style="display:none" alt="预览">
+      </div>
+      <input type="file" id="fileInput" accept="image/*" onchange="handleFile(event)" style="display:none">
+      <div class="spinner" id="aiSpinner"></div>
+      <div class="ai-result" id="aiResult">
+        <div><strong>AI 识别结果：</strong></div>
+        <div class="ai-tags">
+          <span class="ai-tag tag-cat" id="aiCat">-</span>
+          <span class="ai-tag tag-grade" id="aiGrade">-</span>
+          <span class="ai-tag tag-path" id="aiPath">-</span>
+        </div>
+        <div style="font-size:0.75rem;">置信度: <strong id="aiScore">-</strong> | 预估减碳: <strong id="aiCo2">-</strong> kg</div>
+        <div class="ai-warn" id="aiWarn" style="display:none">⚠ 置信度较低，建议重新拍摄</div>
+      </div>
+      <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+        <label style="font-size:0.8rem;white-space:nowrap;">📦 回收物数量：</label>
+        <input type="number" id="itemCount" value="1" min="1" max="20" style="width:60px;padding:4px 8px;border:1px solid var(--gray-border);border-radius:6px;font-size:0.9rem;" onchange="updateCo2Estimate()">
+        <span style="font-size:0.7rem;color:var(--gray);">（多件同时投递，碳减排叠加）</span>
+      </div>
+      <div id="cooldownBar" style="display:none;margin-top:8px;padding:8px 12px;background:var(--amber-bg);border-radius:8px;font-size:0.8rem;color:var(--amber);font-weight:bold;"><span id="cooldownText">⏳ 冷却中</span></div>
+      <button class="btn btn-primary" id="submitBtn" disabled onclick="submitDelivery()">✅ 确认投递</button>
+    </section>
+    <section>
+      <h2>📋 我的投递</h2>
+      <div id="mySubmissions"><div class="empty">暂无记录</div></div>
+    </section>
+    <section>
+      <h2>🏅 成就徽章</h2>
+      <div class="badge-list" id="badgeList"><div class="empty">-</div></div>
+    </section>
+  </div>
+
+  <!-- 去向 tab -->
+  <div class="tab-content" id="tab-reuser">
+    <section>
+      <h2>📦 批次管理</h2>
+      <div class="filter-bar">
+        <select id="filterCategory"><option value="">全部品类</option><option value="纸箱">纸箱</option><option value="塑料">塑料</option><option value="玻璃">玻璃</option></select>
+        <select id="filterStatus"><option value="">全部状态</option><option value="pending">待认领</option><option value="claimed">已认领</option><option value="done">已完成</option></select>
+        <button onclick="loadBatches()">🔍 筛选</button>
+      </div>
+      <div id="batchList"><div class="empty">加载中...</div></div>
+    </section>
+  </div>
+
+  <!-- 排行 tab -->
+  <div class="tab-content active" id="tab-rank">
+    <section>
+      <h2>🏆 减碳英雄榜</h2>
+      <div class="stats-bar">
+        <div class="stat-item"><div class="stat-value" id="totalUsers">-</div><div class="stat-label">参与人数</div></div>
+        <div class="stat-item"><div class="stat-value" id="totalSubs">-</div><div class="stat-label">总投递</div></div>
+        <div class="stat-item"><div class="stat-value" id="totalCo2">-</div><div class="stat-label">减碳 kg</div></div>
+      </div>
+      <div id="rankList"><div class="empty">加载中...</div></div>
+    </section>
+  </div>
+
+  <!-- 底栏 -->
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="tab-delivery" id="tabBtnDelivery">
+      <span class="tb-icon">📸</span>投递
+    </button>
+    <button class="tab-btn" data-tab="tab-reuser" id="tabBtnReuser">
+      <span class="tb-icon">📦</span>去向
+    </button>
+    <button class="tab-btn" data-tab="tab-rank" id="tabBtnRank">
+      <span class="tb-icon">🏆</span>排行
+    </button>
+  </div>
+</div>
+
+<!-- ====== 弹窗 ====== -->
+<div class="modal-overlay" id="storyModal">
+  <div class="modal">
+    <button class="close" onclick="closeModal('storyModal')">&times;</button>
+    <h3>📖 批次故事</h3>
+    <div id="storyContent"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="claimModal">
+  <div class="modal">
+    <button class="close" onclick="closeModal('claimModal')">&times;</button>
+    <h3>🤝 认领批次</h3>
+    <p style="margin-bottom:8px;font-size:0.9rem;" id="claimBatchInfo"></p>
+    <label>去向路径：</label>
+    <select id="claimDestination"><option value="A">A · 共享/再利用</option><option value="B">B · 手工改造</option><option value="C">C · 直接回收</option></select>
+    <button class="btn btn-accent" style="margin-top:10px;" onclick="doClaim()">✅ 确认认领</button>
+  </div>
+</div>
+<div class="modal-overlay" id="reuseModal">
+  <div class="modal">
+    <button class="close" onclick="closeModal('reuseModal')">&times;</button>
+    <h3>📸 上传成品反馈</h3>
+    <p style="margin-bottom:6px;font-size:0.9rem;" id="reuseBatchInfo"></p>
+    <label>成品照片：</label>
+    <div class="upload-zone" id="reuseUploadZone" onclick="document.getElementById('reuseFileInput').click()">
+      <div id="reuseUploadHint">📷 点击上传成品照片</div>
+      <img id="reusePreviewImg" style="display:none" alt="预览">
+    </div>
+    <input type="file" id="reuseFileInput" accept="image/*" onchange="handleReuseFile(event)" style="display:none">
+    <div class="spinner" id="reuseUploadSpinner"></div>
+    <label>描述：</label>
+    <textarea id="reuseDesc" placeholder="如：改造成宿舍收纳盒..."></textarea>
+    <button class="btn btn-accent" style="margin-top:10px;" id="reuseSubmitBtn" disabled onclick="doReuse()">📤 提交成品反馈</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '/api';
+let currentUser = null, currentPoint = null, currentPhotoUrl = '', currentAiResult = null;
+let claimTarget = null, reuseTarget = null, reusePhotoUrl = '';
+let locationVerified = false, photoHash = '', cooldownRemain = 0;
+
+// ==================== 登录 ====================
+async function initLogin() {
+  const [usersRes, rankRes] = await Promise.all([
+    fetch(`${API}/users`), fetch(`${API}/rank`)
+  ]);
+  const users = await usersRes.json();
+  const sel = document.getElementById('loginUserSelect');
+  sel.innerHTML = '<option value="">-- 选择用户 --</option>';
+  users.forEach(u => {
+    const opt = document.createElement('option');
+    opt.value = JSON.stringify({id: u.id, nickname: u.nickname, role: u.role, carbon_score: u.carbon_score});
+    opt.textContent = `${u.nickname} (${u.role === 'student' ? '学生' : u.role === 'reuser' ? '去向端' : '管理员'})`;
+    sel.appendChild(opt);
+  });
+  sel.onchange = () => { document.getElementById('loginBtn').disabled = !sel.value; };
+
+  // 公开排行榜预览
+  const ranks = await rankRes.json();
+  document.getElementById('rankPreview').innerHTML = ranks.slice(0, 10).map(r => {
+    let rc = ''; if (r.rank === 1) rc = 'r1'; else if (r.rank === 2) rc = 'r2'; else if (r.rank === 3) rc = 'r3';
+    return `<div class="rp-item"><span class="rp-rank ${rc}">${r.rank}</span><span class="rp-name">${r.nickname}</span><span class="rp-co2">${r.carbon_score.toFixed(2)} kg</span></div>`;
+  }).join('');
+}
+
+function doLogin() {
+  const val = document.getElementById('loginUserSelect').value;
+  if (!val) return;
+  currentUser = JSON.parse(val);
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('appPage').classList.add('show');
+  document.getElementById('appNickname').textContent = currentUser.nickname;
+  const roleText = currentUser.role === 'student' ? '学生' : currentUser.role === 'reuser' ? '去向端' : '管理员';
+  document.getElementById('appRole').textContent = roleText;
+  updateCarbonDisplay();
+  setupTabs();
+  switchTab(currentUser.role === 'reuser' ? 'tab-reuser' : 'tab-delivery');
+  loadTabContent();
+}
+
+function doLogout() {
+  currentUser = null; currentPoint = null; currentAiResult = null; currentPhotoUrl = ''; photoHash = ''; locationVerified = false; cooldownRemain = 0;
+  document.getElementById('appPage').classList.remove('show');
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('loginBtn').disabled = true;
+  document.getElementById('loginUserSelect').value = '';
+  document.getElementById('previewImg').style.display = 'none';
+  document.getElementById('uploadHint').style.display = 'block';
+  document.getElementById('uploadZone').classList.remove('has-image');
+  document.getElementById('aiResult').classList.remove('show');
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('fileInput').value = '';
+  // 刷新排行预览
+  initLogin();
+}
+
+function updateCarbonDisplay() {
+  if (!currentUser) return;
+  document.getElementById('appCarbon').textContent = `🪙 ${(currentUser.carbon_score || 0).toFixed(3)} kg`;
+}
+
+// ==================== Tab 切换 ====================
+function setupTabs() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.disabled = false;
+    btn.onclick = () => switchTab(btn.dataset.tab);
+  });
+  // 去向 tab 仅 reuser/admin 可用
+  if (currentUser.role === 'student') {
+    document.getElementById('tabBtnReuser').disabled = true;
+  }
+  // 投递 tab 仅 student/admin 可用
+  if (currentUser.role === 'reuser') {
+    document.getElementById('tabBtnDelivery').disabled = true;
+  }
+}
+
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+  loadTabContent(tabId);
+}
+
+async function loadTabContent(tabId) {
+  if (!tabId) tabId = document.querySelector('.tab-content.active').id;
+  switch (tabId) {
+    case 'tab-delivery': await Promise.all([loadPoints(), loadMySubmissions(), loadBadges()]); break;
+    case 'tab-reuser': await loadBatches(); break;
+    case 'tab-rank': await loadRank(); break;
+  }
+}
+
+// ==================== 投递功能 ====================
+async function loadPoints() {
+  const res = await fetch(`${API}/points`);
+  const points = await res.json();
+  document.getElementById('pointGrid').innerHTML = points.map(p => {
+    // 解析 GPS "lat,lng"
+    const gpsParts = (p.gps || '0,0').split(',');
+    const lat = parseFloat(gpsParts[0]) || 0;
+    const lng = parseFloat(gpsParts[1]) || 0;
+    return `
+    <div class="point-card" onclick="selectPoint(this, '${p.qr_code}', '${p.name.replace(/'/g, "\\'")}', ${lat}, ${lng})">
+      <div class="name">${p.name}</div><div class="loc">${p.location}</div>
+    </div>`;
+  }).join('');
+}
+function selectPoint(el, qr, name, lat, lng) {
+  document.querySelectorAll('.point-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  currentPoint = { qr_code: qr, name: name, lat: lat, lng: lng };
+  document.getElementById('selectedPoint').innerHTML = `✅ 已选择：<strong>${name}</strong>`;
+  locationVerified = false;
+  checkSubmitReady();
+  verifyLocation(lat, lng);
+}
+
+function verifyLocation(pointLat, pointLng) {
+  if (!navigator.geolocation) {
+    toast('⚠ 浏览器不支持定位，跳过位置校验');
+    locationVerified = true;
+    checkSubmitReady();
+    return;
+  }
+  document.getElementById('selectedPoint').innerHTML += ' 📍 定位中...';
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const d = haversine(pos.coords.latitude, pos.coords.longitude, pointLat, pointLng);
+      if (d <= 200) {
+        locationVerified = true;
+        document.getElementById('selectedPoint').innerHTML = document.getElementById('selectedPoint').innerHTML.replace(' 📍 定位中...', '');
+        toast('✅ 位置验证通过，可进行投递');
+      } else {
+        locationVerified = false;
+        document.getElementById('selectedPoint').innerHTML = document.getElementById('selectedPoint').innerHTML.replace(' 📍 定位中...', '');
+        toast(`⚠ 位置偏差约 ${d.toFixed(0)} 米（限制 200 米），请到达回收点后再投递`);
+      }
+      checkSubmitReady();
+    },
+    err => {
+      console.warn('Geolocation error:', err);
+      toast('⚠ 无法获取位置，请确保已开启定位权限');
+      locationVerified = false;
+      document.getElementById('selectedPoint').innerHTML = document.getElementById('selectedPoint').innerHTML.replace(' 📍 定位中...', '');
+      checkSubmitReady();
+    },
+    { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 }
+  );
+}
+
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371000, dLat = (lat2-lat1)*Math.PI/180, dLng = (lng2-lng1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function updateCo2Estimate() {
+  if (!currentAiResult) return;
+  const count = parseInt(document.getElementById('itemCount').value) || 1;
+  const total = (currentAiResult.co2_estimate || 0) * count;
+  document.getElementById('aiCo2').textContent = total.toFixed(3);
+}
+
+async function handleFile(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = document.getElementById('previewImg');
+    img.src = ev.target.result; img.style.display = 'block';
+    document.getElementById('uploadHint').style.display = 'none';
+    document.getElementById('uploadZone').classList.add('has-image');
+  };
+  reader.readAsDataURL(file);
+  const form = new FormData(); form.append('file', file);
+  const upRes = await fetch(`${API}/upload`, { method: 'POST', body: form });
+  currentPhotoUrl = (await upRes.json()).url;
+  // 计算图片哈希 + 检查冷却
+  const hashForm = new FormData(); hashForm.append('file', file);
+  try { const hr = await fetch(`${API}/photo/hash`, { method: 'POST', body: hashForm }); photoHash = (await hr.json()).hash; } catch(e) { photoHash = ''; }
+  checkCooldown();
+  document.getElementById('aiSpinner').classList.add('show');
+  document.getElementById('aiResult').classList.remove('show');
+  const aiRes = await fetch(`${API}/predict`, { method: 'POST', body: form });
+  currentAiResult = await aiRes.json();
+  document.getElementById('aiSpinner').classList.remove('show');
+  document.getElementById('aiCat').textContent = currentAiResult.category;
+  document.getElementById('aiGrade').textContent = currentAiResult.grade;
+  document.getElementById('aiPath').textContent = '→ ' + currentAiResult.recommend_desc;
+  document.getElementById('aiScore').textContent = (currentAiResult.score * 100).toFixed(1) + '%';
+  document.getElementById('aiCo2').textContent = currentAiResult.co2_estimate.toFixed(3);
+  document.getElementById('aiWarn').style.display = currentAiResult.need_recheck ? 'block' : 'none';
+  document.getElementById('aiResult').classList.add('show');
+  checkSubmitReady();
+}
+function checkSubmitReady() {
+  const has = currentPoint && currentAiResult && currentUser && locationVerified;
+  const unknown = currentAiResult && currentAiResult.category === '无法识别';
+  const cooling = cooldownRemain > 0;
+  let msg = '✅ 确认投递';
+  if (unknown) msg = '⚠ 无法识别，请重新拍照';
+  else if (!locationVerified) msg = '📍 请先通过位置验证';
+  else if (cooling) msg = `⏳ 冷却中 (${cooldownRemain.toFixed(0)}s)`;
+  document.getElementById('submitBtn').disabled = !has || unknown || cooling;
+  document.getElementById('submitBtn').textContent = msg;
+}
+
+async function checkCooldown() {
+  if (!currentUser || !currentPoint) return;
+  try {
+    const r = await fetch(`${API}/submission/cooldown?user_id=${currentUser.id}&qr_code=${encodeURIComponent(currentPoint.qr_code)}`);
+    const d = await r.json();
+    cooldownRemain = d.remain_seconds || 0;
+    if (cooldownRemain > 0) {
+      document.getElementById('cooldownBar').style.display = 'block';
+      document.getElementById('cooldownText').textContent = `⏳ 冷却中，剩余 ${cooldownRemain.toFixed(0)} 秒`;
+      const timer = setInterval(() => {
+        cooldownRemain = Math.max(0, cooldownRemain - 0.1);
+        if (cooldownRemain <= 0) {
+          clearInterval(timer);
+          document.getElementById('cooldownBar').style.display = 'none';
+          checkSubmitReady();
+        } else {
+          document.getElementById('cooldownText').textContent = `⏳ 冷却中，剩余 ${cooldownRemain.toFixed(0)} 秒`;
+        }
+      }, 100);
+    } else {
+      document.getElementById('cooldownBar').style.display = 'none';
+    }
+    checkSubmitReady();
+  } catch(e) { /* ignore */ }
+}
+
+async function submitDelivery() {
+  if (!currentPoint || !currentAiResult || !currentUser) return;
+  if (!locationVerified) { toast('📍 请先通过位置验证'); return; }
+  if (cooldownRemain > 0) { toast(`⏳ 请等待 ${cooldownRemain.toFixed(0)} 秒后再投递`); return; }
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = '提交中...';
+  try {
+    const itemCount = parseInt(document.getElementById('itemCount').value) || 1;
+    let userLat = 0, userLng = 0;
+    // 尝试再次获取当前位置
+    if (navigator.geolocation) {
+      try {
+        const pos = await new Promise((resolve, reject) =>
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000, maximumAge: 60000 }));
+        userLat = pos.coords.latitude; userLng = pos.coords.longitude;
+      } catch(e) { /* 使用默认 0 */ }
+    }
+    const body = { user_id: currentUser.id, qr_code: currentPoint.qr_code, category: currentAiResult.category, grade: currentAiResult.grade, score: currentAiResult.score, photo: currentPhotoUrl, photo_hash: photoHash, item_count: itemCount, user_lat: userLat, user_lng: userLng };
+    const res = await fetch(`${API}/submission`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail); }
+    const sub = await res.json();
+    toast(`✅ 投递成功！批次 ${sub.batch_id}，减碳 ${sub.co2_saved?.toFixed(3)} kg`);
+    currentAiResult = null; currentPhotoUrl = ''; photoHash = ''; locationVerified = false;
+    document.getElementById('cooldownBar').style.display = 'none';
+    document.getElementById('previewImg').style.display = 'none';
+    document.getElementById('uploadHint').style.display = 'block';
+    document.getElementById('uploadZone').classList.remove('has-image');
+    document.getElementById('aiResult').classList.remove('show');
+    document.getElementById('fileInput').value = '';
+    btn.textContent = '✅ 确认投递';
+    currentUser.carbon_score = (currentUser.carbon_score || 0) + (sub.co2_saved || 0);
+    updateCarbonDisplay();
+    await Promise.all([loadMySubmissions(), loadBadges(), loadRank()]);
+  } catch(e) { toast('❌ ' + e.message); btn.disabled = false; btn.textContent = '✅ 确认投递'; }
+}
+
+async function loadMySubmissions() {
+  if (!currentUser) return;
+  const res = await fetch(`${API}/user/${currentUser.id}/submissions`);
+  const subs = await res.json();
+  const c = document.getElementById('mySubmissions');
+  if (!subs.length) { c.innerHTML = '<div class="empty">还没有投递记录 📸</div>'; return; }
+  c.innerHTML = subs.map(s => `
+    <div class="sub-item">
+      <img class="sub-thumb" src="${s.photo}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22><rect fill=%22%23ddd%22 width=%2244%22 height=%2244%22/><text x=%2222%22 y=%2228%22 text-anchor=%22middle%22 font-size=%2216%22>📦</text></svg>'">
+      <div class="sub-info"><div><strong>${s.category}</strong> · ${s.grade}</div><div class="meta">${s.batch_id} | ${new Date(s.ts).toLocaleString('zh-CN')}</div></div>
+      <div class="sub-co2">-${s.co2_saved?.toFixed(3)} kg</div>
+      <button class="btn btn-outline btn-sm" onclick="openStory('${s.batch_id}')">📖</button>
+    </div>`).join('');
+}
+
+async function loadBadges() {
+  if (!currentUser) return;
+  const res = await fetch(`${API}/user/${currentUser.id}/profile`);
+  const data = await res.json();
+  currentUser.carbon_score = data.user.carbon_score;
+  updateCarbonDisplay();
+  const badges = data.badges; const subCnt = data.submission_count;
+  const all = [
+    { key:'first_box', name:'环保萌新', icon:'🌱', earned: subCnt >= 1 },
+    { key:'five_box', name:'回收能手', icon:'♻️', earned: subCnt >= 5 },
+    { key:'co2_1kg', name:'减碳1kg', icon:'🌍', earned: (currentUser.carbon_score||0) >= 1.0 },
+    { key:'ten_box', name:'环保达人', icon:'🌟', earned: subCnt >= 10 },
+    { key:'co2_5kg', name:'减碳5kg', icon:'🏆', earned: (currentUser.carbon_score||0) >= 5.0 },
+  ];
+  document.getElementById('badgeList').innerHTML = all.map(b =>
+    `<div class="badge-item"><div class="badge-icon ${b.earned?'badge-on':'badge-off'}">${b.icon}</div><div class="badge-name">${b.earned?b.name:'???'}</div></div>`
+  ).join('');
+}
+
+// ==================== 去向功能 ====================
+async function loadBatches() {
+  const cat = document.getElementById('filterCategory').value;
+  const st = document.getElementById('filterStatus').value;
+  let url = `${API}/batches?`; if (cat) url += `category=${encodeURIComponent(cat)}&`; if (st) url += `status=${encodeURIComponent(st)}&`;
+  const res = await fetch(url); const batches = await res.json();
+  const c = document.getElementById('batchList');
+  if (!batches.length) { c.innerHTML = '<div class="empty">暂无匹配批次</div>'; return; }
+  c.innerHTML = batches.map(b => {
+    const sc = 'status-' + b.status;
+    const stText = {pending:'待认领',claimed:'已认领',done:'已完成'}[b.status]||b.status;
+    const destText = b.destination ? {A:'共享/再利用',B:'手工改造',C:'直接回收'}[b.destination]||b.destination : '-';
+    const pathColor = b.destination==='A'?'tag-path':b.destination==='B'?'tag-grade':'tag-cat';
+    return `<div class="batch-card">
+      <div class="header"><span class="id">${b.id}</span><span class="status ${sc}">${stText}</span></div>
+      <div class="meta">📍 #${b.point_id} | 📅 ${b.date} | 📦 ${b.category}${b.destination?` | <span class="ai-tag ${pathColor}">${destText}</span>`:''}</div>
+      <div class="actions">
+        ${b.status==='pending'?`<button class="btn btn-sm btn-outline" onclick="openClaim('${b.id}')">🤝 认领</button>`:''}
+        ${b.status==='pending'||b.status==='claimed'?`<button class="btn btn-sm btn-accent" onclick="openReuse('${b.id}')">📸 上传成品</button>`:''}
+        <button class="btn btn-sm btn-outline" onclick="openStory('${b.id}')">📖 故事</button>
+      </div></div>`;
+  }).join('');
+}
+
+function openClaim(batchId) { claimTarget = batchId; document.getElementById('claimBatchInfo').textContent = '批次: ' + batchId; document.getElementById('claimModal').classList.add('show'); }
+async function doClaim() {
+  if (!claimTarget || !currentUser) return;
+  const dest = document.getElementById('claimDestination').value;
+  const res = await fetch(`${API}/batch/claim`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({batch_id:claimTarget, reuser_id:currentUser.id, destination:dest}) });
+  if (!res.ok) { toast('❌ '+ (await res.json()).detail); return; }
+  toast((await res.json()).msg); closeModal('claimModal'); loadBatches();
+}
+function openReuse(batchId) {
+  reuseTarget = batchId; reusePhotoUrl = '';
+  document.getElementById('reuseBatchInfo').textContent = '批次: ' + batchId;
+  document.getElementById('reusePreviewImg').style.display = 'none';
+  document.getElementById('reuseUploadHint').style.display = 'block';
+  document.getElementById('reuseDesc').value = '';
+  document.getElementById('reuseFileInput').value = '';
+  document.getElementById('reuseUploadSpinner').classList.remove('show');
+  document.getElementById('reuseSubmitBtn').disabled = true;
+  document.getElementById('reuseModal').classList.add('show');
+}
+async function handleReuseFile(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => { const img=document.getElementById('reusePreviewImg'); img.src=ev.target.result; img.style.display='block'; document.getElementById('reuseUploadHint').style.display='none'; };
+  reader.readAsDataURL(file);
+  document.getElementById('reuseUploadSpinner').classList.add('show');
+  const form = new FormData(); form.append('file', file);
+  const res = await fetch(`${API}/upload`, { method:'POST', body:form });
+  reusePhotoUrl = (await res.json()).url;
+  document.getElementById('reuseUploadSpinner').classList.remove('show');
+  document.getElementById('reuseSubmitBtn').disabled = false;
+}
+async function doReuse() {
+  if (!reuseTarget || !currentUser || !reusePhotoUrl) return;
+  const desc = document.getElementById('reuseDesc').value || '无描述';
+  const res = await fetch(`${API}/batch/reuse`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({batch_id:reuseTarget, reuser_id:currentUser.id, product_photo:reusePhotoUrl, product_desc:desc}) });
+  if (!res.ok) { toast('❌ '+ (await res.json()).detail); return; }
+  toast((await res.json()).msg); closeModal('reuseModal'); loadBatches();
+}
+
+// ==================== 故事 + 排行 ====================
+async function openStory(batchId) {
+  const res = await fetch(`${API}/batch/${batchId}/story`);
+  const story = await res.json();
+  document.getElementById('storyContent').innerHTML = `
+    <div style="margin-bottom:8px;"><strong>${story.batch.id}</strong> · ${story.batch.category} · ${story.batch.status}</div>
+    <div style="font-size:0.8rem;">📦 ${story.submissions_count} 次投递 | 🌱 ${story.total_co2} kg</div>
+    ${story.reuse_photo?`<div style="margin:8px 0;"><strong>成品：</strong><br><img src="${story.reuse_photo}" style="max-width:100%;max-height:180px;border-radius:8px;margin-top:4px;"><br><span style="font-size:0.8rem;">${story.reuse_desc||''}</span></div>`:''}
+    <div class="timeline">${story.flows.map(f=>`<div class="tl-item"><div class="tl-title">${f.title}</div><div class="tl-detail">${f.detail}</div><div class="tl-time">${new Date(f.ts).toLocaleString('zh-CN')}</div></div>`).join('')}</div>`;
+  document.getElementById('storyModal').classList.add('show');
+}
+
+async function loadRank() {
+  const [rankRes, usersRes] = await Promise.all([fetch(`${API}/rank`), fetch(`${API}/users`)]);
+  const rankings = await rankRes.json(); const users = await usersRes.json();
+  const students = users.filter(u=>u.role==='student');
+  document.getElementById('totalUsers').textContent = students.length;
+  document.getElementById('totalCo2').textContent = students.reduce((s,u)=>s+(u.carbon_score||0),0).toFixed(2);
+  document.getElementById('totalSubs').textContent = rankings.reduce((s,r)=>s+r.submission_count,0);
+  const c = document.getElementById('rankList');
+  if (!rankings.length) { c.innerHTML = '<div class="empty">暂无数据</div>'; return; }
+  c.innerHTML = rankings.map(r=>{
+    let rc=''; let m=''; if(r.rank===1){rc='rank-1';m='🥇';}else if(r.rank===2){rc='rank-2';m='🥈';}else if(r.rank===3){rc='rank-3';m='🥉';}
+    return `<div class="rank-item"><div class="rank-num ${rc}">${r.rank}</div><div class="rank-info"><div class="rank-name">${m} ${r.nickname}</div><div class="rank-count">投递 ${r.submission_count} 次</div></div><div class="rank-co2">${r.carbon_score.toFixed(3)} kg</div></div>`;
+  }).join('');
+}
+
+// ==================== 通用 ====================
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('.modal-overlay').forEach(ov => { ov.addEventListener('click', e => { if (e.target===ov) closeModal(ov.id); }); });
+function toast(msg) { const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2500); }
+
+// 启动
+initLogin();
+</script>
+</body>
+</html>
