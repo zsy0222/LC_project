@@ -15,16 +15,21 @@
 LC_project/
 ├── requirements.txt
 ├── run.py                   # 一键启动
+├── README.md                # 项目说明
+├── DEVLOG.md                # 开发日志（选题→设计→问题→迭代）
+├── DESIGN_VALUES.md         # 设计参数表（所有可调数值集中管理）
+├── CHECKLIST.md             # 备赛经验对照检查
+├── CLAUDE.md                # AI 会话上下文
 └── src/
-    ├── config.py            # 配置
+    ├── config.py            # 全局配置（含反作弊参数）
     ├── main.py              # FastAPI 入口
-    ├── database.py          # 数据库连接
+    ├── database.py          # 数据库连接 + 轻量迁移
     ├── models.py            # 7 张 ORM 表
-    ├── schemas.py           # Pydantic
-    ├── seed.py              # 初始化种子数据
+    ├── schemas.py           # Pydantic 请求/响应模型
+    ├── seed.py              # 种子数据（用户/点位/碳因子）
     ├── api/                 # 6 组 REST 接口（扫码/AI/投递/批次/用户/排行）
     ├── services/            # 业务逻辑（AI / 批次 / 碳因子 / 通知）
-    └── web/                 # 前端（原生 HTML/CSS/JS 单页应用，含投递/去向/排行三 Tab）
+    └── web/                 # 前端（原生 HTML/CSS/JS SPA，投递/去向/排行三 Tab）
 ```
 
 ## 三、快速启动
@@ -45,11 +50,20 @@ python run.py
 
 ## 四、Demo 演示流程
 
-1. 打开首页，扫码（或选择）回收点 → 自动记录点位与时间
-2. 拍照上传回收物 → AI 识别品类与完整度 → 自动归入批次
-3. 切换到「去向端」→ 认领某批次 → 上传成品照片
-4. 回到用户端「我的纸箱」→ 看到批次故事与成品反馈
-5. 查看排行榜 → 累计减碳量
+1. 打开首页，选择回收点 → GPS 自动校验位置 → 通过后解锁投递
+2. 拍照上传回收物 → AI 识别品类与完整度 → 设置回收物数量 → 自动归入批次
+3. 切换到「去向端」→ 筛选批次 → 认领 → 上传成品照片
+4. 回到用户端 → 查看批次故事时间轴与成品反馈
+5. 查看排行榜 → 累计减碳量排名
+
+### 反作弊机制
+
+| 机制 | 说明 |
+|------|------|
+| GPS 定位校验 | 用户须在回收点 200m 范围内，Haversine 距离计算 |
+| 30s 冷却 | 同一点位 30 秒内不可重复提交 |
+| 图片去重 | 感知哈希（aHash 32×32）+ 汉明距离比对，相似度 > 85% 拒绝 |
+| 多物品计数 | 支持单次多件投递，碳减排按数量叠加 |
 
 ## 五、AI 说明
 
@@ -61,4 +75,20 @@ python run.py
 ## 六、数据库
 
 SQLite，文件位于 `lc_project.db`，启动时自动创建 7 张表并写入种子数据：
-- users / points / batches / submissions / reuse_items / notifications / carbon_factors
+
+| 表名 | 用途 |
+|------|------|
+| users | 用户（student / reuser / admin） |
+| points | 回收点位（含 GPS 坐标） |
+| batches | 批次（按点位+日期+品类+等级归集） |
+| submissions | 投递记录（含图片哈希、物品数量） |
+| reuse_items | 成品反馈（去向端上传） |
+| notifications | 通知推送 |
+| carbon_factors | 碳因子表（品类×路径减碳系数） |
+
+## 七、版本控制
+
+```bash
+# 仓库地址
+git clone https://github.com/zsy0222/LC_project.git
+```
