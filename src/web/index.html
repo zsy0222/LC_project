@@ -440,14 +440,14 @@ function verifyLocation(pointLat, pointLng) {
   navigator.geolocation.getCurrentPosition(
     pos => {
       const d = haversine(pos.coords.latitude, pos.coords.longitude, pointLat, pointLng);
-      if (d <= 200) {
+      if (d <= 100) {
         locationVerified = true;
         document.getElementById('selectedPoint').innerHTML = document.getElementById('selectedPoint').innerHTML.replace(' 📍 定位中...', '');
         toast('✅ 位置验证通过，可进行投递');
       } else {
         locationVerified = false;
         document.getElementById('selectedPoint').innerHTML = document.getElementById('selectedPoint').innerHTML.replace(' 📍 定位中...', '');
-        toast(`⚠ 位置偏差约 ${d.toFixed(0)} 米（限制 200 米），请到达回收点后再投递`);
+        toast(`⚠ 位置偏差约 ${d.toFixed(0)} 米（限制 100 米），请到达回收点后再投递`);
       }
       checkSubmitReady();
     },

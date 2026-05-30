@@ -36,7 +36,7 @@ HOST = "127.0.0.1"
 PORT = 8000
 
 # 反作弊参数
-LOCATION_MAX_DISTANCE_M = 200     # GPS 定位最大允许距离（米）
+LOCATION_MAX_DISTANCE_M = 100     # GPS 定位最大允许距离（米）
 COOLDOWN_SECONDS = 30            # 同点位提交冷却时间（秒）
 PHOTO_SIMILARITY_THRESHOLD = 0.15  # 图片相似度阈值（≤15% 差异视为同一物品）
 PHOTO_SIMILARITY_RECENT = 10     # 相似度比对范围：用户最近 N 条提交
