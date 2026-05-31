@@ -271,7 +271,7 @@
     <section>
       <h2>📦 批次管理</h2>
       <div class="filter-bar">
-        <select id="filterCategory"><option value="">全部品类</option><option value="纸箱">纸箱</option><option value="塑料">塑料</option><option value="玻璃">玻璃</option></select>
+        <select id="filterCategory"><option value="">全部品类</option><option value="外卖厨余">外卖厨余</option><option value="快递纸箱">快递纸箱</option><option value="塑料">塑料</option><option value="有害">有害</option></select>
         <select id="filterStatus"><option value="">全部状态</option><option value="pending">待认领</option><option value="claimed">已认领</option><option value="done">已完成</option></select>
         <button onclick="loadBatches()">🔍 筛选</button>
       </div>
@@ -320,7 +320,7 @@
     <h3>🤝 认领批次</h3>
     <p style="margin-bottom:8px;font-size:0.9rem;" id="claimBatchInfo"></p>
     <label>去向路径：</label>
-    <select id="claimDestination"><option value="A">A · 共享/再利用</option><option value="B">B · 手工改造</option><option value="C">C · 直接回收</option></select>
+    <select id="claimDestination"><option value="厌氧消化">厌氧消化（产沼气）</option><option value="好氧堆肥">好氧堆肥（产有机肥）</option><option value="饲料化">饲料化（黑水虻/蚯蚓）</option><option value="共享再利用">共享/再利用</option><option value="直接回收">直接回收</option><option value="塑料再生">塑料再生</option><option value="无害化处理">无害化处理</option></select>
     <button class="btn btn-accent" style="margin-top:10px;" onclick="doClaim()">✅ 确认认领</button>
   </div>
 </div>
@@ -835,8 +835,8 @@ async function loadBatches() {
   c.innerHTML = batches.map(b => {
     const sc = 'status-' + b.status;
     const stText = {pending:'待认领',claimed:'已认领',done:'已完成'}[b.status]||b.status;
-    const destText = b.destination ? {A:'共享/再利用',B:'手工改造',C:'直接回收'}[b.destination]||b.destination : '-';
-    const pathColor = b.destination==='A'?'tag-path':b.destination==='B'?'tag-grade':'tag-cat';
+    const destText = b.destination || '-';
+    const pathColor = b.destination==='厌氧消化'||b.destination==='好氧堆肥'||b.destination==='饲料化'?'tag-grade':b.destination==='共享再利用'?'tag-path':'tag-cat';
     return `<div class="batch-card">
       <div class="header"><span class="id">${b.id}</span><span class="status ${sc}">${stText}</span></div>
       <div class="meta">📍 #${b.point_id} | 📅 ${b.date} | 📦 ${b.category}${b.destination?` | <span class="ai-tag ${pathColor}">${destText}</span>`:''}</div>
