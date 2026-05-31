@@ -446,9 +446,22 @@ function selectWasteType(wasteType, icon) {
   document.getElementById('selectedWasteType').innerHTML = `✅ 已选择：<strong>${icon} ${wasteType}</strong>`;
   document.querySelectorAll('#wasteTypeGrid .point-card').forEach(c => c.classList.remove('selected'));
   document.getElementById('wt-' + wasteType).classList.add('selected');
+
+  // 彻底清空所有状态
   currentPoint = null; locationVerified = false; currentAiResult = null;
+  currentPhotoUrl = ''; photoHash = ''; pendingSubId = null;
+  document.getElementById('selectedPoint').innerHTML = '👆 请点击选择一个回收点';
+  document.getElementById('gpsDebug').style.display = 'none';
   document.getElementById('aiResult').classList.remove('show');
   document.getElementById('submitBtn').disabled = true;
+  document.getElementById('previewImg').style.display = 'none';
+  document.getElementById('uploadHint').style.display = 'block';
+  document.getElementById('uploadZone').classList.remove('has-image');
+  document.getElementById('cooldownBar').style.display = 'none';
+  document.getElementById('boxCountBar').style.display = 'none';
+  document.getElementById('fileInput').value = '';
+  // 清除点位选中（不是品类卡片）
+  document.querySelectorAll('#pointGrid .point-card').forEach(c => c.classList.remove('selected'));
 
   if (wasteType === '外卖厨余') {
     // 两步分离：先拍照，不限地点

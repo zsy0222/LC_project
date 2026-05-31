@@ -51,7 +51,7 @@ ITEM_COUNT_MIN = 1               # 单次投递最少物品数
 ITEM_COUNT_MAX = 20              # 单次投递最多物品数
 
 # Demo 模式：跳过 GPS 定位校验（答辩演示时设为 True）
-DEMO_MODE = True
+DEMO_MODE = False
 
 # 定位参数
 GPS_TIMEOUT_MS = 8000            # 浏览器定位超时（毫秒）
