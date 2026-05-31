@@ -219,10 +219,12 @@ def list_user_submissions(user_id: int, db: Session = Depends(get_db)):
             "batch_id": s.batch_id,
             "photo": s.photo,
             "category": s.ai_category,
+            "waste_type": s.waste_type,
             "grade": s.ai_grade,
             "score": s.ai_score,
             "co2_saved": s.co2_saved,
             "item_count": s.item_count,
+            "status": s.status,
             "ts": s.ts.isoformat(),
         }
         for s in rows
