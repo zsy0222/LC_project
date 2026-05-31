@@ -271,9 +271,8 @@
     <section>
       <h2>📦 批次管理</h2>
       <div class="filter-bar">
-        <select id="filterCategory"><option value="">全部品类</option><option value="外卖厨余">外卖厨余</option><option value="快递纸箱">快递纸箱</option><option value="塑料">塑料</option><option value="有害">有害</option></select>
-        <select id="filterStatus"><option value="">全部状态</option><option value="pending">待认领</option><option value="claimed">已认领</option><option value="done">已完成</option></select>
-        <button onclick="loadBatches()">🔍 筛选</button>
+        <select id="filterCategory" onchange="loadBatches()"><option value="">全部品类</option><option value="外卖厨余">外卖厨余</option><option value="快递纸箱">快递纸箱</option><option value="塑料">塑料</option><option value="有害">有害</option></select>
+        <select id="filterStatus" onchange="loadBatches()"><option value="">全部状态</option><option value="pending">待认领</option><option value="claimed">已认领</option><option value="done">已完成</option></select>
       </div>
       <div id="batchList"><div class="empty">加载中...</div></div>
     </section>
