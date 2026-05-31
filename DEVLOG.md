@@ -420,6 +420,59 @@
 
 ---
 
+## 七、2026-05-31 开发记录
+
+### 7.1 四大品类重构（代码落地）
+
+将前期的设计讨论（WASTE_DESIGN.md）落地为代码：
+
+| 模块 | 改动 |
+|------|------|
+| `config.py` | WASTE_TYPES = [外卖厨余, 快递纸箱, 塑料, 有害]，DEMO_MODE=False |
+| `models.py` | Submission 加 `status`(pending/confirmed/expired) + `waste_type` |
+| `submission.py` | 新增 3 端点：`/submission/pending` + `/{id}/confirm` + `/pending/{user_id}` |
+| `ai_service.py` | ImageNet 映射换为四大品类，mock 适配 |
+| `seed.py` | 碳因子补厨余 2.5/1.8 kg CO₂e |
+| `index.html` | 品类选择页 + 待投递列表 + 两步/一步自适应 + 确认栏 |
+
+### 7.2 外卖厨余两步分离
+
+```
+拍照（不限地点） → POST /submission/pending
+    → 到达分类点 → GPS 校验 → 一键确认 → POST /{id}/confirm → 归入批次
+```
+
+其余品类（纸箱/塑料/有害）走一步到位：到点→GPS→拍照→提交。
+
+### 7.3 连续打卡系统
+
+- 提交时自动统计连续分类天数，按 1/3/7/14/30 天给予 ×1.0~×1.5 碳积分倍率
+- 今日首次投递成功后弹出打卡弹窗
+- 断签不归零
+
+### 7.4 Bug 修复记录
+
+| 问题 | 修复 |
+|------|------|
+| 登录重复显示 | `initLogin()` 先清空 `<select>` |
+| GPS 坐标偏差 570m | 现场实测替代高德 POI 坐标 |
+| 相似度提示"拍摄不同角度" | 改为"投放新物品"，比对范围改为 24h |
+| 点位选中清除品类 | `#pointGrid .point-card` 限定选择器 |
+| 不同品类误判相似 | 图片去重加 `waste_type` 过滤 |
+| 回收端品类筛选未更新 | 下拉改为四大品类 + onchange 即搜 |
+| `/confirm` 500 错误 | `func.date()` 返回字符串自动转换 |
+| 确认后按钮卡住 | 成功后重置按钮状态 |
+
+### 7.5 文档产出
+
+- `WASTE_DESIGN.md` — 行业背景（厨余产能不足/虎哥竞品）+ 全品类入口设计
+- `DESIGN_VALUES.md` — 所有可调参数集中管理
+- `CHECKLIST.md` — 69 项备赛标准逐条检查
+- `CLAUDE.md` — AI 会话上下文持久化
+- 桌面 `LC项目功能清单_v0.3.docx` + `LC项目架构说明_v0.3.docx`
+
+---
+
 ## 附：文件索引
 
 | 文件 | 路径 |
