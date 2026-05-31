@@ -10,12 +10,14 @@ from ..config import (
     PHOTO_SIMILARITY_THRESHOLD, PHOTO_SIMILARITY_RECENT_HOURS,
     ITEM_COUNT_MIN, ITEM_COUNT_MAX, DEMO_MODE,
 )
+from datetime import date as date_type
 from ..database import get_db
 from ..models import Point, User, Submission
 from ..schemas import SubmissionCreate, SubmissionOut, SubmissionPending, SubmissionConfirm
 from ..services.batch_service import get_or_create_batch
 from ..services.carbon_service import calc_co2
 from ..services.ai_service import compute_photo_hash, is_similar_to_recent
+from ..api.user import _compute_streak, _streak_multiplier, _streak_badge
 
 router = APIRouter(tags=["submission"])
 
@@ -131,10 +133,22 @@ def create_submission(data: SubmissionCreate, db: Session = Depends(get_db)):
         photo_hash=photo_hash,
         item_count=item_count,
     )
+    # 打卡倍率
+    streak, is_today_first = _compute_streak(user.id, date_type.today(), db)
+    multiplier = _streak_multiplier(streak) if is_today_first else _streak_multiplier(max(0, streak - 1) if not is_today_first else streak)
+    if is_today_first: streak += 1  # 今天首次，计入新一天
+    final_multiplier = _streak_multiplier(streak)
+    bonus_co2 = round(total_co2 * (final_multiplier - 1.0), 3)
+    badge = _streak_badge(streak)
     db.add(sub)
-    user.carbon_score = float(user.carbon_score or 0) + total_co2
+    user.carbon_score = float(user.carbon_score or 0) + total_co2 + bonus_co2
     db.commit()
     db.refresh(sub)
+    # 注入打卡信息到响应
+    sub.streak = streak
+    sub.streak_multiplier = final_multiplier
+    sub.streak_badge = badge["title"] if badge else None
+    sub.is_today_first = is_today_first
     return sub
 
 
@@ -247,10 +261,21 @@ def confirm_submission(sub_id: int, data: SubmissionConfirm, db: Session = Depen
     sub.co2_saved = total_co2
     sub.status = "confirmed"
     user = db.query(User).get(data.user_id)
+    # 打卡倍率
+    streak, is_today_first = _compute_streak(user.id, date_type.today(), db) if user else (0, True)
+    if is_today_first: streak += 1
+    final_multiplier = _streak_multiplier(streak)
+    bonus_co2 = round(total_co2 * (final_multiplier - 1.0), 3)
+    badge = _streak_badge(streak)
     if user:
-        user.carbon_score = float(user.carbon_score or 0) + total_co2
+        user.carbon_score = float(user.carbon_score or 0) + total_co2 + bonus_co2
     db.commit()
     db.refresh(sub)
+    # 注入打卡信息
+    sub.streak = streak
+    sub.streak_multiplier = final_multiplier
+    sub.streak_badge = badge["title"] if badge else None
+    sub.is_today_first = is_today_first
     return sub
 
 

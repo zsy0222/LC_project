@@ -93,6 +93,10 @@ class SubmissionOut(BaseModel):
     item_count: int = 1
     status: str = "confirmed"
     waste_type: str = "快递纸箱"
+    streak: int = 0
+    streak_multiplier: float = 1.0
+    streak_badge: Optional[str] = None
+    is_today_first: bool = False
     ts: datetime
 
 
