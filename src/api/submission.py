@@ -17,9 +17,62 @@ from ..schemas import SubmissionCreate, SubmissionOut, SubmissionPending, Submis
 from ..services.batch_service import get_or_create_batch
 from ..services.carbon_service import calc_co2
 from ..services.ai_service import compute_photo_hash, is_similar_to_recent
-from ..api.user import _compute_streak, _streak_multiplier, _streak_badge
-
 router = APIRouter(tags=["submission"])
+
+
+# ---- 打卡工具（内联，避免循环导入） ----
+def _compute_streak(user_id: int, today: date_type, db: Session) -> tuple[int, bool]:
+    """统计连续打卡天数"""
+    from sqlalchemy import func as sa_func
+    rows = (
+        db.query(sa_func.date(Submission.ts))
+        .filter(Submission.user_id == user_id, Submission.status == "confirmed")
+        .distinct()
+        .order_by(sa_func.date(Submission.ts).desc())
+        .all()
+    )
+    from datetime import datetime as dt
+    dates = []
+    for r in rows:
+        v = r[0]
+        if isinstance(v, str):
+            dates.append(date_type.fromisoformat(v))
+        elif isinstance(v, dt):
+            dates.append(v.date())
+        elif isinstance(v, date_type):
+            dates.append(v)
+    if not dates:
+        return 0, True
+    streak = 1
+    for i in range(1, len(dates)):
+        if (dates[i-1] - dates[i]).days == 1:
+            streak += 1
+        else:
+            break
+    if dates[0] == today:
+        is_today_first = False
+    else:
+        if (today - dates[0]).days > 1:
+            streak = 0
+        is_today_first = True
+    return streak, is_today_first
+
+
+def _streak_multiplier(streak: int) -> float:
+    if streak >= 30: return 1.5
+    if streak >= 14: return 1.3
+    if streak >= 7: return 1.2
+    if streak >= 3: return 1.1
+    return 1.0
+
+
+def _streak_badge(streak: int) -> dict | None:
+    if streak >= 30: return {"title": "零废弃大师", "multiplier": 1.5}
+    if streak >= 14: return {"title": "分类高手", "multiplier": 1.3}
+    if streak >= 7: return {"title": "分类达人", "multiplier": 1.2}
+    if streak >= 3: return {"title": "分类新手", "multiplier": 1.1}
+    if streak >= 1: return {"title": "初试分类", "multiplier": 1.0}
+    return None
 
 
 def _haversine(lat1: float, lng1: float, lat2: float, lng2: float) -> float:

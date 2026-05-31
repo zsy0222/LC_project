@@ -81,24 +81,31 @@ def _compute_streak(user_id: int, today: date, db: Session) -> tuple[int, bool]:
     )
     dates = [r[0] for r in rows]
     if not dates:
-        return 0, False
+        return 0, True
     # 计算连续天数
     streak = 1
-    for i in range(1, len(dates)):
-        if (dates[i-1] - dates[i]).days == 1:
-            streak += 1
+    # 确保 dates 里的元素是 date 类型
+    valid_dates = []
+    for d in dates:
+        if isinstance(d, date):
+            valid_dates.append(d)
+        elif hasattr(d, 'date'):
+            valid_dates.append(d.date())
         else:
-            break
-    # 检测是否今天首次：今天之前最近的确认记录不是今天
-    is_today_first = dates[0] != today
-    # 如果今天已有记录，说明这是今天第 N 次
-    # 如果今天无记录，则算明天开始新的一天
+            valid_dates.append(d)
+    dates = valid_dates
+    if len(dates) > 1:
+        for i in range(1, len(dates)):
+            if (dates[i-1] - dates[i]).days == 1:
+                streak += 1
+            else:
+                break
+    # 今天已有记录 → 非首次；否则是首次
     if dates[0] == today:
         is_today_first = False
     else:
-        # 昨天有记录 → 连续；昨天无记录 → 断连
         if (today - dates[0]).days > 1:
-            streak = 0  # 断签
+            streak = 0
         is_today_first = True
 
     return streak, is_today_first

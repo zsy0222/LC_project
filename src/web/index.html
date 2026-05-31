@@ -230,12 +230,9 @@
       <h2>📸 拍照投递</h2>
       <!-- 外卖厨余确认区（第二步显示，替代上传区） -->
       <div id="foodConfirmBar" style="display:none;padding:16px;background:var(--green-bg);border-radius:var(--radius);text-align:center;">
-        <div style="font-size:1.5rem;margin-bottom:8px;">🍚</div>
-        <div style="font-size:0.9rem;font-weight:bold;margin-bottom:12px;">到达分类点，确认投递</div>
-        <label style="display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-size:0.95rem;">
-          <input type="checkbox" id="foodConfirmCheckbox" onchange="checkSubmitReady()" style="width:20px;height:20px;">
-          ☑️ 我已将厨余倒入分类桶
-        </label>
+        <div style="font-size:1.5rem;margin-bottom:4px;">🍚</div>
+        <div style="font-size:0.9rem;font-weight:bold;">到达分类点后，一键确认投递</div>
+        <div style="font-size:0.7rem;color:var(--gray);margin-top:4px;">需要 GPS 验证位置</div>
       </div>
       <!-- 拍照上传区（选择品类+点位后显示） -->
       <div class="upload-zone" id="uploadZone" style="display:none;" onclick="document.getElementById('fileInput').click()">
@@ -522,9 +519,7 @@ function openConfirm(subId, wasteType, photo) {
   document.getElementById('pointSection').style.display = 'block';
   document.getElementById('uploadZone').style.display = 'none';
   document.getElementById('aiResult').classList.remove('show');
-  // 在拍照区位置展示确认栏
   document.getElementById('foodConfirmBar').style.display = 'block';
-  document.getElementById('foodConfirmCheckbox').checked = false;
   document.getElementById('submitBtn').textContent = '✅ 我已分类投放';
   document.getElementById('submitBtn').disabled = true;
   loadPoints();
@@ -658,10 +653,9 @@ function checkSubmitReady() {
   else if (isFood) {
     // 外卖厨余：先拍照 → pending，无需GPS；有 pendingSubId 时走确认流程
     if (pendingSubId) {
-      const checked = document.getElementById('foodConfirmCheckbox').checked;
       msg = '✅ 我已分类投放';
-      disabled = !locationVerified || cooldownRemain > 0 || !checked;
-      if (locationVerified && !checked) msg = '☑️ 请勾选确认已分类投放';
+      disabled = !locationVerified || cooldownRemain > 0;
+      if (!locationVerified && !cooldownRemain) msg = '📍 请到达分类点通过定位验证';
     } else if (!currentAiResult) { msg = '📸 请先拍照'; disabled = true; }
     else if (currentAiResult.category === '无法识别') { msg = '⚠ 无法识别，请重新拍照'; disabled = true; }
     else { msg = '📸 拍照记录（不限地点）'; disabled = false; }
@@ -708,7 +702,6 @@ function resetDelivery() {
   document.getElementById('cooldownBar').style.display = 'none';
   document.getElementById('boxCountBar').style.display = 'none';
   document.getElementById('foodConfirmBar').style.display = 'none';
-  document.getElementById('foodConfirmCheckbox').checked = false;
   document.getElementById('uploadZone').style.display = 'none';
   document.getElementById('previewImg').style.display = 'none';
   document.getElementById('uploadHint').style.display = 'block';
