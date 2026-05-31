@@ -189,7 +189,34 @@
 
   <!-- 投递 tab -->
   <div class="tab-content" id="tab-delivery">
+    <!-- 品类选择 -->
     <section>
+      <h2>🌱 今天你想分类什么？</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="wasteTypeGrid">
+        <div class="point-card" onclick="selectWasteType('外卖厨余','🍚')" id="wt-外卖厨余">
+          <div class="name">🍚 外卖厨余</div><div class="loc">剩饭剩菜·先拍后到</div>
+        </div>
+        <div class="point-card" onclick="selectWasteType('快递纸箱','📦')" id="wt-快递纸箱">
+          <div class="name">📦 快递纸箱</div><div class="loc">纸箱回收·到点投递</div>
+        </div>
+        <div class="point-card" onclick="selectWasteType('塑料','🥡')" id="wt-塑料">
+          <div class="name">🥡 塑料</div><div class="loc">塑料瓶餐盒·到点投递</div>
+        </div>
+        <div class="point-card" onclick="selectWasteType('有害','🔋')" id="wt-有害">
+          <div class="name">🔋 有害</div><div class="loc">电池灯泡药品·到点投递</div>
+        </div>
+      </div>
+      <div style="margin-top:6px;font-size:0.75rem;color:var(--gray);" id="selectedWasteType">👆 请选择回收品类</div>
+    </section>
+
+    <!-- 外卖厨余待投递列表 -->
+    <section id="pendingSection" style="display:none;">
+      <h2>📋 待投递</h2>
+      <div id="pendingList"><div class="empty">暂无待投递</div></div>
+    </section>
+
+    <!-- 点位选择 (非厨余品类显示) -->
+    <section id="pointSection" style="display:none;">
       <h2>📍 选择回收点</h2>
       <div class="point-grid" id="pointGrid"><div class="empty">加载中...</div></div>
       <div style="margin-top:6px;font-size:0.75rem;color:var(--gray);" id="selectedPoint">👆 请点击选择一个回收点</div>
@@ -316,6 +343,8 @@ let currentUser = null, currentPoint = null, currentPhotoUrl = '', currentAiResu
 let claimTarget = null, reuseTarget = null, reusePhotoUrl = '';
 let locationVerified = false, photoHash = '', cooldownRemain = 0;
 let demoMode = false;
+let currentWasteType = '';  // 当前选择的品类
+let pendingSubId = null;    // 外卖厨余待确认的记录ID
 
 // ==================== 登录 ====================
 async function initLogin() {
@@ -411,6 +440,65 @@ async function loadTabContent(tabId) {
 }
 
 // ==================== 投递功能 ====================
+
+function selectWasteType(wasteType, icon) {
+  currentWasteType = wasteType;
+  document.getElementById('selectedWasteType').innerHTML = `✅ 已选择：<strong>${icon} ${wasteType}</strong>`;
+  document.querySelectorAll('#wasteTypeGrid .point-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('wt-' + wasteType).classList.add('selected');
+  currentPoint = null; locationVerified = false; currentAiResult = null;
+  document.getElementById('aiResult').classList.remove('show');
+  document.getElementById('submitBtn').disabled = true;
+
+  if (wasteType === '外卖厨余') {
+    // 两步分离：先拍照，不限地点
+    document.getElementById('pointSection').style.display = 'none';
+    document.getElementById('pendingSection').style.display = 'block';
+    document.getElementById('uploadZone').style.display = 'block';
+    document.getElementById('submitBtn').textContent = '📸 先拍照记录';
+    loadPendingList();
+  } else {
+    // 一步到位：先到点再拍
+    document.getElementById('pointSection').style.display = 'block';
+    document.getElementById('pendingSection').style.display = 'none';
+    document.getElementById('uploadZone').style.display = 'block';
+    document.getElementById('submitBtn').textContent = '✅ 确认投递';
+    loadPoints();
+  }
+}
+
+async function loadPendingList() {
+  if (!currentUser) return;
+  try {
+    const res = await fetch(`${API}/submission/pending/${currentUser.id}`);
+    const items = await res.json();
+    const c = document.getElementById('pendingList');
+    if (!items.length) {
+      c.innerHTML = '<div class="empty">暂无待投递，拍一张新的吧 📸</div>';
+      return;
+    }
+    c.innerHTML = items.map(s => `
+      <div class="sub-item" style="cursor:pointer;" onclick="openConfirm('${s.id}','${s.waste_type}','${s.photo}')">
+        <img class="sub-thumb" src="${s.photo}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22><rect fill=%22%23ddd%22 width=%2244%22 height=%2244%22/><text x=%2222%22 y=%2228%22 text-anchor=%22middle%22 font-size=%2216%22>🍚</text></svg>'">
+        <div class="sub-info"><div><strong>🍚 ${s.waste_type}</strong> · ${s.category}</div><div class="meta">拍摄于 ${new Date(s.ts).toLocaleString('zh-CN')}</div></div>
+        <span style="font-size:0.75rem;color:var(--amber);">⏳ 待确认</span>
+      </div>`).join('');
+  } catch(e) { /* ignore */ }
+}
+
+function openConfirm(subId, wasteType, photo) {
+  pendingSubId = subId;
+  locationVerified = false;
+  currentPoint = null;
+  document.getElementById('pendingSection').style.display = 'none';
+  document.getElementById('pointSection').style.display = 'block';
+  document.getElementById('submitBtn').textContent = '✅ 我已分类投放';
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('uploadZone').style.display = 'none';
+  document.getElementById('aiResult').classList.remove('show');
+  loadPoints();
+}
+
 async function loadPoints() {
   const res = await fetch(`${API}/points`);
   const points = await res.json();
@@ -526,14 +614,26 @@ async function handleFile(e) {
   checkSubmitReady();
 }
 function checkSubmitReady() {
-  const has = currentPoint && currentAiResult && currentUser && locationVerified;
-  const unknown = currentAiResult && currentAiResult.category === '无法识别';
-  const cooling = cooldownRemain > 0;
+  const isFood = currentWasteType === '外卖厨余';
   let msg = '✅ 确认投递';
-  if (unknown) msg = '⚠ 无法识别，请重新拍照';
-  else if (!locationVerified) msg = '📍 请先通过位置验证';
-  else if (cooling) msg = `⏳ 冷却中 (${cooldownRemain.toFixed(0)}s)`;
-  document.getElementById('submitBtn').disabled = !has || unknown || cooling;
+  let disabled = false;
+
+  if (!currentUser || !currentWasteType) { disabled = true; msg = '👆 请先选择品类'; }
+  else if (isFood) {
+    // 外卖厨余：先拍照 → pending，无需GPS
+    if (!currentAiResult) { msg = '📸 请先拍照'; disabled = true; }
+    else if (currentAiResult.category === '无法识别') { msg = '⚠ 无法识别，请重新拍照'; disabled = true; }
+    else if (!pendingSubId) { msg = '📸 拍照记录（不限地点）'; disabled = false; }
+    else { msg = '✅ 我已分类投放'; disabled = !locationVerified || cooldownRemain > 0; }
+  } else {
+    // 其他品类：需要GPS + 拍照
+    if (!currentPoint) { msg = '📍 请选择回收点'; disabled = true; }
+    else if (!locationVerified) { msg = '📍 请先通过位置验证'; disabled = true; }
+    else if (!currentAiResult) { msg = '📸 请拍照'; disabled = true; }
+    else if (currentAiResult.category === '无法识别') { msg = '⚠ 无法识别'; disabled = true; }
+    else if (cooldownRemain > 0) { msg = `⏳ 冷却 (${cooldownRemain.toFixed(0)}s)`; disabled = true; }
+  }
+  document.getElementById('submitBtn').disabled = disabled;
   document.getElementById('submitBtn').textContent = msg;
 }
 
@@ -564,23 +664,82 @@ async function checkCooldown() {
 }
 
 async function submitDelivery() {
-  if (!currentPoint || !currentAiResult || !currentUser) return;
-  if (!locationVerified) { toast('📍 请先通过位置验证'); return; }
-  if (cooldownRemain > 0) { toast(`⏳ 请等待 ${cooldownRemain.toFixed(0)} 秒后再投递`); return; }
+  if (!currentUser || !currentWasteType) return;
+  const isFood = currentWasteType === '外卖厨余';
   const btn = document.getElementById('submitBtn');
+
+  if (isFood && !pendingSubId) {
+    // 第一步：仅拍照记录，不校验GPS
+    if (!currentAiResult) return;
+    btn.disabled = true; btn.textContent = '记录中...';
+    try {
+      const body = {
+        user_id: currentUser.id, waste_type: currentWasteType,
+        category: currentAiResult.category, score: currentAiResult.score,
+        photo: currentPhotoUrl, photo_hash: photoHash,
+        item_count: currentAiResult.box_count || 1,
+      };
+      const res = await fetch(`${API}/submission/pending`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.detail); }
+      const sub = await res.json();
+      toast('✅ 已记录！请到达分类点后确认投递');
+      pendingSubId = sub.id;
+      // 刷新待投递列表
+      currentAiResult = null; currentPhotoUrl = ''; photoHash = '';
+      document.getElementById('previewImg').style.display = 'none';
+      document.getElementById('uploadHint').style.display = 'block';
+      document.getElementById('uploadZone').classList.remove('has-image');
+      document.getElementById('aiResult').classList.remove('show');
+      document.getElementById('fileInput').value = '';
+      btn.textContent = '📍 到达分类点后确认';
+      loadPendingList();
+    } catch(e) { toast('❌ ' + e.message); btn.disabled = false; btn.textContent = '📸 先拍照记录'; }
+    return;
+  }
+
+  if (isFood && pendingSubId) {
+    // 第二步：GPS确认
+    if (!locationVerified) { toast('📍 请先到达分类点并通过位置验证'); return; }
+    if (cooldownRemain > 0) { toast(`⏳ 冷却中 ${cooldownRemain.toFixed(0)}s`); return; }
+    btn.disabled = true; btn.textContent = '确认中...';
+    try {
+      let userLat = 0, userLng = 0;
+      if (navigator.geolocation) {
+        try {
+          const pos = await new Promise((resolve, reject) =>
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000, maximumAge: 60000 }));
+          userLat = pos.coords.latitude; userLng = pos.coords.longitude;
+        } catch(e) {}
+      }
+      const res = await fetch(`${API}/submission/${pendingSubId}/confirm`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ user_id: currentUser.id, user_lat: userLat, user_lng: userLng, qr_code: currentPoint.qr_code, confirmed: true }),
+      });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.detail); }
+      const sub = await res.json();
+      toast(`✅ 投递成功！批次 ${sub.batch_id}，减碳 ${sub.co2_saved?.toFixed(3)} kg`);
+      resetDelivery();
+      await Promise.all([loadPendingList(), loadMySubmissions(), loadBadges(), loadRank()]);
+    } catch(e) { toast('❌ ' + e.message); btn.disabled = false; }
+    return;
+  }
+
+  // 非外卖厨余：一步到位
+  if (!currentPoint || !currentAiResult) return;
+  if (!locationVerified) { toast('📍 请先通过位置验证'); return; }
+  if (cooldownRemain > 0) { toast(`⏳ 冷却中 (${cooldownRemain.toFixed(0)}s)`); return; }
   btn.disabled = true; btn.textContent = '提交中...';
   try {
     const itemCount = currentAiResult.box_count || 1;
     let userLat = 0, userLng = 0;
-    // 尝试再次获取当前位置
     if (navigator.geolocation) {
       try {
         const pos = await new Promise((resolve, reject) =>
           navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000, maximumAge: 60000 }));
         userLat = pos.coords.latitude; userLng = pos.coords.longitude;
-      } catch(e) { /* 使用默认 0 */ }
+      } catch(e) {}
     }
-    const body = { user_id: currentUser.id, qr_code: currentPoint.qr_code, category: currentAiResult.category, grade: currentAiResult.grade, score: currentAiResult.score, photo: currentPhotoUrl, photo_hash: photoHash, item_count: itemCount, user_lat: userLat, user_lng: userLng };
+    const body = { user_id: currentUser.id, qr_code: currentPoint.qr_code, waste_type: currentWasteType, category: currentAiResult.category, grade: currentAiResult.grade, score: currentAiResult.score, photo: currentPhotoUrl, photo_hash: photoHash, item_count: itemCount, user_lat: userLat, user_lng: userLng };
     const res = await fetch(`${API}/submission`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
     if (!res.ok) { const e = await res.json(); throw new Error(e.detail); }
     const sub = await res.json();

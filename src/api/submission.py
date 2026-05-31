@@ -12,7 +12,7 @@ from ..config import (
 )
 from ..database import get_db
 from ..models import Point, User, Submission
-from ..schemas import SubmissionCreate, SubmissionOut
+from ..schemas import SubmissionCreate, SubmissionOut, SubmissionPending, SubmissionConfirm
 from ..services.batch_service import get_or_create_batch
 from ..services.carbon_service import calc_co2
 from ..services.ai_service import compute_photo_hash, is_similar_to_recent
@@ -181,3 +181,110 @@ def check_cooldown(user_id: int, qr_code: str, db: Session = Depends(get_db)):
     elapsed = (datetime.utcnow() - recent.ts).total_seconds()
     remain = max(0, COOLDOWN_SECONDS - elapsed)
     return {"cooldown": True if remain > 0 else False, "remain_seconds": round(remain, 1)}
+
+
+@router.post("/submission/pending", response_model=SubmissionOut)
+def create_pending(data: SubmissionPending, db: Session = Depends(get_db)):
+    """两步分离第一步：外卖厨余拍照，不限地点，只创建 pending 记录"""
+    user = db.query(User).get(data.user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="用户不存在")
+
+    sub = Submission(
+        user_id=user.id,
+        batch_id="PENDING",
+        photo=data.photo,
+        ai_category=data.category,
+        ai_grade="",
+        ai_score=data.score,
+        photo_hash=data.photo_hash,
+        item_count=max(1, data.item_count),
+        status="pending",
+        waste_type=data.waste_type,
+        co2_saved=0.0,
+    )
+    db.add(sub)
+    db.commit()
+    db.refresh(sub)
+    return sub
+
+
+@router.post("/submission/{sub_id}/confirm", response_model=SubmissionOut)
+def confirm_submission(sub_id: int, data: SubmissionConfirm, db: Session = Depends(get_db)):
+    """两步分离第二步：到达分类点，GPS校验通过后确认投递"""
+    sub = db.query(Submission).get(sub_id)
+    if not sub:
+        raise HTTPException(status_code=404, detail="记录不存在")
+    if sub.user_id != data.user_id:
+        raise HTTPException(status_code=403, detail="无权操作他人记录")
+    if sub.status != "pending":
+        raise HTTPException(status_code=400, detail=f"记录状态为 {sub.status}，不可确认")
+
+    # 此处定位逻辑与 create_submission 相同，不重复校验
+    point = db.query(Point).filter(Point.qr_code == data.qr_code).first()
+    if not point:
+        raise HTTPException(status_code=404, detail="点位不存在")
+
+    if not DEMO_MODE:
+        point_lat, point_lng = _parse_gps(point.gps)
+        if point_lat and point_lng and data.user_lat and data.user_lng:
+            dist = _haversine(data.user_lat, data.user_lng, point_lat, point_lng)
+            if dist > LOCATION_MAX_DISTANCE_M:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"定位校验失败：距回收点 {dist:.0f} 米（限制 {LOCATION_MAX_DISTANCE_M} 米）",
+                )
+
+    # 归入批次
+    batch = get_or_create_batch(db, point, sub.ai_category or sub.waste_type, "")
+    co2 = calc_co2(db, sub.ai_category or sub.waste_type, batch.destination or "C")
+    total_co2 = round(co2 * sub.item_count, 3)
+
+    sub.batch_id = batch.id
+    sub.co2_saved = total_co2
+    sub.status = "confirmed"
+    user = db.query(User).get(data.user_id)
+    if user:
+        user.carbon_score = float(user.carbon_score or 0) + total_co2
+    db.commit()
+    db.refresh(sub)
+    return sub
+
+
+@router.get("/submission/pending/{user_id}")
+def list_pending(user_id: int, db: Session = Depends(get_db)):
+    """查询用户待确认列表，超过24小时自动过期"""
+    cutoff = datetime.utcnow() - timedelta(hours=24)
+    rows = (
+        db.query(Submission)
+        .filter(
+            Submission.user_id == user_id,
+            Submission.status == "pending",
+            Submission.ts >= cutoff,
+        )
+        .order_by(Submission.ts.desc())
+        .all()
+    )
+    # 过期处理
+    expired = (
+        db.query(Submission)
+        .filter(
+            Submission.user_id == user_id,
+            Submission.status == "pending",
+            Submission.ts < cutoff,
+        )
+        .all()
+    )
+    for s in expired:
+        s.status = "expired"
+    if expired:
+        db.commit()
+
+    return [
+        {
+            "id": s.id, "waste_type": s.waste_type, "category": s.ai_category,
+            "photo": s.photo, "item_count": s.item_count,
+            "ts": s.ts.isoformat(), "status": s.status,
+        }
+        for s in rows
+    ]

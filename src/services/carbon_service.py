@@ -20,6 +20,6 @@ def calc_co2(db: Session, category: str, recommend: str) -> float:
     )
     if cf is None:
         # 兜底默认值
-        default = {"纸箱": 0.30, "塑料": 0.08, "玻璃": 0.25}.get(category, 0.15)
+        default = {"外卖厨余": 2.00, "快递纸箱": 0.30, "塑料": 0.08, "有害": 0.0}.get(category, 0.15)
         return round(default, 3)
     return round(cf.factor, 3)

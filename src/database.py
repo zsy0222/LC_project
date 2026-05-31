@@ -37,4 +37,8 @@ def init_db():
                 conn.execute(text("ALTER TABLE submissions ADD COLUMN photo_hash VARCHAR(64) DEFAULT ''"))
             if "item_count" not in cols:
                 conn.execute(text("ALTER TABLE submissions ADD COLUMN item_count INTEGER DEFAULT 1"))
+            if "status" not in cols:
+                conn.execute(text("ALTER TABLE submissions ADD COLUMN status VARCHAR(16) DEFAULT 'confirmed'"))
+            if "waste_type" not in cols:
+                conn.execute(text("ALTER TABLE submissions ADD COLUMN waste_type VARCHAR(16) DEFAULT '快递纸箱'"))
             conn.commit()

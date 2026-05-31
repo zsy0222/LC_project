@@ -35,14 +35,20 @@ if not AI_MOCK_MODE:
         import torch
         from torchvision import models, transforms
 
-        # ImageNet 中可关联到三类的代表索引（来自 ImageNet 1000 类）
-        # 纸箱 carton(478)、packet(692)、cardboard(无单独类，用 carton 兜底)
-        # 塑料 water_bottle(898)、plastic_bag(728)、pop_bottle(737)
-        # 玻璃 beer_bottle(440)、wine_bottle(907)、beer_glass(441)
+        # ImageNet 1000 类索引聚合到四个回收品类
         _imagenet_idx_to_cat = {
-            478: "纸箱", 692: "纸箱", 720: "纸箱",
+            # 外卖厨余
+            930: "外卖厨余", 416: "外卖厨余", 964: "外卖厨余",  # rice/bulgur/mashed_potato
+            489: "外卖厨余", 497: "外卖厨余", 965: "外卖厨余",  # spaghetti/carbonara/meat_loaf
+            101: "外卖厨余", 937: "外卖厨余", 943: "外卖厨余",  # cauliflower/broccoli/cucumber
+            925: "外卖厨余", 587: "外卖厨余", 967: "外卖厨余",  # plate/trifle/potpie
+            933: "外卖厨余", 934: "外卖厨余", 745: "外卖厨余",  # hamburger/hotdog/stew
+            # 快递纸箱
+            478: "快递纸箱", 692: "快递纸箱", 720: "快递纸箱",
+            # 塑料
             898: "塑料", 728: "塑料", 737: "塑料",
-            440: "玻璃", 907: "玻璃", 441: "玻璃",
+            # 有害（电池/药品相关）
+            617: "有害", 660: "有害",  # match/pill_bottle 近似映射
         }
 
         _model = models.mobilenet_v3_small(weights=models.MobileNet_V3_Small_Weights.DEFAULT)
@@ -120,14 +126,19 @@ def _predict_with_torch(img: Image.Image) -> Tuple[str, float]:
 # ---------- 主分类：mock 路径 ----------
 def _predict_mock(img: Image.Image) -> Tuple[str, float]:
     r, g, b = ImageStat.Stat(img.convert("RGB").resize((64, 64))).mean
-    # 若 RGB 三个通道均值非常接近（灰度图/非回收物），拒绝识别
+    brightness = (r + g + b) / 3
     if max(r, g, b) - min(r, g, b) < 10:
         return "unknown", round(random.uniform(0.05, 0.15), 3)
+    # 暖色系 → 外卖厨余
+    if r > g and g > b and brightness < 180:
+        return "外卖厨余", round(random.uniform(0.65, 0.85), 3)
+    # 棕色/土色 → 快递纸箱
     if r > g + 5 and r > b + 5:
-        return "纸箱", round(random.uniform(0.65, 0.85), 3)
+        return "快递纸箱", round(random.uniform(0.65, 0.85), 3)
+    # 蓝/白 → 塑料
     if b > r:
         return "塑料", round(random.uniform(0.60, 0.82), 3)
-    return "玻璃", round(random.uniform(0.58, 0.80), 3)
+    return "快递纸箱", round(random.uniform(0.58, 0.80), 3)
 
 
 # ---------- 纸箱计数：2D 网格连通区域 ----------

@@ -36,13 +36,13 @@ class ScanResp(BaseModel):
 
 # ---------- AI ----------
 class PredictResp(BaseModel):
-    category: str          # 纸箱 / 塑料 / 玻璃
-    grade: str             # 完好 / 轻损 / 破损 / 受潮
+    category: str          # 外卖厨余 / 快递纸箱 / 塑料 / 有害
+    grade: str = ""        # 纸箱用：完好/轻损/破损/受潮；厨余用：空
     score: float           # 置信度
-    recommend: str         # A / B / C
-    recommend_desc: str
-    co2_estimate: float    # 减碳预估（已含数量叠加）
-    box_count: int = 1     # AI 识别的回收物数量
+    recommend: str = ""    # A / B / C
+    recommend_desc: str = ""
+    co2_estimate: float    # 减碳预估
+    box_count: int = 1     # AI 识别的回收物数量（仅纸箱）
     need_recheck: bool     # 置信度过低时提示重拍
 
 
@@ -50,14 +50,33 @@ class PredictResp(BaseModel):
 class SubmissionCreate(BaseModel):
     user_id: int
     qr_code: str           # 点位二维码
-    category: str
-    grade: str
-    score: float
+    waste_type: str = "快递纸箱"  # 品类
+    category: str = ""     # AI 识别结果
+    grade: str = ""        # 完整度（纸箱）/ 空（其他）
+    score: float = 0.0
     photo: str             # 已上传的照片 URL
-    photo_hash: str = ""   # 感知哈希（前端计算）
-    item_count: int = 1    # 照片中回收物数量
-    user_lat: float = 0.0  # 用户当前纬度
-    user_lng: float = 0.0  # 用户当前经度
+    photo_hash: str = ""   # 感知哈希
+    item_count: int = 1    # 物品数量
+    user_lat: float = 0.0
+    user_lng: float = 0.0
+
+class SubmissionPending(BaseModel):
+    """两步分离第一步：仅拍照，不校验GPS"""
+    user_id: int
+    waste_type: str        # 品类
+    category: str = ""     # AI 识别结果
+    score: float = 0.0
+    photo: str             # 照片 URL
+    photo_hash: str = ""
+    item_count: int = 1
+
+class SubmissionConfirm(BaseModel):
+    """两步分离第二步：到达分类点，GPS校验"""
+    user_id: int
+    user_lat: float        # 用户经度
+    user_lng: float        # 用户纬度
+    qr_code: str           # 点位二维码
+    confirmed: bool = True  # 用户勾选确认
 
 
 class SubmissionOut(BaseModel):
@@ -67,11 +86,13 @@ class SubmissionOut(BaseModel):
     batch_id: str
     photo: str
     ai_category: str
-    ai_grade: str
+    ai_grade: Optional[str] = ""
     ai_score: float
     co2_saved: float
     photo_hash: str = ""
     item_count: int = 1
+    status: str = "confirmed"
+    waste_type: str = "快递纸箱"
     ts: datetime
 
 

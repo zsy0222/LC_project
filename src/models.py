@@ -69,6 +69,8 @@ class Submission(Base):
     co2_saved = Column(Float, default=0.0)
     photo_hash = Column(String(64), default="")     # 感知哈希，用于相似度去重
     item_count = Column(Integer, default=1)          # 照片中回收物数量
+    status = Column(String(16), default="confirmed")  # pending / confirmed / expired
+    waste_type = Column(String(16), default="快递纸箱")  # 外卖厨余 / 快递纸箱 / 塑料 / 有害
     ts = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="submissions")
