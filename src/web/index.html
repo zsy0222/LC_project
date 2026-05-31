@@ -248,6 +248,12 @@
         📦 AI 识别到 <strong id="boxCountText">1</strong> 个回收物，预估减碳 <strong id="boxCo2Text">-</strong> kg
       </div>
       <div id="cooldownBar" style="display:none;margin-top:8px;padding:8px 12px;background:var(--amber-bg);border-radius:8px;font-size:0.8rem;color:var(--amber);font-weight:bold;"><span id="cooldownText">⏳ 冷却中</span></div>
+      <div id="foodConfirmBar" style="display:none;margin-top:8px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;">
+          <input type="checkbox" id="foodConfirmCheckbox" onchange="checkSubmitReady()" style="width:18px;height:18px;">
+          ☑️ 我已将厨余倒入分类桶
+        </label>
+      </div>
       <button class="btn btn-primary" id="submitBtn" disabled onclick="submitDelivery()">✅ 确认投递</button>
     </section>
     <section>
@@ -459,6 +465,8 @@ function selectWasteType(wasteType, icon) {
   document.getElementById('uploadZone').classList.remove('has-image');
   document.getElementById('cooldownBar').style.display = 'none';
   document.getElementById('boxCountBar').style.display = 'none';
+  document.getElementById('foodConfirmBar').style.display = 'none';
+  document.getElementById('foodConfirmCheckbox').checked = false;
   document.getElementById('fileInput').value = '';
   // 清除点位选中（不是品类卡片）
   document.querySelectorAll('#pointGrid .point-card').forEach(c => c.classList.remove('selected'));
@@ -503,8 +511,12 @@ function openConfirm(subId, wasteType, photo) {
   pendingSubId = subId;
   locationVerified = false;
   currentPoint = null;
+  document.getElementById('selectedPoint').innerHTML = '👆 请点击选择一个回收点';
+  document.getElementById('gpsDebug').style.display = 'none';
   document.getElementById('pendingSection').style.display = 'none';
   document.getElementById('pointSection').style.display = 'block';
+  document.getElementById('foodConfirmBar').style.display = 'block';
+  document.getElementById('foodConfirmCheckbox').checked = false;
   document.getElementById('submitBtn').textContent = '✅ 我已分类投放';
   document.getElementById('submitBtn').disabled = true;
   document.getElementById('uploadZone').style.display = 'none';
@@ -637,7 +649,12 @@ function checkSubmitReady() {
     if (!currentAiResult) { msg = '📸 请先拍照'; disabled = true; }
     else if (currentAiResult.category === '无法识别') { msg = '⚠ 无法识别，请重新拍照'; disabled = true; }
     else if (!pendingSubId) { msg = '📸 拍照记录（不限地点）'; disabled = false; }
-    else { msg = '✅ 我已分类投放'; disabled = !locationVerified || cooldownRemain > 0; }
+    else {
+      const checked = document.getElementById('foodConfirmCheckbox').checked;
+      msg = '✅ 我已分类投放';
+      disabled = !locationVerified || cooldownRemain > 0 || !checked;
+      if (locationVerified && !checked) msg = '☑️ 请勾选确认已分类投放';
+    }
   } else {
     // 其他品类：需要GPS + 拍照
     if (!currentPoint) { msg = '📍 请选择回收点'; disabled = true; }
@@ -760,6 +777,7 @@ async function submitDelivery() {
     currentAiResult = null; currentPhotoUrl = ''; photoHash = ''; locationVerified = false;
     document.getElementById('cooldownBar').style.display = 'none';
     document.getElementById('boxCountBar').style.display = 'none';
+    document.getElementById('foodConfirmBar').style.display = 'none';
     document.getElementById('previewImg').style.display = 'none';
     document.getElementById('uploadHint').style.display = 'block';
     document.getElementById('uploadZone').classList.remove('has-image');

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from ..config import (
     LOCATION_MAX_DISTANCE_M, COOLDOWN_SECONDS,
-    PHOTO_SIMILARITY_THRESHOLD, PHOTO_SIMILARITY_RECENT,
+    PHOTO_SIMILARITY_THRESHOLD, PHOTO_SIMILARITY_RECENT_HOURS,
     ITEM_COUNT_MIN, ITEM_COUNT_MAX, DEMO_MODE,
 )
 from ..database import get_db
@@ -83,12 +83,14 @@ def create_submission(data: SubmissionCreate, db: Session = Depends(get_db)):
         )
 
     # ---- 4. 图片相似度去重 ----
-    # 获取用户最近 10 条提交的 photo_hash
+    # 获取用户最近 24 小时内的提交
+    similarity_cutoff = datetime.utcnow() - timedelta(hours=PHOTO_SIMILARITY_RECENT_HOURS)
     recent_subs = (
         db.query(Submission)
-        .filter(Submission.user_id == user.id)
-        .order_by(Submission.ts.desc())
-        .limit(PHOTO_SIMILARITY_RECENT)
+        .filter(
+            Submission.user_id == user.id,
+            Submission.ts >= similarity_cutoff,
+        )
         .all()
     )
     recent_hashes = [s.photo_hash for s in recent_subs if s.photo_hash]
@@ -108,7 +110,7 @@ def create_submission(data: SubmissionCreate, db: Session = Depends(get_db)):
         if too_similar:
             raise HTTPException(
                 status_code=400,
-                detail=f"疑似重复投递：与您近期提交的回收物相似度达 {sim_pct * 100:.0f}%，请拍摄不同角度的回收物或更换物品",
+                detail=f"疑似重复投递：与您近期提交的回收物相似度达 {sim_pct * 100:.0f}%，请投放新的回收物品",
             )
 
     # ---- 5. 归入批次 + 计算碳减排 ----
