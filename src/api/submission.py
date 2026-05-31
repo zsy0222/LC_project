@@ -83,12 +83,13 @@ def create_submission(data: SubmissionCreate, db: Session = Depends(get_db)):
         )
 
     # ---- 4. 图片相似度去重 ----
-    # 获取用户最近 24 小时内的提交
+    # 仅比对同品类的近期提交（不同品类不可能相似）
     similarity_cutoff = datetime.utcnow() - timedelta(hours=PHOTO_SIMILARITY_RECENT_HOURS)
     recent_subs = (
         db.query(Submission)
         .filter(
             Submission.user_id == user.id,
+            Submission.waste_type == data.waste_type,
             Submission.ts >= similarity_cutoff,
         )
         .all()

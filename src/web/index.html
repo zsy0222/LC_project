@@ -539,7 +539,8 @@ async function loadPoints() {
   }).join('');
 }
 function selectPoint(el, qr, name, lat, lng) {
-  document.querySelectorAll('.point-card').forEach(c => c.classList.remove('selected'));
+  // 只清空点位网格的选中，不影响品类卡片
+  document.querySelectorAll('#pointGrid .point-card').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
   currentPoint = { qr_code: qr, name: name, lat: lat, lng: lng };
   document.getElementById('selectedPoint').innerHTML = `✅ 已选择：<strong>${name}</strong>`;
