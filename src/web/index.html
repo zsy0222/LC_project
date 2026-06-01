@@ -320,7 +320,27 @@
     <h3>🤝 认领批次</h3>
     <p style="margin-bottom:8px;font-size:0.9rem;" id="claimBatchInfo"></p>
     <label>去向路径：</label>
-    <select id="claimDestination"><option value="厌氧消化工艺">厌氧消化（-90.82 kg CO₂e/吨）</option><option value="发酵产酸工艺">发酵产酸（-81.04）</option><option value="三相分离协同焚烧">三相分离协同焚烧（-80.96）</option><option value="黑水虻生物转化">黑水虻生物转化（-41.78）</option><option value="直接混合焚烧">直接混合焚烧（-3.01）</option><option value="共享再利用">共享/再利用</option><option value="塑料再生">塑料再生</option><option value="无害化处理">无害化处理</option></select>
+    <select id="claimDestination">
+      <optgroup label="🍚 厨余处理">
+        <option value="厌氧消化工艺">厌氧消化（-90.82 kg CO₂e/吨）</option>
+        <option value="发酵产酸工艺">发酵产酸（-81.04）</option>
+        <option value="三相分离协同焚烧">三相分离协同焚烧（-80.96）</option>
+        <option value="黑水虻生物转化">黑水虻生物转化（-41.78）</option>
+        <option value="直接混合焚烧">直接混合焚烧（-3.01）</option>
+      </optgroup>
+      <optgroup label="📦 废纸处理">
+        <option value="回收制浆再生">回收制浆再生（-1580）</option>
+        <option value="热解制生物炭">热解制生物炭（-427）</option>
+      </optgroup>
+      <optgroup label="🥡 塑料处理">
+        <option value="物理回收造粒">物理回收造粒（-2100）</option>
+        <option value="化学回收热解">化学回收热解（-2500）</option>
+      </optgroup>
+      <optgroup label="🔋 有害处理">
+        <option value="资源化金属回收">资源化金属回收（-2000）</option>
+        <option value="水泥窑协同处置">水泥窑协同处置（-750）</option>
+      </optgroup>
+    </select>
     <button class="btn btn-accent" style="margin-top:10px;" onclick="doClaim()">✅ 确认认领</button>
   </div>
 </div>
@@ -864,7 +884,7 @@ async function loadBatches() {
   c.innerHTML = batches.map(b => {
     const sc = 'status-' + b.status;
     const stText = {pending:'待认领',claimed:'已认领',done:'已完成'}[b.status]||b.status;
-    const treatmentNames = ['厌氧消化工艺','发酵产酸工艺','三相分离协同焚烧','黑水虻生物转化','直接混合焚烧','厌氧消化','好氧堆肥','饲料化'];
+    const treatmentNames = ['厌氧消化工艺','发酵产酸工艺','三相分离协同焚烧','黑水虻生物转化','直接混合焚烧','回收制浆再生','热解制生物炭','物理回收造粒','化学回收热解','资源化金属回收','水泥窑协同处置','厌氧消化','好氧堆肥','饲料化'];
     const destText = b.destination || '-';
     const isTreatment = treatmentNames.includes(b.destination);
     const pathColor = isTreatment?'tag-grade':b.destination==='共享再利用'?'tag-path':'tag-cat';

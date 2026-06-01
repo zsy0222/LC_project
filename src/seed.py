@@ -26,14 +26,20 @@ SEED_FACTORS = [
     {"category": "外卖厨余", "path": "三相分离协同焚烧",  "factor": 80.96, "source": "油脂制生物柴油+固渣焚烧发电，净减排-80.96kg/吨"},
     {"category": "外卖厨余", "path": "黑水虻生物转化",   "factor": 41.78, "source": "虫体蛋白+虫粪有机肥替代，净减排-41.78kg/吨"},
     {"category": "外卖厨余", "path": "直接混合焚烧",     "factor": 3.01,  "source": "焚烧发电替代化石能源(热值低)，净减排-3.01kg/吨"},
-    # 快递纸箱（沿用）
-    {"category": "快递纸箱", "path": "Reuse",   "factor": 0.35, "source": "中国造纸协会 / IPCC AR6"},
-    {"category": "快递纸箱", "path": "Recycle", "factor": 0.15, "source": "中国造纸协会"},
-    # 塑料
-    {"category": "塑料", "path": "Reuse",   "factor": 0.10, "source": "PAS 2050 简化"},
-    {"category": "塑料", "path": "Recycle", "factor": 0.06, "source": "PAS 2050 简化"},
-    # 有害（暂不计减碳）
-    {"category": "有害", "path": "Recycle", "factor": 0.0, "source": "仅记录分类行为"},
+    # 快递纸箱（废纸）处理工艺
+    {"category": "快递纸箱", "path": "回收制浆再生",   "factor": 1580.0, "source": "中国造纸协会《造纸工业碳排放核算指南》(2022)——再生瓦楞纸"},
+    {"category": "快递纸箱", "path": "热解制生物炭",   "factor": 427.0,  "source": "《环境工程技术学报》废纸热解碳封存(2024)"},
+    {"category": "快递纸箱", "path": "Reuse",           "factor": 1580.0, "source": "降级兼容"},
+    {"category": "快递纸箱", "path": "Recycle",         "factor": 427.0,  "source": "降级兼容"},
+    # 塑料处理工艺
+    {"category": "塑料", "path": "物理回收造粒",   "factor": 2100.0, "source": "中国循环经济协会(2024)——再生PE替代原生塑料"},
+    {"category": "塑料", "path": "化学回收热解",   "factor": 2500.0, "source": "中国循环经济协会(2025)——热解制油全循环"},
+    {"category": "塑料", "path": "Reuse",           "factor": 2100.0, "source": "降级兼容"},
+    {"category": "塑料", "path": "Recycle",         "factor": 2100.0, "source": "降级兼容"},
+    # 有害垃圾处理工艺
+    {"category": "有害", "path": "资源化金属回收", "factor": 2000.0, "source": "中国信通院(2026)——金属回收替代原生冶炼"},
+    {"category": "有害", "path": "水泥窑协同处置", "factor": 750.0,  "source": "生态环境部环境发展中心(2026)"},
+    {"category": "有害", "path": "Recycle",         "factor": 750.0,  "source": "降级兼容"},
 ]
 
 
