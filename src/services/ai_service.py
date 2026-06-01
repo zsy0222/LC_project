@@ -259,10 +259,13 @@ def predict_image(image_bytes: bytes) -> dict:
 
 
 def _estimate_co2(category: str, recommend: str) -> float:
-    """根据品类与推荐路径估算单次减碳量（粗略，真实计算见 carbon_service）"""
-    base = {"纸箱": 0.35, "塑料": 0.10, "玻璃": 0.30}.get(category, 0.20)
-    factor = 1.0 if recommend in ("A", "B") else 0.43
-    return round(base * factor, 3)
+    """前端预览用减碳估算: 品类每吨因子 × 单次重量 / 1000"""
+    ton_factor = {
+        "外卖厨余": 90.82, "快递纸箱": 1200.0, "塑料": 2000.0, "有害": 700.0,
+        "纸箱": 1200.0, "玻璃": 500.0,
+    }.get(category, 100.0)
+    weight = {"外卖厨余": 0.5, "快递纸箱": 0.2, "塑料": 0.05, "有害": 0.1, "纸箱": 0.2}.get(category, 0.2)
+    return round(ton_factor * weight / 1000, 4)
 
 
 def ai_status() -> dict:

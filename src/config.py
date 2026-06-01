@@ -180,6 +180,14 @@ PHOTO_SIMILARITY_RECENT_HOURS = 24  # 图片相似度比对时间范围（小时
 ITEM_COUNT_MIN = 1               # 单次投递最少物品数
 ITEM_COUNT_MAX = 20              # 单次投递最多物品数
 
+# 单次投递重量估算（kg/次），用于将每吨减排量折算为单次减碳
+WEIGHT_ESTIMATE = {
+    "外卖厨余": 0.5,    # 一份外卖残余约500g
+    "快递纸箱": 0.2,    # 一个快递纸箱约200g
+    "塑料": 0.05,       # 一个塑料瓶约50g
+    "有害": 0.1,        # 一节电池/一盏灯泡约100g
+}
+
 # Demo 模式：跳过 GPS 定位校验（答辩演示时设为 True）
 DEMO_MODE = False
 

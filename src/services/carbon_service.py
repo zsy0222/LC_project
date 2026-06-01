@@ -2,12 +2,16 @@
 from sqlalchemy.orm import Session
 
 from ..models import CarbonFactor
+from ..config import WEIGHT_ESTIMATE
 
 
 def calc_co2(db: Session, category: str, recommend: str) -> float:
-    """根据品类与处理路径，从因子表查表计算单次减碳量。
+    """计算单次投递减碳量。
 
-    优先按具体处理路径名匹配，找不到则降级匹配 Reuse/Recycle。
+    seed.py 碳因子为每吨减排量 (kg CO₂e/吨)，
+    本函数按品类单次投递重量折算为单次减碳量 (kg CO₂e/次)。
+
+    公式: co2 = factor_per_ton × weight_kg / 1000
     """
     # 先尝试直接匹配路径名
     cf = (
@@ -24,7 +28,10 @@ def calc_co2(db: Session, category: str, recommend: str) -> float:
             .first()
         )
     if cf is None:
-        # 兜底默认值
-        default = {"外卖厨余": 80.0, "快递纸箱": 0.30, "塑料": 0.08, "有害": 0.0}.get(category, 0.15)
-        return round(default, 3)
-    return round(cf.factor, 3)
+        # 兜底默认值（每吨）
+        default_per_ton = {"外卖厨余": 80.0, "快递纸箱": 1200.0, "塑料": 2000.0, "有害": 700.0}.get(category, 100.0)
+        weight = WEIGHT_ESTIMATE.get(category, 0.2)
+        return round(default_per_ton * weight / 1000, 4)
+
+    weight = WEIGHT_ESTIMATE.get(category, 0.2)
+    return round(cf.factor * weight / 1000, 4)

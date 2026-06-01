@@ -320,29 +320,7 @@
     <h3>🤝 认领批次</h3>
     <p style="margin-bottom:8px;font-size:0.9rem;" id="claimBatchInfo"></p>
     <label>去向路径：</label>
-    <select id="claimDestination">
-      <optgroup label="🍚 厨余处理">
-        <option value="厌氧消化工艺">厌氧消化（-90.82）</option>
-        <option value="发酵产酸工艺">发酵产酸（-81.04）</option>
-        <option value="三相分离协同焚烧">三相分离协同焚烧（-80.96）</option>
-        <option value="黑水虻生物转化">黑水虻生物转化（-41.78）</option>
-        <option value="好氧堆肥工艺">好氧堆肥（-25~-50）</option>
-        <option value="直接混合焚烧">直接混合焚烧（-3.01）</option>
-        <option value="黑水虻厌氧集成">黑水虻+厌氧集成（-120~-150）</option>
-      </optgroup>
-      <optgroup label="📦 废纸处理">
-        <option value="回收制浆再生">回收制浆再生（-1580）</option>
-        <option value="热解制生物炭">热解制生物炭（-427）</option>
-      </optgroup>
-      <optgroup label="🥡 塑料处理">
-        <option value="物理回收造粒">物理回收造粒（-2100）</option>
-        <option value="化学回收热解">化学回收热解（-2500）</option>
-      </optgroup>
-      <optgroup label="🔋 有害处理">
-        <option value="资源化金属回收">资源化金属回收（-2000）</option>
-        <option value="水泥窑协同处置">水泥窑协同处置（-750）</option>
-      </optgroup>
-    </select>
+    <select id="claimDestination"></select>
     <button class="btn btn-accent" style="margin-top:10px;" onclick="doClaim()">✅ 确认认领</button>
   </div>
 </div>
@@ -901,7 +879,45 @@ async function loadBatches() {
   }).join('');
 }
 
-function openClaim(batchId) { claimTarget = batchId; document.getElementById('claimBatchInfo').textContent = '批次: ' + batchId; document.getElementById('claimModal').classList.add('show'); }
+function openClaim(batchId) {
+  claimTarget = batchId;
+  document.getElementById('claimBatchInfo').textContent = '批次: ' + batchId;
+  // 根据批次品类生成对应去向选项
+  const sel = document.getElementById('claimDestination');
+  sel.innerHTML = '';
+  const batchCategory = batchId.split('-')[3] || '';  // BATCH-PT-YYYYMMDD-品类-PATH
+  const treatmentsByCategory = {
+    '外卖厨余': [
+      {v:'厌氧消化工艺',t:'厌氧消化（-90.82 kg CO₂e/吨）'},
+      {v:'发酵产酸工艺',t:'发酵产酸（-81.04）'},
+      {v:'三相分离协同焚烧',t:'三相分离协同焚烧（-80.96）'},
+      {v:'黑水虻生物转化',t:'黑水虻生物转化（-41.78）'},
+      {v:'好氧堆肥工艺',t:'好氧堆肥（-25~-50）'},
+      {v:'直接混合焚烧',t:'直接混合焚烧（-3.01）'},
+      {v:'黑水虻厌氧集成',t:'黑水虻+厌氧集成（-120~-150）'},
+    ],
+    '快递纸箱': [
+      {v:'回收制浆再生',t:'回收制浆再生（-1580）'},
+      {v:'热解制生物炭',t:'热解制生物炭（-427）'},
+    ],
+    '塑料': [
+      {v:'物理回收造粒',t:'物理回收造粒（-2100）'},
+      {v:'化学回收热解',t:'化学回收热解（-2500）'},
+    ],
+    '有害': [
+      {v:'资源化金属回收',t:'资源化金属回收（-2000）'},
+      {v:'水泥窑协同处置',t:'水泥窑协同处置（-750）'},
+    ],
+  };
+  const items = treatmentsByCategory[batchCategory] || [];
+  items.forEach(item => {
+    const opt = document.createElement('option');
+    opt.value = item.v; opt.textContent = item.t;
+    sel.appendChild(opt);
+  });
+  if (!items.length) { const opt = document.createElement('option'); opt.value = 'C'; opt.textContent = '直接回收'; sel.appendChild(opt); }
+  document.getElementById('claimModal').classList.add('show');
+}
 async function doClaim() {
   if (!claimTarget || !currentUser) return;
   const dest = document.getElementById('claimDestination').value;
