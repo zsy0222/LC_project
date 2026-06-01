@@ -872,20 +872,20 @@ async function loadBatches() {
       <div class="header"><span class="id">${b.id}</span><span class="status ${sc}">${stText}</span></div>
       <div class="meta">📍 #${b.point_id} | 📅 ${b.date} | 📦 ${b.category}${b.destination?` | <span class="ai-tag ${pathColor}">${destText}</span>`:''}</div>
       <div class="actions">
-        ${b.status==='pending'?`<button class="btn btn-sm btn-outline" onclick="openClaim('${b.id}')">🤝 认领</button>`:''}
+        ${b.status==='pending'?`<button class="btn btn-sm btn-outline" onclick="openClaim('${b.id}','${b.category}')">🤝 认领</button>`:''}
         ${b.status==='pending'||b.status==='claimed'?`<button class="btn btn-sm btn-accent" onclick="openReuse('${b.id}')">📸 上传成品</button>`:''}
         <button class="btn btn-sm btn-outline" onclick="openStory('${b.id}')">📖 故事</button>
       </div></div>`;
   }).join('');
 }
 
-function openClaim(batchId) {
+function openClaim(batchId, batchCategory) {
   claimTarget = batchId;
   document.getElementById('claimBatchInfo').textContent = '批次: ' + batchId;
-  // 根据批次品类生成对应去向选项
   const sel = document.getElementById('claimDestination');
   sel.innerHTML = '';
-  const batchCategory = batchId.split('-')[3] || '';  // BATCH-PT-YYYYMMDD-品类-PATH
+
+  // 全品类处理去向
   const treatmentsByCategory = {
     '外卖厨余': [
       {v:'厌氧消化工艺',t:'厌氧消化（-90.82 kg CO₂e/吨）'},
@@ -897,25 +897,49 @@ function openClaim(batchId) {
       {v:'黑水虻厌氧集成',t:'黑水虻+厌氧集成（-120~-150）'},
     ],
     '快递纸箱': [
-      {v:'回收制浆再生',t:'回收制浆再生（-1580）'},
+      {v:'回收制浆再生',t:'回收制浆再生（-1580 kg CO₂e/吨）'},
       {v:'热解制生物炭',t:'热解制生物炭（-427）'},
+      {v:'共享再利用',t:'共享/再利用（美术社手工改造）'},
     ],
     '塑料': [
-      {v:'物理回收造粒',t:'物理回收造粒（-2100）'},
+      {v:'物理回收造粒',t:'物理回收造粒（-2100 kg CO₂e/吨）'},
       {v:'化学回收热解',t:'化学回收热解（-2500）'},
+      {v:'共享再利用',t:'共享/再利用（美术社手工改造）'},
     ],
     '有害': [
-      {v:'资源化金属回收',t:'资源化金属回收（-2000）'},
+      {v:'资源化金属回收',t:'资源化金属回收（-2000 kg CO₂e/吨）'},
       {v:'水泥窑协同处置',t:'水泥窑协同处置（-750）'},
     ],
+    '纸箱': [
+      {v:'回收制浆再生',t:'回收制浆再生（-1580 kg CO₂e/吨）'},
+      {v:'热解制生物炭',t:'热解制生物炭（-427）'},
+      {v:'共享再利用',t:'共享/再利用（美术社手工改造）'},
+    ],
   };
+
   const items = treatmentsByCategory[batchCategory] || [];
-  items.forEach(item => {
+  const isArt = currentUser && currentUser.nickname === '美术社';
+  const isRecycle = currentUser && currentUser.nickname === '回收站';
+
+  // 美术社只展示创造性再利用；回收站展示全部；其他去向端展示全部
+  const filtered = items.filter(item => {
+    if (isArt) return item.v === '共享再利用';
+    return true;
+  });
+
+  // 回收站额外可以选所有品类
+  if (isRecycle && !filtered.length) {
+    Object.values(treatmentsByCategory).forEach(arr => arr.forEach(item => {
+      if (!filtered.find(f => f.v === item.v)) filtered.push(item);
+    }));
+  }
+
+  filtered.forEach(item => {
     const opt = document.createElement('option');
     opt.value = item.v; opt.textContent = item.t;
     sel.appendChild(opt);
   });
-  if (!items.length) { const opt = document.createElement('option'); opt.value = 'C'; opt.textContent = '直接回收'; sel.appendChild(opt); }
+  if (!filtered.length) { const opt = document.createElement('option'); opt.value = '共享再利用'; opt.textContent = '共享/再利用'; sel.appendChild(opt); }
   document.getElementById('claimModal').classList.add('show');
 }
 async function doClaim() {
