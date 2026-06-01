@@ -14,10 +14,10 @@ from ..models import Batch, Point
 from ..config import PATH_MAP
 
 
-def get_or_create_batch(db: Session, point: Point, category: str, grade: str) -> Batch:
-    """按点位+日期+品类+等级归入批次，不同破损程度分入不同批次"""
+def get_or_create_batch(db: Session, point: Point, category: str, grade: str = "", destination: str = "C") -> Batch:
+    """按点位+日期+品类+路径归入批次"""
     today = date.today()
-    path = PATH_MAP.get(grade, "C")
+    path = destination or PATH_MAP.get(grade, "C")
     batch_id = f"BATCH-{point.qr_code}-{today.strftime('%Y%m%d')}-{category}-{path}"
     batch = db.query(Batch).filter(Batch.id == batch_id).first()
     if batch:

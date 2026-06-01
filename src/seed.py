@@ -20,9 +20,12 @@ SEED_POINTS = [
 
 # 碳因子表（kg CO2e / 件 或 /kg），简化值
 SEED_FACTORS = [
-    # 外卖厨余（按次/按kg估算）
-    {"category": "外卖厨余", "path": "Reuse",   "factor": 2.50, "source": "IPCC 厨余厌氧消化替代填埋"},
-    {"category": "外卖厨余", "path": "Recycle", "factor": 1.80, "source": "好氧堆肥避免填埋甲烷排放"},
+    # 外卖厨余（按每吨处理减排量，kg CO₂e/吨）
+    {"category": "外卖厨余", "path": "厌氧消化工艺",     "factor": 90.82, "source": "避免填埋甲烷+沼气发电+有机肥替代化肥，净减排-90.82kg/吨"},
+    {"category": "外卖厨余", "path": "发酵产酸工艺",     "factor": 81.04, "source": "发酵产酸替代传统碳源生产，净减排-81.04kg/吨"},
+    {"category": "外卖厨余", "path": "三相分离协同焚烧",  "factor": 80.96, "source": "油脂制生物柴油+固渣焚烧发电，净减排-80.96kg/吨"},
+    {"category": "外卖厨余", "path": "黑水虻生物转化",   "factor": 41.78, "source": "虫体蛋白+虫粪有机肥替代，净减排-41.78kg/吨"},
+    {"category": "外卖厨余", "path": "直接混合焚烧",     "factor": 3.01,  "source": "焚烧发电替代化石能源(热值低)，净减排-3.01kg/吨"},
     # 快递纸箱（沿用）
     {"category": "快递纸箱", "path": "Reuse",   "factor": 0.35, "source": "中国造纸协会 / IPCC AR6"},
     {"category": "快递纸箱", "path": "Recycle", "factor": 0.15, "source": "中国造纸协会"},

@@ -320,7 +320,7 @@
     <h3>🤝 认领批次</h3>
     <p style="margin-bottom:8px;font-size:0.9rem;" id="claimBatchInfo"></p>
     <label>去向路径：</label>
-    <select id="claimDestination"><option value="厌氧消化">厌氧消化（产沼气）</option><option value="好氧堆肥">好氧堆肥（产有机肥）</option><option value="饲料化">饲料化（黑水虻/蚯蚓）</option><option value="共享再利用">共享/再利用</option><option value="直接回收">直接回收</option><option value="塑料再生">塑料再生</option><option value="无害化处理">无害化处理</option></select>
+    <select id="claimDestination"><option value="厌氧消化工艺">厌氧消化（-90.82 kg CO₂e/吨）</option><option value="发酵产酸工艺">发酵产酸（-81.04）</option><option value="三相分离协同焚烧">三相分离协同焚烧（-80.96）</option><option value="黑水虻生物转化">黑水虻生物转化（-41.78）</option><option value="直接混合焚烧">直接混合焚烧（-3.01）</option><option value="共享再利用">共享/再利用</option><option value="塑料再生">塑料再生</option><option value="无害化处理">无害化处理</option></select>
     <button class="btn btn-accent" style="margin-top:10px;" onclick="doClaim()">✅ 确认认领</button>
   </div>
 </div>
@@ -342,6 +342,18 @@
   </div>
 </div>
 <div class="toast" id="toast"></div>
+
+<!-- 知识弹窗 -->
+<div class="modal-overlay" id="knowledgeModal">
+  <div class="modal">
+    <button class="close" onclick="closeModal('knowledgeModal')">&times;</button>
+    <h3 id="kwTitle">-</h3>
+    <div style="font-size:1.2rem;color:var(--green);font-weight:bold;margin:4px 0;" id="kwCo2">-</div>
+    <div style="margin:8px 0;"><strong>📖 减排原理：</strong><br><span id="kwPrinciple">-</span></div>
+    <div style="margin:8px 0;"><strong>⚙️ 工艺流程：</strong><br><span id="kwProcess">-</span></div>
+    <div style="margin:8px 0;"><strong>📦 产物：</strong><br><span id="kwOutput">-</span></div>
+  </div>
+</div>
 
 <!-- 打卡弹窗 -->
 <div class="modal-overlay" id="streakModal">
@@ -852,8 +864,10 @@ async function loadBatches() {
   c.innerHTML = batches.map(b => {
     const sc = 'status-' + b.status;
     const stText = {pending:'待认领',claimed:'已认领',done:'已完成'}[b.status]||b.status;
+    const treatmentNames = ['厌氧消化工艺','发酵产酸工艺','三相分离协同焚烧','黑水虻生物转化','直接混合焚烧','厌氧消化','好氧堆肥','饲料化'];
     const destText = b.destination || '-';
-    const pathColor = b.destination==='厌氧消化'||b.destination==='好氧堆肥'||b.destination==='饲料化'?'tag-grade':b.destination==='共享再利用'?'tag-path':'tag-cat';
+    const isTreatment = treatmentNames.includes(b.destination);
+    const pathColor = isTreatment?'tag-grade':b.destination==='共享再利用'?'tag-path':'tag-cat';
     return `<div class="batch-card">
       <div class="header"><span class="id">${b.id}</span><span class="status ${sc}">${stText}</span></div>
       <div class="meta">📍 #${b.point_id} | 📅 ${b.date} | 📦 ${b.category}${b.destination?` | <span class="ai-tag ${pathColor}">${destText}</span>`:''}</div>
@@ -922,12 +936,32 @@ function showStreak(sub) {
 async function openStory(batchId) {
   const res = await fetch(`${API}/batch/${batchId}/story`);
   const story = await res.json();
+  // 先获取工艺知识列表，用于判断去向是否可点击
+  let treatments = {};
+  try { const tr = await fetch(`${API}/knowledge/treatments`); treatments = await tr.json(); } catch(e) {}
+  const dest = story.batch.destination || '';
+  const treatmentKeys = Object.keys(treatments);
+  const destIsTreatment = treatmentKeys.includes(dest);
   document.getElementById('storyContent').innerHTML = `
     <div style="margin-bottom:8px;"><strong>${story.batch.id}</strong> · ${story.batch.category} · ${story.batch.status}</div>
     <div style="font-size:0.8rem;">📦 ${story.submissions_count} 次投递 | 🌱 ${story.total_co2} kg</div>
+    ${dest ? `<div style="font-size:0.8rem;margin-top:4px;">🏭 处理去向: ${destIsTreatment ? `<a href=\"javascript:void(0)\" onclick=\"openKnowledge('${dest}')\" style=\"color:var(--green);text-decoration:underline;cursor:pointer;\">${dest}</a>` : dest}</div>` : ''}
     ${story.reuse_photo?`<div style="margin:8px 0;"><strong>成品：</strong><br><img src="${story.reuse_photo}" style="max-width:100%;max-height:180px;border-radius:8px;margin-top:4px;"><br><span style="font-size:0.8rem;">${story.reuse_desc||''}</span></div>`:''}
     <div class="timeline">${story.flows.map(f=>`<div class="tl-item"><div class="tl-title">${f.title}</div><div class="tl-detail">${f.detail}</div><div class="tl-time">${new Date(f.ts).toLocaleString('zh-CN')}</div></div>`).join('')}</div>`;
   document.getElementById('storyModal').classList.add('show');
+}
+
+async function openKnowledge(key) {
+  try {
+    const res = await fetch(`${API}/knowledge/treatment/${encodeURIComponent(key)}`);
+    const k = await res.json();
+    document.getElementById('kwTitle').textContent = k.title;
+    document.getElementById('kwCo2').textContent = `${k.co2_per_ton} ${k.unit}`;
+    document.getElementById('kwPrinciple').textContent = k.principle;
+    document.getElementById('kwProcess').textContent = k.process;
+    document.getElementById('kwOutput').textContent = k.output;
+    document.getElementById('knowledgeModal').classList.add('show');
+  } catch(e) { toast('❌ 加载知识失败'); }
 }
 
 async function loadRank() {

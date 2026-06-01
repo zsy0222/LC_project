@@ -5,21 +5,26 @@ from ..models import CarbonFactor
 
 
 def calc_co2(db: Session, category: str, recommend: str) -> float:
-    """根据品类与推荐路径，从因子表查表计算单次减碳量
+    """根据品类与处理路径，从因子表查表计算单次减碳量。
 
-    推荐路径 → 碳因子表 path:
-        A 共享/再利用  → Reuse
-        B 手工改造     → Reuse
-        C 直接回收     → Recycle
+    优先按具体处理路径名匹配，找不到则降级匹配 Reuse/Recycle。
     """
-    path = "Recycle" if recommend == "C" else "Reuse"
+    # 先尝试直接匹配路径名
     cf = (
         db.query(CarbonFactor)
-        .filter(CarbonFactor.category == category, CarbonFactor.path == path)
+        .filter(CarbonFactor.category == category, CarbonFactor.path == recommend)
         .first()
     )
+    # 找不到则降级匹配 Reuse/Recycle
+    if cf is None:
+        path = "Recycle" if recommend in ("C", "直接回收") else "Reuse"
+        cf = (
+            db.query(CarbonFactor)
+            .filter(CarbonFactor.category == category, CarbonFactor.path == path)
+            .first()
+        )
     if cf is None:
         # 兜底默认值
-        default = {"外卖厨余": 2.00, "快递纸箱": 0.30, "塑料": 0.08, "有害": 0.0}.get(category, 0.15)
+        default = {"外卖厨余": 80.0, "快递纸箱": 0.30, "塑料": 0.08, "有害": 0.0}.get(category, 0.15)
         return round(default, 3)
     return round(cf.factor, 3)

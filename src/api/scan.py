@@ -8,7 +8,7 @@ from ..database import get_db
 from ..models import Point
 from ..schemas import ScanResp, PointOut
 
-from ..config import DEMO_MODE, LOCATION_MAX_DISTANCE_M
+from ..config import DEMO_MODE, LOCATION_MAX_DISTANCE_M, TREATMENT_KNOWLEDGE
 
 router = APIRouter(tags=["scan"])
 
@@ -17,6 +17,22 @@ router = APIRouter(tags=["scan"])
 def demo_config():
     """返回 Demo 模式状态，前端据此决定是否跳过定位"""
     return {"demo_mode": DEMO_MODE, "location_max_distance_m": LOCATION_MAX_DISTANCE_M}
+
+
+@router.get("/knowledge/treatment/{key}")
+def treatment_knowledge(key: str):
+    """返回指定处理工艺的详细知识"""
+    info = TREATMENT_KNOWLEDGE.get(key)
+    if not info:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail=f"未找到工艺: {key}")
+    return info
+
+
+@router.get("/knowledge/treatments")
+def list_treatments():
+    """列出所有处理工艺"""
+    return {k: {"title": v["title"], "co2_per_ton": v["co2_per_ton"], "unit": v["unit"]} for k, v in TREATMENT_KNOWLEDGE.items()}
 
 
 @router.post("/scan", response_model=ScanResp)
