@@ -322,11 +322,13 @@
     <label>去向路径：</label>
     <select id="claimDestination">
       <optgroup label="🍚 厨余处理">
-        <option value="厌氧消化工艺">厌氧消化（-90.82 kg CO₂e/吨）</option>
+        <option value="厌氧消化工艺">厌氧消化（-90.82）</option>
         <option value="发酵产酸工艺">发酵产酸（-81.04）</option>
         <option value="三相分离协同焚烧">三相分离协同焚烧（-80.96）</option>
         <option value="黑水虻生物转化">黑水虻生物转化（-41.78）</option>
+        <option value="好氧堆肥工艺">好氧堆肥（-25~-50）</option>
         <option value="直接混合焚烧">直接混合焚烧（-3.01）</option>
+        <option value="黑水虻厌氧集成">黑水虻+厌氧集成（-120~-150）</option>
       </optgroup>
       <optgroup label="📦 废纸处理">
         <option value="回收制浆再生">回收制浆再生（-1580）</option>
@@ -370,8 +372,8 @@
     <h3 id="kwTitle">-</h3>
     <div style="font-size:1.2rem;color:var(--green);font-weight:bold;margin:4px 0;" id="kwCo2">-</div>
     <div style="margin:8px 0;"><strong>📖 减排原理：</strong><br><span id="kwPrinciple">-</span></div>
-    <div style="margin:8px 0;"><strong>⚙️ 工艺流程：</strong><br><span id="kwProcess">-</span></div>
-    <div style="margin:8px 0;"><strong>📦 产物：</strong><br><span id="kwOutput">-</span></div>
+    <div style="margin:8px 0;"><strong>💡 技术优势：</strong><br><span id="kwAdvantage">-</span></div>
+    <div style="margin:8px 0;font-size:0.7rem;color:var(--gray);"><strong>📚 数据来源：</strong><span id="kwSource">-</span></div>
   </div>
 </div>
 
@@ -884,7 +886,7 @@ async function loadBatches() {
   c.innerHTML = batches.map(b => {
     const sc = 'status-' + b.status;
     const stText = {pending:'待认领',claimed:'已认领',done:'已完成'}[b.status]||b.status;
-    const treatmentNames = ['厌氧消化工艺','发酵产酸工艺','三相分离协同焚烧','黑水虻生物转化','直接混合焚烧','回收制浆再生','热解制生物炭','物理回收造粒','化学回收热解','资源化金属回收','水泥窑协同处置','厌氧消化','好氧堆肥','饲料化'];
+    const treatmentNames = ['厌氧消化工艺','发酵产酸工艺','三相分离协同焚烧','黑水虻生物转化','好氧堆肥工艺','直接混合焚烧','黑水虻厌氧集成','回收制浆再生','热解制生物炭','物理回收造粒','化学回收热解','资源化金属回收','水泥窑协同处置'];
     const destText = b.destination || '-';
     const isTreatment = treatmentNames.includes(b.destination);
     const pathColor = isTreatment?'tag-grade':b.destination==='共享再利用'?'tag-path':'tag-cat';
@@ -977,9 +979,9 @@ async function openKnowledge(key) {
     const k = await res.json();
     document.getElementById('kwTitle').textContent = k.title;
     document.getElementById('kwCo2').textContent = `${k.co2_per_ton} ${k.unit}`;
-    document.getElementById('kwPrinciple').textContent = k.principle;
-    document.getElementById('kwProcess').textContent = k.process;
-    document.getElementById('kwOutput').textContent = k.output;
+    document.getElementById('kwPrinciple').textContent = k.principle || '-';
+    document.getElementById('kwAdvantage').textContent = k.advantage || '-';
+    document.getElementById('kwSource').textContent = k.source || '-';
     document.getElementById('knowledgeModal').classList.add('show');
   } catch(e) { toast('❌ 加载知识失败'); }
 }
