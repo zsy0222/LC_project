@@ -491,10 +491,15 @@ function selectWasteType(wasteType, icon) {
     document.getElementById('submitBtn').textContent = '📸 先拍照记录';
     loadPendingList();
   } else {
-    // 一步到位：先到点再拍——拍照区暂不显示，选了点位+GPS通过后显示
+    // 一步到位：先到点再拍。管理员直接显示拍照区
     document.getElementById('pointSection').style.display = 'block';
     document.getElementById('pendingSection').style.display = 'none';
-    document.getElementById('uploadZone').style.display = 'none';
+    if (currentUser && currentUser.role === 'admin') {
+      document.getElementById('uploadZone').style.display = 'block';
+      locationVerified = true;
+    } else {
+      document.getElementById('uploadZone').style.display = 'none';
+    }
     document.getElementById('foodConfirmBar').style.display = 'none';
     document.getElementById('submitBtn').textContent = '✅ 确认投递';
     loadPoints();
@@ -565,6 +570,7 @@ function verifyLocation(pointLat, pointLng) {
   if (demoMode || (currentUser && currentUser.role === 'admin')) {
     locationVerified = true;
     document.getElementById('selectedPoint').innerHTML = document.getElementById('selectedPoint').innerHTML.replace(' 📍 定位中...', '');
+    if (currentWasteType !== '外卖厨余') document.getElementById('uploadZone').style.display = 'block';
     if (currentUser && currentUser.role === 'admin') toast('🔑 管理员模式：定位已跳过');
     else toast('🔧 Demo 模式：定位已跳过');
     checkSubmitReady();
