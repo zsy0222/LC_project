@@ -441,12 +441,12 @@ function setupTabs() {
     btn.disabled = false;
     btn.onclick = () => switchTab(btn.dataset.tab);
   });
-  // 去向 tab 仅 reuser/admin 可用
-  if (currentUser.role === 'student') {
+  // admin 全部可用，student 禁用去向，reuser 禁用投递
+  if (currentUser.role === 'admin') {
+    document.querySelectorAll('.tab-btn').forEach(b => b.disabled = false);
+  } else if (currentUser.role === 'student') {
     document.getElementById('tabBtnReuser').disabled = true;
-  }
-  // 投递 tab 仅 student/admin 可用
-  if (currentUser.role === 'reuser') {
+  } else if (currentUser.role === 'reuser') {
     document.getElementById('tabBtnDelivery').disabled = true;
   }
 }
@@ -562,10 +562,11 @@ function selectPoint(el, qr, name, lat, lng) {
 }
 
 function verifyLocation(pointLat, pointLng) {
-  if (demoMode) {
+  if (demoMode || (currentUser && currentUser.role === 'admin')) {
     locationVerified = true;
     document.getElementById('selectedPoint').innerHTML = document.getElementById('selectedPoint').innerHTML.replace(' 📍 定位中...', '');
-    toast('🔧 Demo 模式：定位已跳过');
+    if (currentUser && currentUser.role === 'admin') toast('🔑 管理员模式：定位已跳过');
+    else toast('🔧 Demo 模式：定位已跳过');
     checkSubmitReady();
     return;
   }

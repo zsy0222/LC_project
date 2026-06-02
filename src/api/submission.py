@@ -20,6 +20,12 @@ from ..services.ai_service import compute_photo_hash, is_similar_to_recent
 router = APIRouter(tags=["submission"])
 
 
+def _is_admin(user_id: int, db: Session) -> bool:
+    """管理员跳过所有限制"""
+    user = db.query(User).get(user_id)
+    return user is not None and user.role == "admin"
+
+
 # ---- 打卡工具（内联，避免循环导入） ----
 def _compute_streak(user_id: int, today: date_type, db: Session) -> tuple[int, bool]:
     """统计连续打卡天数"""
@@ -108,8 +114,8 @@ def create_submission(data: SubmissionCreate, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="用户不存在")
 
-    # ---- 2. 定位校验（Demo 模式跳过） ----
-    if not DEMO_MODE:
+    # ---- 2. 定位校验（管理员/Demo 模式跳过） ----
+    if not DEMO_MODE and not _is_admin(data.user_id, db):
         point_lat, point_lng = _parse_gps(point.gps)
         if point_lat and point_lng and data.user_lat and data.user_lng:
             dist = _haversine(data.user_lat, data.user_lng, point_lat, point_lng)
@@ -119,55 +125,55 @@ def create_submission(data: SubmissionCreate, db: Session = Depends(get_db)):
                     detail=f"定位校验失败：您距回收点约 {dist:.0f} 米（最大允许 {LOCATION_MAX_DISTANCE_M} 米），请到达点位后再投递",
                 )
 
-    # ---- 3. 30s 冷却检查（同点位） ----
-    cutoff = datetime.utcnow() - timedelta(seconds=COOLDOWN_SECONDS)
-    recent_at_point = (
-        db.query(Submission)
-        .filter(
-            Submission.user_id == user.id,
-            Submission.batch_id.like(f"%{point.qr_code}%"),
-            Submission.ts >= cutoff,
-        )
-        .first()
-    )
-    if recent_at_point:
-        remain = COOLDOWN_SECONDS - max(0, (datetime.utcnow() - recent_at_point.ts).total_seconds())
-        raise HTTPException(
-            status_code=429,
-            detail=f"请勿频繁投递：同一回收点需间隔 {COOLDOWN_SECONDS} 秒（剩余 {remain:.0f} 秒）",
-        )
-
-    # ---- 4. 图片相似度去重 ----
-    # 仅比对同品类的近期提交（不同品类不可能相似）
-    similarity_cutoff = datetime.utcnow() - timedelta(hours=PHOTO_SIMILARITY_RECENT_HOURS)
-    recent_subs = (
-        db.query(Submission)
-        .filter(
-            Submission.user_id == user.id,
-            Submission.waste_type == data.waste_type,
-            Submission.ts >= similarity_cutoff,
-        )
-        .all()
-    )
-    recent_hashes = [s.photo_hash for s in recent_subs if s.photo_hash]
-
-    # 如果前端未传 hash，后端计算
-    photo_hash = data.photo_hash
-    if not photo_hash and data.photo:
-        try:
-            import requests
-            resp = requests.get(f"http://127.0.0.1:8000{data.photo}", timeout=5)
-            photo_hash = compute_photo_hash(resp.content)
-        except Exception:
-            photo_hash = ""
-
-    if photo_hash:
-        too_similar, sim_pct = is_similar_to_recent(photo_hash, recent_hashes, PHOTO_SIMILARITY_THRESHOLD)
-        if too_similar:
-            raise HTTPException(
-                status_code=400,
-                detail=f"疑似重复投递：与您近期提交的回收物相似度达 {sim_pct * 100:.0f}%，请投放新的回收物品",
+    # ---- 3. 30s 冷却检查（管理员跳过） ----
+    if not _is_admin(user.id, db):
+        cutoff = datetime.utcnow() - timedelta(seconds=COOLDOWN_SECONDS)
+        recent_at_point = (
+            db.query(Submission)
+            .filter(
+                Submission.user_id == user.id,
+                Submission.batch_id.like(f"%{point.qr_code}%"),
+                Submission.ts >= cutoff,
             )
+            .first()
+        )
+        if recent_at_point:
+            remain = COOLDOWN_SECONDS - max(0, (datetime.utcnow() - recent_at_point.ts).total_seconds())
+            raise HTTPException(
+                status_code=429,
+                detail=f"请勿频繁投递：同一回收点需间隔 {COOLDOWN_SECONDS} 秒（剩余 {remain:.0f} 秒）",
+            )
+
+    # ---- 4. 图片相似度去重（管理员跳过） ----
+    photo_hash = data.photo_hash
+    if not _is_admin(user.id, db):
+        similarity_cutoff = datetime.utcnow() - timedelta(hours=PHOTO_SIMILARITY_RECENT_HOURS)
+        recent_subs = (
+            db.query(Submission)
+            .filter(
+                Submission.user_id == user.id,
+                Submission.waste_type == data.waste_type,
+                Submission.ts >= similarity_cutoff,
+            )
+            .all()
+        )
+        recent_hashes = [s.photo_hash for s in recent_subs if s.photo_hash]
+
+        if not photo_hash and data.photo:
+            try:
+                import requests
+                resp = requests.get(f"http://127.0.0.1:8000{data.photo}", timeout=5)
+                photo_hash = compute_photo_hash(resp.content)
+            except Exception:
+                photo_hash = ""
+
+        if photo_hash:
+            too_similar, sim_pct = is_similar_to_recent(photo_hash, recent_hashes, PHOTO_SIMILARITY_THRESHOLD)
+            if too_similar:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"疑似重复投递：与您近期提交的回收物相似度达 {sim_pct * 100:.0f}%，请投放新的回收物品",
+                )
 
     # ---- 5. 归入批次 + 计算碳减排 ----
     item_count = max(ITEM_COUNT_MIN, min(data.item_count, ITEM_COUNT_MAX))
@@ -297,7 +303,7 @@ def confirm_submission(sub_id: int, data: SubmissionConfirm, db: Session = Depen
     if not point:
         raise HTTPException(status_code=404, detail="点位不存在")
 
-    if not DEMO_MODE:
+    if not DEMO_MODE and not _is_admin(data.user_id, db):
         point_lat, point_lng = _parse_gps(point.gps)
         if point_lat and point_lng and data.user_lat and data.user_lng:
             dist = _haversine(data.user_lat, data.user_lng, point_lat, point_lng)
