@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from .config import WEB_DIR, UPLOAD_DIR
+from .config import BASE_DIR, WEB_DIR, UPLOAD_DIR
 from .database import init_db
 from .seed import seed_all
 from .api import scan, predict, submission, batch, user, rank
@@ -32,6 +32,7 @@ def create_app() -> FastAPI:
 
     # 静态文件
     app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
+    app.mount("/checkin", StaticFiles(directory=str(BASE_DIR / "checkin")), name="checkin")
     app.mount("/web", StaticFiles(directory=str(WEB_DIR)), name="web")
 
     # 业务路由
