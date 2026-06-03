@@ -109,6 +109,7 @@ class BatchOut(BaseModel):
     category: str
     status: str
     destination: Optional[str] = None
+    claimed_by: Optional[int] = None
 
 
 class BatchClaim(BaseModel):

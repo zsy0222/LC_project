@@ -9,7 +9,7 @@ from ..config import (
     LOCATION_MAX_DISTANCE_M, COOLDOWN_SECONDS,
     PHOTO_SIMILARITY_THRESHOLD, PHOTO_SIMILARITY_RECENT_HOURS,
     PHOTO_SIMILARITY_SAME_POINT_DAYS, PHOTO_SIMILARITY_CROSS_USER_MINUTES,
-    EXIF_MAX_AGE_MINUTES, EXIF_MAX_AGE_FOOD_MINUTES, SUBMIT_MAX_PER_DAY,
+    EXIF_MAX_AGE_MINUTES, EXIF_MAX_AGE_FOOD_MINUTES, EXIF_ENABLED, SUBMIT_MAX_PER_DAY,
     ITEM_COUNT_MIN, ITEM_COUNT_MAX, DEMO_MODE,
 )
 from datetime import date as date_type
@@ -235,8 +235,9 @@ def create_submission(data: SubmissionCreate, db: Session = Depends(get_db)):
                         detail=f"该点位已有其他用户提交了相同照片（相似度 {sim_pct3 * 100:.0f}%），请勿代投或复用他人照片",
                     )
 
-    # ---- 4.5 EXIF 拍摄时间校验（管理员/Demo 跳过，厨余放宽） ----
-    if not DEMO_MODE and not _is_admin(user.id, db) and data.photo:
+    # ---- 4.5 EXIF 拍摄时间校验（EXIF_ENABLED=False/管理员/Demo 跳过，厨余放宽） ----
+    # 代码保留，手机端启用时设 EXIF_ENABLED=True
+    if EXIF_ENABLED and not DEMO_MODE and not _is_admin(user.id, db) and data.photo:
         max_age = EXIF_MAX_AGE_FOOD_MINUTES if data.waste_type == "外卖厨余" else EXIF_MAX_AGE_MINUTES
         try:
             import requests as req_exif
@@ -251,8 +252,8 @@ def create_submission(data: SubmissionCreate, db: Session = Depends(get_db)):
 
     # ---- 5. 归入批次 + 计算碳减排 ----
     item_count = max(ITEM_COUNT_MIN, min(data.item_count, ITEM_COUNT_MAX))
-    batch = get_or_create_batch(db, point, data.category, data.grade)
-    co2_per_item = calc_co2(db, data.category, batch.destination or "C")
+    batch = get_or_create_batch(db, point, data.waste_type, data.grade)
+    co2_per_item = calc_co2(db, data.waste_type, batch.destination or "C")
     total_co2 = round(co2_per_item * item_count, 3)
 
     sub = Submission(
@@ -265,6 +266,7 @@ def create_submission(data: SubmissionCreate, db: Session = Depends(get_db)):
         co2_saved=total_co2,
         photo_hash=photo_hash,
         item_count=item_count,
+        waste_type=data.waste_type,
     )
     # 打卡倍率
     streak, is_today_first = _compute_streak(user.id, date_type.today(), db)

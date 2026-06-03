@@ -14,6 +14,12 @@ from ..services.notify_service import broadcast_reuse
 router = APIRouter(tags=["batch"])
 
 
+def _is_admin(user_id: int, db: Session) -> bool:
+    """管理员跳过限制"""
+    user = db.query(User).get(user_id)
+    return user is not None and user.role == "admin"
+
+
 @router.get("/batches")
 def list_batches(status: str | None = None, category: str | None = None,
                  db: Session = Depends(get_db)):
@@ -43,6 +49,7 @@ def claim_batch(data: BatchClaim, db: Session = Depends(get_db)):
 
     batch.status = "claimed"
     batch.destination = data.destination
+    batch.claimed_by = data.reuser_id
     db.commit()
     return OkResp(msg=f"批次 {batch.id} 已认领，去向 {PATH_DESC.get(data.destination, data.destination)}")
 
@@ -59,6 +66,12 @@ def reuse_batch(data: BatchReuse, db: Session = Depends(get_db)):
     reuser = db.query(User).get(data.reuser_id)
     if not reuser or reuser.role not in ("reuser", "admin"):
         raise HTTPException(status_code=403, detail="仅去向端/管理员可上传成品")
+
+    # 已认领的批次只有认领人或管理员才能上传成品
+    if batch.status == "claimed" and batch.claimed_by and not _is_admin(data.reuser_id, db):
+        if batch.claimed_by != data.reuser_id:
+            claimer = db.query(User).get(batch.claimed_by)
+            raise HTTPException(status_code=403, detail=f"该批次已被「{claimer.nickname if claimer else '其他去向端'}」认领，不可由其他去向端上传成品")
 
     item = ReuseItem(
         batch_id=batch.id,

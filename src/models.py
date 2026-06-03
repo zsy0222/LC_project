@@ -47,7 +47,8 @@ class Batch(Base):
     date = Column(Date, default=date.today)
     category = Column(String(16))                       # 纸箱 / 塑料 / 玻璃
     status = Column(String(16), default="pending")      # pending / claimed / done
-    destination = Column(String(32))                    # A 共享 / B 手工 / C 回收
+    destination = Column(String(32))                    # 处理路径
+    claimed_by = Column(Integer, ForeignKey("users.id"), nullable=True)  # 认领人
     created_at = Column(DateTime, default=datetime.utcnow)
 
     point = relationship("Point", back_populates="batches")
