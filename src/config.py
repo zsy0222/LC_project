@@ -177,6 +177,11 @@ LOCATION_MAX_DISTANCE_M = 100     # GPS 定位最大允许距离（米）
 COOLDOWN_SECONDS = 30            # 同点位提交冷却时间（秒）
 PHOTO_SIMILARITY_THRESHOLD = 0.15  # 图片相似度阈值（≤15% 差异视为同一物品）
 PHOTO_SIMILARITY_RECENT_HOURS = 24  # 图片相似度比对时间范围（小时）
+PHOTO_SIMILARITY_SAME_POINT_DAYS = 7     # 同用户同点位图片比对天数
+PHOTO_SIMILARITY_CROSS_USER_MINUTES = 3   # 同点位跨用户图片比对分钟数（仅拦截当场传图）
+EXIF_MAX_AGE_MINUTES = 5               # 照片 EXIF 拍摄时间最大允许早于当前时间（分钟）
+EXIF_MAX_AGE_FOOD_MINUTES = 60         # 厨余类放宽至 1h（先拍后确认的两步流程）
+SUBMIT_MAX_PER_DAY = 20                # 单用户每日最大投递次数
 ITEM_COUNT_MIN = 1               # 单次投递最少物品数
 ITEM_COUNT_MAX = 20              # 单次投递最多物品数
 

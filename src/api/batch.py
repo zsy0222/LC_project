@@ -38,8 +38,8 @@ def claim_batch(data: BatchClaim, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail=f"批次当前状态: {batch.status}，不可认领")
 
     reuser = db.query(User).get(data.reuser_id)
-    if not reuser or reuser.role != "reuser":
-        raise HTTPException(status_code=403, detail="仅去向端可认领")
+    if not reuser or reuser.role not in ("reuser", "admin"):
+        raise HTTPException(status_code=403, detail="仅去向端/管理员可认领")
 
     batch.status = "claimed"
     batch.destination = data.destination
@@ -57,8 +57,8 @@ def reuse_batch(data: BatchReuse, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail=f"批次状态 {batch.status} 不可上传成品")
 
     reuser = db.query(User).get(data.reuser_id)
-    if not reuser or reuser.role != "reuser":
-        raise HTTPException(status_code=403, detail="仅去向端可上传成品")
+    if not reuser or reuser.role not in ("reuser", "admin"):
+        raise HTTPException(status_code=403, detail="仅去向端/管理员可上传成品")
 
     item = ReuseItem(
         batch_id=batch.id,

@@ -15,7 +15,8 @@ from __future__ import annotations
 import io
 import random
 import math
-from typing import Tuple
+from datetime import datetime
+from typing import Tuple, Optional
 
 from PIL import Image, ImageFilter, ImageStat
 
@@ -324,3 +325,56 @@ def is_similar_to_recent(photo_hash: str, recent_hashes: list[str], threshold: f
             best = diff_pct
     similarity = 1.0 - best
     return similarity > (1.0 - threshold), round(similarity, 3)
+
+
+# ---------- EXIF 拍摄时间提取 ----------
+_EXIF_DATETIME_ORIGINAL = 36867  # EXIF tag: DateTimeOriginal
+_EXIF_DATETIME_DIGITIZED = 36868  # EXIF tag: DateTimeDigitized (fallback)
+
+
+def extract_exif_datetime(image_bytes: bytes) -> datetime | None:
+    """
+    从 JPEG 字节中提取 EXIF DateTimeOriginal（拍摄时间）。
+    返回 datetime 对象，若无 EXIF 或读取失败返回 None。
+
+    EXIF 格式：'YYYY:MM:DD HH:MM:SS'
+    """
+    try:
+        img = Image.open(io.BytesIO(image_bytes))
+        exif = img._getexif()
+        if not exif:
+            return None
+
+        # 优先用 DateTimeOriginal，其次用 DateTimeDigitized
+        for tag in (_EXIF_DATETIME_ORIGINAL, _EXIF_DATETIME_DIGITIZED):
+            raw = exif.get(tag)
+            if raw and isinstance(raw, str):
+                try:
+                    return datetime.strptime(raw, "%Y:%m:%d %H:%M:%S")
+                except ValueError:
+                    continue
+
+        return None
+    except Exception:
+        return None
+
+
+def is_exif_too_old(image_bytes: bytes, max_age_minutes: int) -> tuple[bool, str]:
+    """
+    检查照片 EXIF 拍摄时间是否过期。
+    返回 (is_too_old, reason)。
+    - 无 EXIF → too_old=True, reason="无EXIF"
+    - 时间超过 max_age_minutes → too_old=True, reason="X分钟前拍摄"
+    - 正常 → too_old=False, reason=""
+    """
+    dt = extract_exif_datetime(image_bytes)
+    if dt is None:
+        return True, "照片缺少拍摄信息（无EXIF），请使用相机现场拍摄"
+    age = (datetime.utcnow() - dt).total_seconds()
+    if age < 0:
+        # 设备时钟不准，允许少量超前
+        pass
+    age_min = abs(age) / 60
+    if age_min > max_age_minutes:
+        return True, f"照片拍摄于 {age_min:.0f} 分钟前（允许 {max_age_minutes} 分钟内），请现场重新拍摄"
+    return False, ""
