@@ -42,7 +42,6 @@ class PredictResp(BaseModel):
     recommend: str = ""    # A / B / C
     recommend_desc: str = ""
     co2_estimate: float    # 减碳预估
-    box_count: int = 1     # AI 识别的回收物数量（仅纸箱）
     need_recheck: bool     # 置信度过低时提示重拍
 
 
@@ -110,6 +109,7 @@ class BatchOut(BaseModel):
     status: str
     destination: Optional[str] = None
     claimed_by: Optional[int] = None
+    created_at: Optional[datetime] = None
 
 
 class BatchClaim(BaseModel):

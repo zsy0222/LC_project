@@ -1,4 +1,6 @@
 """用户接口：资料、通知、徽章"""
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -70,44 +72,39 @@ def mark_all_read(user_id: int, db: Session = Depends(get_db)):
 
 
 def _compute_streak(user_id: int, today: date, db: Session) -> tuple[int, bool]:
-    """统计连续打卡天数，返回 (连续天数, 今日是否首次)"""
-    from sqlalchemy import func
+    """统计连续打卡天数"""
+    from sqlalchemy import func as sa_func
+    from datetime import datetime as dt
     rows = (
-        db.query(func.date(Submission.ts))
+        db.query(sa_func.date(Submission.ts))
         .filter(Submission.user_id == user_id, Submission.status == "confirmed")
         .distinct()
-        .order_by(func.date(Submission.ts).desc())
+        .order_by(sa_func.date(Submission.ts).desc())
         .all()
     )
-    dates = [r[0] for r in rows]
+    dates = []
+    for r in rows:
+        v = r[0]
+        if isinstance(v, str):
+            dates.append(date.fromisoformat(v))
+        elif isinstance(v, dt):
+            dates.append(v.date())
+        elif isinstance(v, date):
+            dates.append(v)
     if not dates:
         return 0, True
-    # 计算连续天数
     streak = 1
-    # 确保 dates 里的元素是 date 类型
-    valid_dates = []
-    for d in dates:
-        if isinstance(d, date):
-            valid_dates.append(d)
-        elif hasattr(d, 'date'):
-            valid_dates.append(d.date())
+    for i in range(1, len(dates)):
+        if (dates[i-1] - dates[i]).days == 1:
+            streak += 1
         else:
-            valid_dates.append(d)
-    dates = valid_dates
-    if len(dates) > 1:
-        for i in range(1, len(dates)):
-            if (dates[i-1] - dates[i]).days == 1:
-                streak += 1
-            else:
-                break
-    # 今天已有记录 → 非首次；否则是首次
+            break
     if dates[0] == today:
         is_today_first = False
     else:
         if (today - dates[0]).days > 1:
             streak = 0
         is_today_first = True
-
     return streak, is_today_first
 
 

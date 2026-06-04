@@ -1,4 +1,4 @@
-"""投递记录接口（含反作弊：定位校验 / 30s 冷却 / 图片相似度去重 / 多物品计数）"""
+"""投递记录接口（含反作弊：定位校验 / 30s 冷却 / 图片相似度去重）"""
 import math
 from datetime import datetime, timedelta
 
@@ -10,7 +10,7 @@ from ..config import (
     PHOTO_SIMILARITY_THRESHOLD, PHOTO_SIMILARITY_RECENT_HOURS,
     PHOTO_SIMILARITY_SAME_POINT_DAYS, PHOTO_SIMILARITY_CROSS_USER_MINUTES,
     EXIF_MAX_AGE_MINUTES, EXIF_MAX_AGE_FOOD_MINUTES, EXIF_ENABLED, SUBMIT_MAX_PER_DAY,
-    ITEM_COUNT_MIN, ITEM_COUNT_MAX, DEMO_MODE,
+    DEMO_MODE,
 )
 from datetime import date as date_type
 from ..database import get_db
@@ -93,15 +93,57 @@ def _haversine(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
     return r * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
-def _parse_gps(gps_str: str | None) -> tuple[float, float]:
-    """解析点位 GPS 字符串 'lat,lng' → (lat, lng)"""
+def _parse_gps_points(gps_str: str | None) -> list[tuple[float, float]]:
+    """解析 GPS 字符串，支持单点 'lat,lng' 或线段 'lat,lng;lat,lng'"""
     if not gps_str:
-        return 0.0, 0.0
-    try:
-        parts = gps_str.split(",")
-        return float(parts[0]), float(parts[1])
-    except (ValueError, IndexError):
-        return 0.0, 0.0
+        return []
+    points = []
+    for segment in gps_str.split(";"):
+        try:
+            parts = segment.strip().split(",")
+            if len(parts) >= 2:
+                points.append((float(parts[0]), float(parts[1])))
+        except (ValueError, IndexError):
+            continue
+    return points
+
+
+def _distance_to_segment(user_lat: float, user_lng: float,
+                          lat1: float, lng1: float,
+                          lat2: float, lng2: float) -> float:
+    """计算点到线段的最短距离（米），使用局部笛卡尔近似"""
+    # 纬度/经度 → 米 的近似系数（取线段中点的纬度）
+    mid_lat = (lat1 + lat2) / 2
+    lat_m = 111320.0
+    lng_m = 111320.0 * math.cos(math.radians(mid_lat))
+
+    # 转为局部笛卡尔坐标（米）
+    ux = (user_lng - lng1) * lng_m
+    uy = (user_lat - lat1) * lat_m
+    ax = 0.0
+    ay = 0.0
+    bx = (lng2 - lng1) * lng_m
+    by = (lat2 - lat1) * lat_m
+
+    # 计算投影参数 t =  (P-A)·(B-A) / |B-A|²
+    bax = bx - ax
+    bay = by - ay
+    seg_len_sq = bax * bax + bay * bay
+    if seg_len_sq < 1e-6:
+        # 线段退化为点
+        return _haversine(user_lat, user_lng, lat1, lng1)
+
+    t = ((ux - ax) * bax + (uy - ay) * bay) / seg_len_sq
+    t = max(0.0, min(1.0, t))  # 夹到 [0,1]
+
+    # 线段上最近点
+    cx = ax + t * bax
+    cy = ay + t * bay
+
+    # 笛卡尔距离（米）
+    dx = ux - cx
+    dy = uy - cy
+    return math.sqrt(dx * dx + dy * dy)
 
 
 @router.post("/submission", response_model=SubmissionOut)
@@ -118,9 +160,19 @@ def create_submission(data: SubmissionCreate, db: Session = Depends(get_db)):
 
     # ---- 2. 定位校验（管理员/Demo 模式跳过） ----
     if not DEMO_MODE and not _is_admin(data.user_id, db):
-        point_lat, point_lng = _parse_gps(point.gps)
-        if point_lat and point_lng and data.user_lat and data.user_lng:
-            dist = _haversine(data.user_lat, data.user_lng, point_lat, point_lng)
+        gps_points = _parse_gps_points(point.gps)
+        if gps_points and data.user_lat and data.user_lng:
+            # 计算用户到点位区域的最短距离（单点=点到点，线段=点到线段）
+            if len(gps_points) == 1:
+                dist = _haversine(data.user_lat, data.user_lng, *gps_points[0])
+            else:
+                # 多点 → 取到最近线段距离
+                dist = float("inf")
+                for i in range(len(gps_points) - 1):
+                    d = _distance_to_segment(data.user_lat, data.user_lng,
+                                              *gps_points[i], *gps_points[i + 1])
+                    if d < dist:
+                        dist = d
             if dist > LOCATION_MAX_DISTANCE_M:
                 raise HTTPException(
                     status_code=400,
@@ -164,9 +216,10 @@ def create_submission(data: SubmissionCreate, db: Session = Depends(get_db)):
                 detail=f"今日投递已达上限（{SUBMIT_MAX_PER_DAY} 次），请明天再来",
             )
 
-    # ---- 4. 图片相似度去重（管理员跳过） ----
+    # ---- 4. 图片相似度去重（管理员/外卖厨余跳过） ----
+    # 外卖厨余相似图片太多（饭菜外观相近），不做图片去重
     photo_hash = data.photo_hash
-    if not _is_admin(user.id, db):
+    if not _is_admin(user.id, db) and data.waste_type != "外卖厨余":
         # 先确保有 hash（前端可能传，也可能需后端计算）
         if not photo_hash and data.photo:
             try:
@@ -251,7 +304,7 @@ def create_submission(data: SubmissionCreate, db: Session = Depends(get_db)):
             pass  # 读取失败（非 JPEG 等）不拦截
 
     # ---- 5. 归入批次 + 计算碳减排 ----
-    item_count = max(ITEM_COUNT_MIN, min(data.item_count, ITEM_COUNT_MAX))
+    item_count = data.item_count or 1
     batch = get_or_create_batch(db, point, data.waste_type, data.grade)
     co2_per_item = calc_co2(db, data.waste_type, batch.destination or "C")
     total_co2 = round(co2_per_item * item_count, 3)
@@ -270,8 +323,7 @@ def create_submission(data: SubmissionCreate, db: Session = Depends(get_db)):
     )
     # 打卡倍率
     streak, is_today_first = _compute_streak(user.id, date_type.today(), db)
-    multiplier = _streak_multiplier(streak) if is_today_first else _streak_multiplier(max(0, streak - 1) if not is_today_first else streak)
-    if is_today_first: streak += 1  # 今天首次，计入新一天
+    if is_today_first: streak += 1
     final_multiplier = _streak_multiplier(streak)
     bonus_co2 = round(total_co2 * (final_multiplier - 1.0), 3)
     badge = _streak_badge(streak)
@@ -380,17 +432,25 @@ def confirm_submission(sub_id: int, data: SubmissionConfirm, db: Session = Depen
         raise HTTPException(status_code=404, detail="点位不存在")
 
     if not DEMO_MODE and not _is_admin(data.user_id, db):
-        point_lat, point_lng = _parse_gps(point.gps)
-        if point_lat and point_lng and data.user_lat and data.user_lng:
-            dist = _haversine(data.user_lat, data.user_lng, point_lat, point_lng)
+        gps_points = _parse_gps_points(point.gps)
+        if gps_points and data.user_lat and data.user_lng:
+            if len(gps_points) == 1:
+                dist = _haversine(data.user_lat, data.user_lng, *gps_points[0])
+            else:
+                dist = float("inf")
+                for i in range(len(gps_points) - 1):
+                    d = _distance_to_segment(data.user_lat, data.user_lng,
+                                              *gps_points[i], *gps_points[i + 1])
+                    if d < dist:
+                        dist = d
             if dist > LOCATION_MAX_DISTANCE_M:
                 raise HTTPException(
                     status_code=400,
                     detail=f"定位校验失败：距回收点 {dist:.0f} 米（限制 {LOCATION_MAX_DISTANCE_M} 米）",
                 )
 
-    # ---- 图片去重（confirm 阶段，复用 pending 记录的 hash） ----
-    if not _is_admin(data.user_id, db) and sub.photo_hash:
+    # ---- 图片去重（confirm 阶段，外卖厨余跳过） ----
+    if not _is_admin(data.user_id, db) and sub.photo_hash and (sub.waste_type or sub.ai_category) != "外卖厨余":
         # 同用户同品类 24h
         scut = datetime.utcnow() - timedelta(hours=PHOTO_SIMILARITY_RECENT_HOURS)
         own_hashes = [
@@ -423,8 +483,8 @@ def confirm_submission(sub_id: int, data: SubmissionConfirm, db: Session = Depen
                 raise HTTPException(status_code=400, detail=f"该点位已有其他用户提交了相同照片（相似度 {sp2 * 100:.0f}%），请勿代投或复用他人照片")
 
     # 归入批次
-    batch = get_or_create_batch(db, point, sub.ai_category or sub.waste_type, "")
-    co2 = calc_co2(db, sub.ai_category or sub.waste_type, batch.destination or "C")
+    batch = get_or_create_batch(db, point, sub.waste_type, "")
+    co2 = calc_co2(db, sub.waste_type, batch.destination or "C")
     total_co2 = round(co2 * sub.item_count, 3)
 
     sub.batch_id = batch.id

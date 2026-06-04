@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from .config import BASE_DIR, WEB_DIR, UPLOAD_DIR
 from .database import init_db
 from .seed import seed_all
-from .api import scan, predict, submission, batch, user, rank
+from .api import scan, predict, submission, batch, user, rank, reward
 
 
 def create_app() -> FastAPI:
@@ -37,7 +37,7 @@ def create_app() -> FastAPI:
 
     # 业务路由
     for r in (scan.router, predict.router, submission.router,
-              batch.router, user.router, rank.router):
+              batch.router, user.router, rank.router, reward.router):
         app.include_router(r, prefix="/api")
 
     # 首页

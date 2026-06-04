@@ -225,13 +225,6 @@ TREATMENT_KNOWLEDGE = {
         "source": "LI Tong et al., Energy Reports 2023 Vol.9 Suppl.6 pp.64-72（中南大学/湖南大学）、江西格林循环示范项目",
     },
 }
-# 外卖厨余处理路径
-FOOD_TREATMENT = {
-    "A": "厌氧消化（产沼气）",
-    "B": "好氧堆肥（产有机肥）",
-    "C": "饲料化（黑水虻/蚯蚓）",
-}
-
 # 服务地址
 HOST = "127.0.0.1"
 PORT = 8000
@@ -247,8 +240,6 @@ EXIF_MAX_AGE_MINUTES = 5               # 照片 EXIF 拍摄时间最大允许早
 EXIF_MAX_AGE_FOOD_MINUTES = 60         # 厨余类放宽至 1h（先拍后确认的两步流程）
 EXIF_ENABLED = False                   # EXIF 检测开关（手机端启用，桌面端关闭）
 SUBMIT_MAX_PER_DAY = 20                # 单用户每日最大投递次数
-ITEM_COUNT_MIN = 1               # 单次投递最少物品数
-ITEM_COUNT_MAX = 20              # 单次投递最多物品数
 
 # 单次投递重量估算（kg/次），用于将每吨减排量折算为单次减碳
 WEIGHT_ESTIMATE = {

@@ -102,7 +102,16 @@
   .batch-card .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
   .batch-card .id { font-weight: bold; font-size: 0.85rem; word-break: break-all; }
   .status { padding: 2px 8px; border-radius: 10px; font-size: 0.65rem; font-weight: bold; }
-  .status-pending { background: var(--amber-bg); color: var(--amber); }
+  /* ====== 抢单卡片 ====== */
+.order-card { background: #fff; border: 2px solid #e0e0e0; border-radius: var(--radius); padding: 12px; margin-bottom: 8px; transition: .2s; }
+.order-card:hover { border-color: var(--purple); box-shadow: 0 2px 8px rgba(123,31,162,.1); }
+.order-card .order-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.order-card .order-urgent { font-size: .65rem; font-weight: bold; }
+.order-card .order-cat { font-size: .8rem; font-weight: bold; }
+.order-card .order-body { font-size: .7rem; color: var(--gray); margin-bottom: 8px; font-family: monospace; }
+.order-card .order-footer { display: flex; align-items: center; justify-content: space-between; }
+
+.status-pending { background: var(--amber-bg); color: var(--amber); }
   .status-claimed { background: var(--blue-bg); color: var(--blue); }
   .status-done { background: var(--green-bg); color: var(--green); }
   .batch-card .meta { font-size: 0.75rem; color: var(--gray); }
@@ -123,6 +132,43 @@
   .stat-label { font-size: 0.65rem; color: var(--gray); }
 
   /* 徽章 */
+
+/* ====== 回收物追踪 ====== */
+.track-card { background: #fff; border-radius: var(--radius); padding: 14px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+.track-card .track-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.track-card .track-cat { font-weight: bold; font-size: 0.85rem; }
+.track-card .track-dest { font-size: 0.7rem; color: var(--gray); }
+.track-progress { display: flex; align-items: flex-start; justify-content: space-between; position: relative; padding: 0 4px; }
+.track-progress::before { content: ""; position: absolute; top: 16px; left: 28px; right: 28px; height: 3px; background: #e0e0e0; border-radius: 2px; z-index: 0; }
+.track-step { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; position: relative; z-index: 1; }
+.track-step .step-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; background: #e0e0e0; transition: .3s; }
+.track-step.done .step-dot { background: var(--green-bg); }
+.track-step.active .step-dot { background: var(--green); box-shadow: 0 0 0 4px rgba(46,125,50,.2); animation: pulse-dot 1.5s infinite; }
+@keyframes pulse-dot { 0%,100% { box-shadow: 0 0 0 4px rgba(46,125,50,.2); } 50% { box-shadow: 0 0 0 8px rgba(46,125,50,.1); } }
+.track-step .step-label { font-size: 0.6rem; color: #999; text-align: center; white-space: nowrap; }
+.track-step.done .step-label, .track-step.active .step-label { color: var(--green); font-weight: bold; }
+.track-step .step-detail { font-size: 0.55rem; color: #aaa; text-align: center; max-width: 56px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ====== 成品橱窗 ====== */
+.gallery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.gallery-card { background: #fff; border-radius: var(--radius); overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+.gallery-card .gc-img { width: 100%; height: 140px; object-fit: cover; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+.gallery-card .gc-body { padding: 8px 10px; }
+.gallery-card .gc-desc { font-size: 0.75rem; font-weight: bold; margin-bottom: 2px; }
+.gallery-card .gc-meta { font-size: 0.65rem; color: var(--gray); }
+.gallery-card .gc-mine { display: inline-block; margin-top: 4px; background: var(--green-bg); color: var(--green); font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+.gallery-card .gc-claim { display: block; width: 100%; margin-top: 6px; padding: 6px; border: 1px solid var(--purple); background: var(--purple-bg); color: var(--purple); border-radius: 6px; cursor: pointer; font-size: 0.65rem; font-weight: bold; transition: .2s; }
+.gallery-card .gc-claim:hover { background: var(--purple); color: #fff; }
+.gallery-card .gc-claim:disabled { opacity: .35; cursor: not-allowed; }
+
+/* ====== 奖励进度 ====== */
+.reward-bar-wrap { background: #f0f0f0; border-radius: 10px; height: 20px; overflow: hidden; margin: 8px 0; }
+.reward-bar-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, var(--green-light), var(--green)); transition: width .6s; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; color: #fff; font-weight: bold; min-width: 36px; }
+.reward-card { background: linear-gradient(135deg, var(--purple-bg), #fff); border: 2px solid var(--purple); border-radius: var(--radius); padding: 16px; text-align: center; margin-bottom: 10px; }
+.reward-card h3 { font-size: 1rem; color: var(--purple); margin-bottom: 6px; }
+.reward-card p { font-size: 0.75rem; color: var(--gray); }
+.reward-card .btn { margin-top: 10px; }
+#rewardCard { min-height: 65vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .badge-list { display: flex; gap: 6px; flex-wrap: wrap; }
   .badge-item { text-align: center; width: 62px; }
   .badge-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin: 0 auto 2px; }
@@ -215,7 +261,7 @@
       <div id="pendingList"><div class="empty">暂无待投递</div></div>
     </section>
 
-    <!-- 点位选择 (非厨余品类显示) -->
+    <!-- 点位选择 + 拍照区（选择品类后显示） -->
     <section id="pointSection" style="display:none;">
       <h2>📍 选择回收点</h2>
       <div class="point-grid" id="pointGrid"><div class="empty">加载中...</div></div>
@@ -226,7 +272,7 @@
         <div>📏 距离: <span id="dbDist">-</span> 米</div>
       </div>
     </section>
-    <section>
+    <section id="photoSection" style="display:none;">
       <h2>📸 拍照投递</h2>
       <!-- 外卖厨余确认区（第二步显示，替代上传区） -->
       <div id="foodConfirmBar" style="display:none;padding:16px;background:var(--green-bg);border-radius:var(--radius);text-align:center;">
@@ -251,31 +297,21 @@
         <div style="font-size:0.75rem;">置信度: <strong id="aiScore">-</strong> | 预估减碳: <strong id="aiCo2">-</strong> kg</div>
         <div class="ai-warn" id="aiWarn" style="display:none">⚠ 置信度较低，建议重新拍摄</div>
       </div>
-      <div id="boxCountBar" style="display:none;margin-top:8px;padding:8px 12px;background:var(--blue-bg);border-radius:8px;font-size:0.8rem;">
-        📦 AI 识别到 <strong id="boxCountText">1</strong> 个回收物，预估减碳 <strong id="boxCo2Text">-</strong> kg
-      </div>
       <div id="cooldownBar" style="display:none;margin-top:8px;padding:8px 12px;background:var(--amber-bg);border-radius:8px;font-size:0.8rem;color:var(--amber);font-weight:bold;"><span id="cooldownText">⏳ 冷却中</span></div>
       <button class="btn btn-primary" id="submitBtn" disabled onclick="submitDelivery()">✅ 确认投递</button>
     </section>
-    <section>
-      <h2>📋 我的投递</h2>
-      <div id="mySubmissions"><div class="empty">暂无记录</div></div>
-    </section>
-    <section>
-      <h2>🏅 成就徽章</h2>
-      <div class="badge-list" id="badgeList"><div class="empty">-</div></div>
-    </section>
   </div>
 
-  <!-- 去向 tab -->
+  <!-- 去向 tab - 抢单大厅 -->
   <div class="tab-content" id="tab-reuser">
-    <section>
-      <h2>📦 批次管理</h2>
-      <div class="filter-bar">
-        <select id="filterCategory" onchange="loadBatches()"><option value="">全部品类</option><option value="外卖厨余">外卖厨余</option><option value="快递纸箱">快递纸箱</option><option value="塑料">塑料</option><option value="有害">有害</option></select>
-        <select id="filterStatus" onchange="loadBatches()"><option value="">全部状态</option><option value="pending">待认领</option><option value="claimed">已认领</option><option value="done">已完成</option></select>
-      </div>
-      <div id="batchList"><div class="empty">加载中...</div></div>
+    <section id="orderPoolSection">
+      <h2>⚡ 抢单大厅</h2>
+      <div style="font-size:.7rem;color:var(--amber);margin-bottom:8px;">待认领批次先到先得，选好路径即刻抢单</div>
+      <div id="orderPool"><div class="empty">暂无待认领批次</div></div>
+    </section>
+    <section id="myClaimSection" style="display:none;">
+      <h2>📋 我的认领</h2>
+      <div id="myClaims"><div class="empty">暂未认领任何批次</div></div>
     </section>
   </div>
 
@@ -292,6 +328,32 @@
     </section>
   </div>
 
+  <!-- 成果 tab -->
+  <div class="tab-content" id="tab-reward">
+    <section id="rewardCard" style="background: linear-gradient(135deg, var(--purple-bg), #fff); border: 2px solid var(--purple); border-radius: var(--radius); padding: 24px; text-align: center; min-height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <div style="width:100%; max-width: 360px;">
+        <h2 style="font-size:1.2rem;margin-bottom:12px;">🎁 碳积分奖励</h2>
+        <div id="rewardSection"><div class="empty">加载中...</div></div>
+      </div>
+    </section>
+    <section>
+      <h2>📋 我的投递</h2>
+      <div id="mySubmissions"><div class="empty">暂无记录</div></div>
+    </section>
+    <section>
+      <h2>📦 回收物追踪</h2>
+      <div id="trackingList"><div class="empty">暂无投递记录</div></div>
+    </section>
+    <section>
+      <h2>🖼 成品橱窗</h2>
+      <div id="galleryGrid"><div class="empty">暂无成品</div></div>
+    </section>
+    <section>
+      <h2>🏅 成就徽章</h2>
+      <div class="badge-list" id="badgeList"><div class="empty">-</div></div>
+    </section>
+  </div>
+
   <!-- 底栏 -->
   <div class="tab-bar">
     <button class="tab-btn active" data-tab="tab-delivery" id="tabBtnDelivery">
@@ -299,6 +361,9 @@
     </button>
     <button class="tab-btn" data-tab="tab-reuser" id="tabBtnReuser">
       <span class="tb-icon">📦</span>去向
+    </button>
+    <button class="tab-btn" data-tab="tab-reward" id="tabBtnReward">
+      <span class="tb-icon">🎁</span>成果
     </button>
     <button class="tab-btn" data-tab="tab-rank" id="tabBtnRank">
       <span class="tb-icon">🏆</span>排行
@@ -317,11 +382,9 @@
 <div class="modal-overlay" id="claimModal">
   <div class="modal">
     <button class="close" onclick="closeModal('claimModal')">&times;</button>
-    <h3>🤝 认领批次</h3>
+    <h3>⚡ 确认抢单</h3>
     <p style="margin-bottom:8px;font-size:0.9rem;" id="claimBatchInfo"></p>
-    <label>去向路径：</label>
-    <select id="claimDestination"></select>
-    <button class="btn btn-accent" style="margin-top:10px;" onclick="doClaim()">✅ 确认认领</button>
+    <div id="claimPathOptions" style="max-height:200px;overflow-y:auto;"></div>
   </div>
 </div>
 <div class="modal-overlay" id="reuseModal">
@@ -462,9 +525,10 @@ function switchTab(tabId) {
 async function loadTabContent(tabId) {
   if (!tabId) tabId = document.querySelector('.tab-content.active').id;
   switch (tabId) {
-    case 'tab-delivery': await Promise.all([loadPoints(), loadMySubmissions(), loadBadges()]); break;
+    case 'tab-delivery': await loadPoints(); break;
     case 'tab-reuser': await loadBatches(); break;
     case 'tab-rank': await loadRank(); break;
+    case 'tab-reward': await Promise.all([loadRewardStatus(), loadMySubmissions(), loadTracking(), loadGallery(), loadBadges()]); break;
   }
 }
 
@@ -479,27 +543,31 @@ function selectWasteType(wasteType, icon) {
   document.getElementById('selectedPoint').innerHTML = '👆 请点击选择一个回收点';
   document.getElementById('gpsDebug').style.display = 'none';
   document.getElementById('submitBtn').disabled = true;
-  // 清除点位选中
   document.querySelectorAll('#pointGrid .point-card').forEach(c => c.classList.remove('selected'));
+  currentPoint = null;
+  locationVerified = false;
+
+  // 所有品类都先选回收点，再拍照
+  if (wasteType === '外卖厨余') {
+    document.getElementById('pointSection').style.display = 'none';
+  } else {
+    document.getElementById('pointSection').style.display = 'block';
+  }
+  document.getElementById('photoSection').style.display = 'block';
 
   if (wasteType === '外卖厨余') {
-    // 两步分离：先拍照，不限地点
+    // 厨余：先拍照，再选点。拍照完成前不显示选点区
     document.getElementById('pointSection').style.display = 'none';
     document.getElementById('pendingSection').style.display = 'block';
+    document.getElementById('photoSection').style.display = 'block';
     document.getElementById('uploadZone').style.display = 'block';
     document.getElementById('foodConfirmBar').style.display = 'none';
-    document.getElementById('submitBtn').textContent = '📸 先拍照记录';
+    document.getElementById('submitBtn').textContent = '📸 请先拍照';
     loadPendingList();
   } else {
-    // 一步到位：先到点再拍。管理员直接显示拍照区
-    document.getElementById('pointSection').style.display = 'block';
+    // 其他品类：选点+GPS通过后才显示拍照区
     document.getElementById('pendingSection').style.display = 'none';
-    if (currentUser && currentUser.role === 'admin') {
-      document.getElementById('uploadZone').style.display = 'block';
-      locationVerified = true;
-    } else {
-      document.getElementById('uploadZone').style.display = 'none';
-    }
+    document.getElementById('uploadZone').style.display = 'none';
     document.getElementById('foodConfirmBar').style.display = 'none';
     document.getElementById('submitBtn').textContent = '✅ 确认投递';
     loadPoints();
@@ -527,9 +595,9 @@ async function loadPendingList() {
 
 function openConfirm(subId, wasteType, photo) {
   pendingSubId = subId;
-  locationVerified = false;
+  locationVerified = false;  // 确认阶段需GPS
   currentPoint = null;
-  document.getElementById('selectedPoint').innerHTML = '👆 请点击选择一个回收点';
+  document.getElementById('selectedPoint').innerHTML = '👆 请选择分类回收点';
   document.getElementById('gpsDebug').style.display = 'none';
   document.getElementById('pendingSection').style.display = 'none';
   document.getElementById('pointSection').style.display = 'block';
@@ -544,29 +612,80 @@ function openConfirm(subId, wasteType, photo) {
 async function loadPoints() {
   const res = await fetch(`${API}/points`);
   const points = await res.json();
-  document.getElementById('pointGrid').innerHTML = points.map(p => {
-    // 解析 GPS "lat,lng"
-    const gpsParts = (p.gps || '0,0').split(',');
-    const lat = parseFloat(gpsParts[0]) || 0;
-    const lng = parseFloat(gpsParts[1]) || 0;
+  // 用闭包存 GPS 完整串，避免 onclick 属性里特殊字符坑
+  window._pointData = {};
+  document.getElementById('pointGrid').innerHTML = points.map((p, i) => {
+    window._pointData[i] = { qr: p.qr_code, name: p.name, gps: p.gps };
     return `
-    <div class="point-card" onclick="selectPoint(this, '${p.qr_code}', '${p.name.replace(/'/g, "\\'")}', ${lat}, ${lng})">
+    <div class="point-card" onclick="selectPoint(${i})">
       <div class="name">${p.name}</div><div class="loc">${p.location}</div>
     </div>`;
   }).join('');
 }
-function selectPoint(el, qr, name, lat, lng) {
-  // 只清空点位网格的选中，不影响品类卡片
+function selectPoint(idx) {
+  const pd = window._pointData[idx];
+  if (!pd) return;
   document.querySelectorAll('#pointGrid .point-card').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-  currentPoint = { qr_code: qr, name: name, lat: lat, lng: lng };
-  document.getElementById('selectedPoint').innerHTML = `✅ 已选择：<strong>${name}</strong>`;
+  document.querySelectorAll('#pointGrid .point-card')[idx].classList.add('selected');
+  const gpsPoints = parseGpsPoints(pd.gps);
+  currentPoint = { qr_code: pd.qr, name: pd.name, gps: pd.gps, gps_points: gpsPoints };
+  document.getElementById('selectedPoint').innerHTML = `✅ 已选择：<strong>${pd.name}</strong>`;
   locationVerified = false;
+
+  if (currentWasteType === '外卖厨余') {
+    if (pendingSubId) {
+      // 确认阶段：需要GPS验证
+      document.getElementById('uploadZone').style.display = 'none';
+      document.getElementById('foodConfirmBar').style.display = 'block';
+      if (demoMode || (currentUser && currentUser.role === 'admin')) {
+        locationVerified = true;
+      } else {
+        verifyLocation();
+      }
+    } else {
+      // 首次拍照阶段：不校验GPS
+      locationVerified = true;
+    }
+    document.getElementById('gpsDebug').style.display = 'none';
+  } else if (demoMode || (currentUser && currentUser.role === 'admin')) {
+    locationVerified = true;
+    document.getElementById('uploadZone').style.display = 'block';
+    if (demoMode) toast('🔧 Demo 模式：定位已跳过');
+    else toast('🔑 管理员模式：定位已跳过');
+  } else {
+    verifyLocation();
+  }
   checkSubmitReady();
-  verifyLocation(lat, lng);
 }
 
-function verifyLocation(pointLat, pointLng) {
+function parseGpsPoints(gpsStr) {
+  if (!gpsStr) return [];
+  return gpsStr.split(';').map(s => {
+    const parts = s.trim().split(',');
+    if (parts.length < 2) return null;
+    return {lat: parseFloat(parts[0]), lng: parseFloat(parts[1])};
+  }).filter(Boolean);
+}
+
+function distanceToSegment(ulat, ulng, lat1, lng1, lat2, lng2) {
+  const midLat = (lat1 + lat2) / 2;
+  const latM = 111320, lngM = 111320 * Math.cos(midLat * Math.PI / 180);
+  const ux = (ulng - lng1) * lngM, uy = (ulat - lat1) * latM;
+  const bx = (lng2 - lng1) * lngM, by = (lat2 - lat1) * latM;
+  const seg2 = bx*bx + by*by;
+  if (seg2 < 1e-6) return haversine(ulat, ulng, lat1, lng1);
+  const t = Math.max(0, Math.min(1, (ux*bx + uy*by) / seg2));
+  const cx = t * bx, cy = t * by;
+  return Math.sqrt((ux-cx)*(ux-cx) + (uy-cy)*(uy-cy));
+}
+
+function verifyLocation() {
+  const gpsPoints = currentPoint?.gps_points;
+  if (!gpsPoints || !gpsPoints.length) {
+    checkSubmitReady(); return;
+  }
+  const firstPt = gpsPoints[0];
+
   if (demoMode || (currentUser && currentUser.role === 'admin')) {
     locationVerified = true;
     document.getElementById('selectedPoint').innerHTML = document.getElementById('selectedPoint').innerHTML.replace(' 📍 定位中...', '');
@@ -586,18 +705,28 @@ function verifyLocation(pointLat, pointLng) {
   navigator.geolocation.getCurrentPosition(
     pos => {
       const myLat = pos.coords.latitude, myLng = pos.coords.longitude;
-      // 显示调试信息
       document.getElementById('gpsDebug').style.display = 'block';
       document.getElementById('dbMyLat').textContent = myLat.toFixed(6);
       document.getElementById('dbMyLng').textContent = myLng.toFixed(6);
-      document.getElementById('dbPtLat').textContent = pointLat.toFixed(6);
-      document.getElementById('dbPtLng').textContent = pointLng.toFixed(6);
-      const d = haversine(myLat, myLng, pointLat, pointLng);
+      // 计算到点位区域的最短距离（单点=点到点，多点=到线段）
+      let d;
+      if (gpsPoints.length === 1) {
+        d = haversine(myLat, myLng, gpsPoints[0].lat, gpsPoints[0].lng);
+        document.getElementById('dbPtLat').textContent = gpsPoints[0].lat.toFixed(6);
+        document.getElementById('dbPtLng').textContent = gpsPoints[0].lng.toFixed(6);
+      } else {
+        d = Infinity;
+        for (let i = 0; i < gpsPoints.length - 1; i++) {
+          const sd = distanceToSegment(myLat, myLng, gpsPoints[i].lat, gpsPoints[i].lng, gpsPoints[i+1].lat, gpsPoints[i+1].lng);
+          if (sd < d) d = sd;
+        }
+        document.getElementById('dbPtLat').textContent = '(线段)';
+        document.getElementById('dbPtLng').textContent = gpsPoints.length + '个点';
+      }
       document.getElementById('dbDist').textContent = d.toFixed(1);
       if (d <= 100) {
         locationVerified = true;
         document.getElementById('selectedPoint').innerHTML = document.getElementById('selectedPoint').innerHTML.replace(' 📍 定位中...', '');
-        // GPS通过后显示拍照区（非厨余品类）
         if (currentWasteType !== '外卖厨余') {
           document.getElementById('uploadZone').style.display = 'block';
         }
@@ -655,11 +784,7 @@ async function handleFile(e) {
   document.getElementById('aiCo2').textContent = currentAiResult.co2_estimate.toFixed(3);
   document.getElementById('aiWarn').style.display = currentAiResult.need_recheck ? 'block' : 'none';
   document.getElementById('aiResult').classList.add('show');
-  // 显示 AI 识别的数量
-  const cnt = currentAiResult.box_count || 1;
-  document.getElementById('boxCountBar').style.display = 'block';
-  document.getElementById('boxCountText').textContent = cnt;
-  document.getElementById('boxCo2Text').textContent = currentAiResult.co2_estimate.toFixed(3);
+
   checkSubmitReady();
 }
 function checkSubmitReady() {
@@ -669,16 +794,17 @@ function checkSubmitReady() {
 
   if (!currentUser || !currentWasteType) { disabled = true; msg = '👆 请先选择品类'; }
   else if (isFood) {
-    // 外卖厨余：先拍照 → pending，无需GPS；有 pendingSubId 时走确认流程
     if (pendingSubId) {
+      // 确认阶段：需要选点+GPS
       msg = '✅ 我已分类投放';
-      disabled = !locationVerified || cooldownRemain > 0;
-      if (!locationVerified && !cooldownRemain) msg = '📍 请到达分类点通过定位验证';
+      disabled = !currentPoint || cooldownRemain > 0 || !locationVerified;
+      if (!currentPoint && !cooldownRemain) msg = '📍 请选择回收点';
+      else if (!locationVerified) msg = '📍 请通过位置验证';
     } else if (!currentAiResult) { msg = '📸 请先拍照'; disabled = true; }
     else if (currentAiResult.category === '无法识别') { msg = '⚠ 无法识别，请重新拍照'; disabled = true; }
-    else { msg = '📸 拍照记录（不限地点）'; disabled = false; }
+    else { msg = '📸 拍照记录'; disabled = false; }
   } else {
-    // 其他品类：需要GPS + 拍照
+    // 其他品类：需要选点 + GPS + 拍照
     if (!currentPoint) { msg = '📍 请选择回收点'; disabled = true; }
     else if (!locationVerified) { msg = '📍 请先通过位置验证'; disabled = true; }
     else if (!currentAiResult) { msg = '📸 请拍照'; disabled = true; }
@@ -718,7 +844,6 @@ async function checkCooldown() {
 function resetDelivery() {
   currentAiResult = null; currentPhotoUrl = ''; photoHash = ''; locationVerified = false; pendingSubId = null;
   document.getElementById('cooldownBar').style.display = 'none';
-  document.getElementById('boxCountBar').style.display = 'none';
   document.getElementById('foodConfirmBar').style.display = 'none';
   document.getElementById('uploadZone').style.display = 'none';
   document.getElementById('previewImg').style.display = 'none';
@@ -742,7 +867,7 @@ async function submitDelivery() {
         user_id: currentUser.id, waste_type: currentWasteType,
         category: currentAiResult.category, score: currentAiResult.score,
         photo: currentPhotoUrl, photo_hash: photoHash,
-        item_count: currentAiResult.box_count || 1,
+        item_count: 1,
       };
       const res = await fetch(`${API}/submission/pending`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
       if (!res.ok) { const e = await res.json(); throw new Error(e.detail); }
@@ -800,7 +925,7 @@ async function submitDelivery() {
   if (cooldownRemain > 0) { toast(`⏳ 冷却中 (${cooldownRemain.toFixed(0)}s)`); return; }
   btn.disabled = true; btn.textContent = '提交中...';
   try {
-    const itemCount = currentAiResult.box_count || 1;
+    const itemCount = 1;
     let userLat = 0, userLng = 0;
     if (navigator.geolocation) {
       try {
@@ -861,86 +986,15 @@ async function loadBadges() {
 
 // ==================== 去向功能 ====================
 async function loadBatches() {
-  const cat = document.getElementById('filterCategory').value;
-  const st = document.getElementById('filterStatus').value;
-  let url = `${API}/batches?`; if (cat) url += `category=${encodeURIComponent(cat)}&`; if (st) url += `status=${encodeURIComponent(st)}&`;
-  const res = await fetch(url); const batches = await res.json();
-  const c = document.getElementById('batchList');
-  if (!batches.length) { c.innerHTML = '<div class="empty">暂无匹配批次</div>'; return; }
-  c.innerHTML = batches.map(b => {
-    const sc = 'status-' + b.status;
-    const stText = {pending:'待认领',claimed:'已认领',done:'已完成'}[b.status]||b.status;
-    const treatmentNames = ['厌氧消化工艺','发酵产酸工艺','三相分离协同焚烧','好氧堆肥工艺','直接混合焚烧','黑水虻厌氧集成','蚯蚓堆肥工艺','回收制浆再生','热解制生物炭','蛋托/育苗钵模塑工艺','蘑菇培养料制备工艺','废纸纤维素隔热材工艺','物理回收造粒','化学回收热解','3D打印线材再生工艺','生态砖工艺','塑木复合材料工艺','资源化金属回收','水泥窑协同处置','电池分类拆解回收工艺','荧光灯管汞回收蒸馏工艺'];
-    const destText = b.destination || '-';
-    const isTreatment = treatmentNames.includes(b.destination);
-    const pathColor = isTreatment?'tag-grade':b.destination==='共享再利用'?'tag-path':'tag-cat';
-    return `<div class="batch-card">
-      <div class="header"><span class="id">${b.id}</span><span class="status ${sc}">${stText}</span></div>
-      <div class="meta">📍 #${b.point_id} | 📅 ${b.date} | 📦 ${b.category}${b.destination?` | <span class="ai-tag ${pathColor}">${destText}</span>`:''}</div>
-      <div class="actions">
-        ${b.status==='pending'?`<button class="btn btn-sm btn-outline" onclick="openClaim('${b.id}','${b.category}')">🤝 认领</button>`:''}
-        ${(b.status==='pending'||b.status==='claimed') && (!b.claimed_by||b.claimed_by===currentUser?.id||currentUser?.role==='admin')
-          ? `<button class="btn btn-sm btn-accent" onclick="openReuse('${b.id}')">📸 上传成品</button>`
-          : b.status==='claimed' && b.claimed_by
-            ? `<button class="btn btn-sm btn-accent" disabled style="opacity:.4;cursor:not-allowed" title="已被其他去向端认领">🔒 已被认领</button>`
-            : ''}
-        <button class="btn btn-sm btn-outline" onclick="openStory('${b.id}')">📖 故事</button>
-      </div></div>`;
-  }).join('');
-}
-
-function openClaim(batchId, batchCategory) {
-  claimTarget = batchId;
-  document.getElementById('claimBatchInfo').textContent = '批次: ' + batchId;
-  const sel = document.getElementById('claimDestination');
-  sel.innerHTML = '';
-
-  // 全品类处理去向
-  const treatmentsByCategory = {
-    '外卖厨余': [
-      {v:'厌氧消化工艺',t:'厌氧消化（-90.82 kg CO₂e/吨）'},
-      {v:'发酵产酸工艺',t:'发酵产酸（-81.04）'},
-      {v:'三相分离协同焚烧',t:'三相分离协同焚烧（-80.96）'},
-      {v:'好氧堆肥工艺',t:'好氧堆肥（-25~-50）'},
-      {v:'直接混合焚烧',t:'直接混合焚烧（-3.01）'},
-      {v:'黑水虻厌氧集成',t:'黑水虻+厌氧集成（-120~-150）'},
-      {v:'蚯蚓堆肥工艺',t:'蚯蚓堆肥（-30~-50）'},
-    ],
-    '快递纸箱': [
-      {v:'回收制浆再生',t:'回收制浆再生（-1580 kg CO₂e/吨）'},
-      {v:'热解制生物炭',t:'热解制生物炭（-427）'},
-      {v:'蛋托/育苗钵模塑工艺',t:'蛋托/育苗钵模塑（-700~-900）'},
-      {v:'蘑菇培养料制备工艺',t:'蘑菇培养料（-500~-700）'},
-      {v:'废纸纤维素隔热材工艺',t:'纤维素隔热材（-1300~-1500）'},
-      {v:'共享再利用',t:'共享/再利用（美术社手工改造）'},
-    ],
-    '塑料': [
-      {v:'物理回收造粒',t:'物理回收造粒（-2100 kg CO₂e/吨）'},
-      {v:'化学回收热解',t:'化学回收热解（-2500）'},
-      {v:'3D打印线材再生工艺',t:'3D打印线材再生（-1600~-2000）'},
-      {v:'生态砖工艺',t:'生态砖/Ecobrick（-1200~-1600）'},
-      {v:'塑木复合材料工艺',t:'塑木复合材料WPC（-1600~-2000）'},
-      {v:'共享再利用',t:'共享/再利用（美术社手工改造）'},
-    ],
-    '有害': [
-      {v:'资源化金属回收',t:'资源化金属回收（-2000 kg CO₂e/吨）'},
-      {v:'水泥窑协同处置',t:'水泥窑协同处置（-750）'},
-      {v:'电池分类拆解回收工艺',t:'电池分类拆解回收（-1800~-2800）'},
-      {v:'荧光灯管汞回收蒸馏工艺',t:'荧光灯管汞回收蒸馏（-600~-900）'},
-    ],
-    '纸箱': [
-      {v:'回收制浆再生',t:'回收制浆再生（-1580 kg CO₂e/吨）'},
-      {v:'热解制生物炭',t:'热解制生物炭（-427）'},
-      {v:'蛋托/育苗钵模塑工艺',t:'蛋托/育苗钵模塑（-700~-900）'},
-      {v:'蘑菇培养料制备工艺',t:'蘑菇培养料（-500~-700）'},
-      {v:'废纸纤维素隔热材工艺',t:'纤维素隔热材（-1300~-1500）'},
-      {v:'共享再利用',t:'共享/再利用（美术社手工改造）'},
-    ],
+  // 角色→路径在哪些品类下可用
+  const pathBelongs = {
+    '厌氧消化工艺':'外卖厨余','发酵产酸工艺':'外卖厨余','三相分离协同焚烧':'外卖厨余',
+    '好氧堆肥工艺':'外卖厨余','直接混合焚烧':'外卖厨余','黑水虻厌氧集成':'外卖厨余','蚯蚓堆肥工艺':'外卖厨余',
+    '回收制浆再生':'快递纸箱','热解制生物炭':'快递纸箱','蛋托/育苗钵模塑工艺':'快递纸箱',
+    '蘑菇培养料制备工艺':'快递纸箱','废纸纤维素隔热材工艺':'快递纸箱','共享再利用':'快递纸箱',
+    '物理回收造粒':'塑料','化学回收热解':'塑料','3D打印线材再生工艺':'塑料','生态砖工艺':'塑料','塑木复合材料工艺':'塑料',
+    '资源化金属回收':'有害','水泥窑协同处置':'有害','电池分类拆解回收工艺':'有害','荧光灯管汞回收蒸馏工艺':'有害',
   };
-
-  const items = treatmentsByCategory[batchCategory] || [];
-
-  // 角色→专属路径映射（nickname匹配）
   const rolePaths = {
     '美术社': ['共享再利用'],
     '园艺社': ['好氧堆肥工艺', '蚯蚓堆肥工艺', '蛋托/育苗钵模塑工艺'],
@@ -951,28 +1005,172 @@ function openClaim(batchId, batchCategory) {
     '手工社': ['蛋托/育苗钵模塑工艺', '共享再利用', '生态砖工艺', '废纸纤维素隔热材工艺'],
     '食监委': ['厌氧消化工艺', '好氧堆肥工艺', '蚯蚓堆肥工艺', '黑水虻厌氧集成', '发酵产酸工艺'],
   };
-  const allowed = rolePaths[currentUser?.nickname] || null;  // null=全部可见（回收站/环保社/管理员）
+  const allowed = rolePaths[currentUser?.nickname] || null;
+  // 角色能处理的品类集合
+  const myCategories = new Set();
+  if (allowed === null) {
+    // 回收站/环保社/管理员：全部品类
+    ['外卖厨余','快递纸箱','塑料','有害'].forEach(c => myCategories.add(c));
+  } else {
+    allowed.forEach(path => {
+      const cat = pathBelongs[path];
+      if (cat) myCategories.add(cat);
+    });
+  }
 
+  // 抢单大厅：加载待认领批次，只显示当前角色能处理的
+  const poolRes = await fetch(API + '/batches?status=pending');
+  let poolBatches = await poolRes.json();
+  poolBatches = poolBatches.filter(b => myCategories.has(b.category));
+
+  const pool = document.getElementById('orderPool');
+  if (!poolBatches.length) {
+    pool.innerHTML = '<div class="empty">暂无当前角色可处理的批次</div>';
+  } else {
+    pool.innerHTML = poolBatches.map(b => {
+      const age = getAgeText(b.created_at || b.date);
+      const urgency = age.totalHours > 24 ? '⏰' : age.totalHours > 6 ? '🔥' : '🆕';
+      const urgencyColor = age.totalHours > 24 ? 'var(--amber)' : age.totalHours > 6 ? '#ff4444' : 'var(--green)';
+      return `<div class="order-card">
+        <div class="order-header">
+          <span class="order-urgent" style="color:${urgencyColor}">${urgency} ${age.text}</span>
+          <span class="order-cat">${b.category}</span>
+        </div>
+        <div class="order-body">${b.id}</div>
+        <div class="order-footer">
+          <span style="font-size:.65rem;color:var(--gray);">#${b.point_id} | ${b.date}</span>
+          <button class="btn btn-sm btn-accent" onclick="grabOrder('${b.id}','${b.category}')">抢单</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ===== 我的认领 =====
+  const allRes = await fetch(API + '/batches');
+  const allBatches = await allRes.json();
+  const myClaimed = allBatches.filter(b => b.status === 'claimed' && b.claimed_by === currentUser?.id);
+  const myDone = allBatches.filter(b => b.status === 'done' && b.claimed_by === currentUser?.id);
+  const myAll = [...myClaimed, ...myDone];
+  const sec = document.getElementById('myClaimSection');
+  const list = document.getElementById('myClaims');
+  if (myAll.length) {
+    sec.style.display = 'block';
+    list.innerHTML = myAll.map(b => {
+      const stText = {claimed:'已抢到',done:'已完成'}[b.status]||b.status;
+      const sc = 'status-' + b.status;
+      const destText = b.destination || '-';
+      return `<div class="batch-card">
+        <div class="header"><span class="id">${b.id}</span><span class="status ${sc}">${stText}</span></div>
+        <div class="meta">#${b.point_id} | ${b.date} | ${b.category} | ${destText}</div>
+        <div class="actions">
+          ${b.status==='claimed'?`<button class="btn btn-sm btn-accent" onclick="openReuse('${b.id}')">上传成品</button>`:''}
+          <button class="btn btn-sm btn-outline" onclick="openStory('${b.id}')">故事</button>
+        </div>
+      </div>`;
+    }).join('');
+  } else {
+    sec.style.display = 'none';
+  }
+}
+
+function getAgeText(dateStr) {
+  if (!dateStr) return {text:'',totalHours:0};
+  // 服务器存 UTC 时间，补 Z 强制 JS 按 UTC 解析（兼容 Safari）
+  const normalized = dateStr.includes('Z') || dateStr.includes('+') ? dateStr : dateStr + 'Z';
+  const d = new Date(normalized);
+  const now = new Date();
+  const diffMs = now - d;
+  const totalHours = diffMs / 3600000;
+  if (totalHours < 0.5) return {text:'刚刚',totalHours};
+  if (totalHours < 1) return {text: Math.round(totalHours * 60) + 'min前',totalHours};
+  if (totalHours < 24) return {text: Math.floor(totalHours) + 'h前',totalHours};
+  return {text: Math.floor(totalHours/24) + 'd前',totalHours};
+}
+
+async function grabOrder(batchId, batchCategory) {
+  if (!currentUser) return;
+  const treatmentsByCategory = {
+    '外卖厨余': [
+      {v:'厌氧消化工艺',t:'厌氧消化'},
+      {v:'发酵产酸工艺',t:'发酵产酸'},
+      {v:'三相分离协同焚烧',t:'三相分离焚烧'},
+      {v:'好氧堆肥工艺',t:'好氧堆肥'},
+      {v:'直接混合焚烧',t:'直接焚烧'},
+      {v:'黑水虻厌氧集成',t:'黑水虻+厌氧'},
+      {v:'蚯蚓堆肥工艺',t:'蚯蚓堆肥'},
+    ],
+    '快递纸箱': [
+      {v:'回收制浆再生',t:'制浆再生'},
+      {v:'热解制生物炭',t:'热解制炭'},
+      {v:'蛋托/育苗钵模塑工艺',t:'蛋托模塑'},
+      {v:'蘑菇培养料制备工艺',t:'蘑菇培养料'},
+      {v:'废纸纤维素隔热材工艺',t:'纤维素隔热材'},
+      {v:'共享再利用',t:'共享/再利用'},
+    ],
+    '塑料': [
+      {v:'物理回收造粒',t:'物理造粒'},
+      {v:'化学回收热解',t:'化学热解'},
+      {v:'3D打印线材再生工艺',t:'3D线材'},
+      {v:'生态砖工艺',t:'生态砖'},
+      {v:'塑木复合材料工艺',t:'塑木WPC'},
+      {v:'共享再利用',t:'共享/再利用'},
+    ],
+    '有害': [
+      {v:'资源化金属回收',t:'金属回收'},
+      {v:'水泥窑协同处置',t:'水泥窑处置'},
+      {v:'电池分类拆解回收工艺',t:'电池拆解'},
+      {v:'荧光灯管汞回收蒸馏工艺',t:'灯管汞回收'},
+    ],
+    '纸箱': [
+      {v:'回收制浆再生',t:'制浆再生'},
+      {v:'热解制生物炭',t:'热解制炭'},
+      {v:'蛋托/育苗钵模塑工艺',t:'蛋托模塑'},
+      {v:'蘑菇培养料制备工艺',t:'蘑菇培养料'},
+      {v:'废纸纤维素隔热材工艺',t:'纤维素隔热材'},
+      {v:'共享再利用',t:'共享/再利用'},
+    ],
+  };
+  const rolePaths = {
+    '美术社': ['共享再利用'],
+    '园艺社': ['好氧堆肥工艺', '蚯蚓堆肥工艺', '蛋托/育苗钵模塑工艺'],
+    '创客空间': ['共享再利用', '3D打印线材再生工艺', '生态砖工艺', '塑木复合材料工艺'],
+    '生物社': ['黑水虻厌氧集成', '蚯蚓堆肥工艺', '蘑菇培养料制备工艺', '好氧堆肥工艺'],
+    '化学社': ['发酵产酸工艺', '化学回收热解', '电池分类拆解回收工艺', '荧光灯管汞回收蒸馏工艺', '资源化金属回收'],
+    '宠保社': ['热解制生物炭', '蚯蚓堆肥工艺', '蛋托/育苗钵模塑工艺', '蘑菇培养料制备工艺'],
+    '手工社': ['蛋托/育苗钵模塑工艺', '共享再利用', '生态砖工艺', '废纸纤维素隔热材工艺'],
+    '食监委': ['厌氧消化工艺', '好氧堆肥工艺', '蚯蚓堆肥工艺', '黑水虻厌氧集成', '发酵产酸工艺'],
+  };
+  const allowed = rolePaths[currentUser?.nickname] || null;
+  const items = treatmentsByCategory[batchCategory] || [];
   const filtered = items.filter(item => {
-    if (!allowed) return true;          // 回收站/环保社/管理员：全部
-    return allowed.includes(item.v);    // 有限制的角色：只看专属路径
+    if (!allowed) return true;
+    return allowed.includes(item.v);
   });
+  if (!filtered.length) { toast('当前角色无可用的处理路径'); return; }
 
-  filtered.forEach(item => {
-    const opt = document.createElement('option');
-    opt.value = item.v; opt.textContent = item.t;
-    sel.appendChild(opt);
+  // 弹出路径选择（无论几个选项都显示弹窗）
+  document.getElementById('claimBatchInfo').innerHTML = '批次 ' + batchId + ' · ' + batchCategory + '<br><span style="font-size:.65rem;color:var(--amber);">选择处理路径后即刻抢单，先到先得</span>';
+  let html = '';
+  filtered.forEach(o => {
+    html += `<button class="btn btn-outline" style="display:block;width:100%;margin-bottom:6px;text-align:left;font-size:.8rem;" onclick="doGrabClaim('${batchId}','${o.v}')">${o.t}</button>`;
   });
-  if (!filtered.length) { const opt = document.createElement('option'); opt.value = '共享再利用'; opt.textContent = '共享/再利用'; sel.appendChild(opt); }
+  document.getElementById('claimPathOptions').innerHTML = html;
   document.getElementById('claimModal').classList.add('show');
 }
-async function doClaim() {
-  if (!claimTarget || !currentUser) return;
-  const dest = document.getElementById('claimDestination').value;
-  const res = await fetch(`${API}/batch/claim`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({batch_id:claimTarget, reuser_id:currentUser.id, destination:dest}) });
-  if (!res.ok) { toast('❌ '+ (await res.json()).detail); return; }
-  toast((await res.json()).msg); closeModal('claimModal'); loadBatches();
+
+async function doGrabClaim(batchId, destination) {
+  const res = await fetch(API + '/batch/claim', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({batch_id:batchId, reuser_id:currentUser.id, destination:destination})
+  });
+  if (!res.ok) { toast((await res.json()).detail); return; }
+  const d = await res.json();
+  toast('抢单成功！' + d.msg);
+  closeModal('claimModal');
+  loadBatches();
 }
+
 function openReuse(batchId) {
   reuseTarget = batchId; reusePhotoUrl = '';
   document.getElementById('reuseBatchInfo').textContent = '批次: ' + batchId;
@@ -1076,6 +1274,110 @@ function toast(msg) { const el=document.getElementById('toast'); el.textContent=
   try { const r = await fetch(`${API}/config/demo`); const d = await r.json(); demoMode = d.demo_mode; } catch(e) {}
   initLogin();
 })();
+
+// ==================== 成果展示 ====================
+async function loadRewardStatus() {
+  if (!currentUser) return;
+  try {
+    const res = await fetch(`${API}/user/${currentUser.id}/reward-status`);
+    const d = await res.json();
+    const pct = d.progress_pct;
+    const c = document.getElementById('rewardSection');
+    const phaseNames = ['🌰 种子','🌱 发芽','🌿 树苗','🪴 小树','🌳 大树'];
+  const stageImg = d.stage_image || '/checkin/tree_stage_01_seed_01.png';
+  const stage = d.current_stage || 0;
+  c.innerHTML = `
+      <div class="reward-card" style="padding:16px 12px;">
+        <div style="font-size:1rem;font-weight:bold;color:var(--purple);margin-bottom:4px;">
+          ${stage >= 20 ? '🎉 大树已成！' : '🌱 碳积分成长'}
+        </div>
+        <div style="width:100%;max-width:280px;margin:0 auto;border-radius:12px;overflow:hidden;background:linear-gradient(180deg,#e8f5e9,#f1f8e9);">
+          <img src="${stageImg}" style="width:100%;height:auto;display:block;" alt="第${stage}阶段" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+        </div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0;">
+          <span style="font-size:1.6rem;">${d.phase_emoji || '🌰'}</span>
+          <span style="font-size:1rem;font-weight:bold;color:var(--green);">${d.phase_name || '种子'} · ${stage}/20</span>
+        </div>
+        <!-- 20阶段圆点 -->
+        <div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;max-width:300px;margin:0 auto;">
+          ${Array.from({length:20},(_,i)=>`<div style="width:14px;height:14px;border-radius:50%;background:${i<stage?'var(--green)':'#e0e0e0'};transition:.2s;" title="第${i+1}阶段"></div>`).join('')}
+        </div>
+        <div class="reward-bar-wrap" style="height:22px;max-width:300px;margin:10px auto 0;">
+          <div class="reward-bar-fill" style="width:${pct}%;font-size:0.7rem;">${pct}%</div>
+        </div>
+        <p style="margin-top:8px;font-size:0.75rem;">${d.message}</p>
+        ${stage >= 20 ? `<button class="btn btn-accent" onclick="claimReward()" style="margin-top:10px;padding:12px;font-size:1rem;">🎁 领取实物奖励</button>` : `<p style="font-size:0.65rem;color:var(--gray);margin-top:4px;">投递满20次可领取环保再生物品</p>`}
+      </div>`;
+  } catch(e) { document.getElementById('rewardSection').innerHTML = '<div class="empty">加载失败</div>'; }
+}
+
+async function claimReward() {
+  if (!currentUser) return;
+  try {
+    const res = await fetch(`${API}/user/${currentUser.id}/claim-reward`, { method: 'POST' });
+    if (!res.ok) { const e = await res.json(); toast('❌ ' + e.detail); return; }
+    const d = await res.json();
+    toast('🎉 ' + d.msg);
+    loadRewardStatus();
+    loadMySubmissions();
+  } catch(e) { toast('❌ 领取失败'); }
+}
+
+async function loadTracking() {
+  if (!currentUser) return;
+  try {
+    const res = await fetch(`${API}/user/${currentUser.id}/tracking`);
+    const d = await res.json();
+    if (!d.items.length) { document.getElementById('trackingList').innerHTML = '<div class="empty">投递后将在此追踪回收物去向</div>'; return; }
+    document.getElementById('trackingList').innerHTML = d.items.map(item => {
+      const stageEmoji = ['','📸','📦','🤝','🎁'][item.current_stage];
+      return `<div class="track-card">
+        <div class="track-header">
+          <span class="track-cat">${stageEmoji} ${item.category}</span>
+          <span class="track-dest">${item.destination || '待认领'}</span>
+        </div>
+        <div class="track-progress">
+          ${item.stages.map((s, i) => {
+            let cls = '';
+            if (s.done) cls = 'done';
+            if (i + 1 === item.current_stage && !s.done) cls = 'active';
+            if (i + 1 === item.current_stage && s.done) cls = 'done';  // current stage IS the done one
+            if (i + 1 < item.current_stage) cls = 'done';  // previous stages are done
+            if (i + 1 === item.current_stage) cls = 'active';  // current stage is active
+            // actually: 1=done, 2=active if pending, done if beyond
+            let stageCls = i + 1 < item.current_stage ? 'done' : (i + 1 === item.current_stage ? 'active' : '');
+            return `<div class="track-step ${stageCls}">
+              <div class="step-dot">${stageCls==='done'?'✅':stageCls==='active'?['','📸','📦','🤝','🎁'][i+1]:['','📸','📦','🤝','🎁'][i+1]}</div>
+              <div class="step-label">${s.label}</div>
+              <div class="step-detail">${s.detail}</div>
+            </div>`;
+          }).join('')}
+        </div>
+        ${item.has_product ? `<div style="margin-top:8px;text-align:center;font-size:0.7rem;color:var(--purple);">🎁 ${item.product_desc || '成品已生成'}</div>` : ''}
+      </div>`;
+    }).join('');
+  } catch(e) { document.getElementById('trackingList').innerHTML = '<div class="empty">加载失败</div>'; }
+}
+
+async function loadGallery() {
+  const uid = currentUser ? currentUser.id : null;
+  try {
+    const url = uid ? `${API}/gallery?user_id=${uid}` : `${API}/gallery`;
+    const res = await fetch(url);
+    const d = await res.json();
+    if (!d.items.length) { document.getElementById('galleryGrid').innerHTML = '<div class="empty">暂无成品，去向端上传后将在此展示</div>'; return; }
+    document.getElementById('galleryGrid').innerHTML = `<div class="gallery-grid">${d.items.map(item => `
+      <div class="gallery-card">
+        ${item.product_photo ? `<img class="gc-img" src="${item.product_photo}" alt="${item.product_desc}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="gc-img" style="display:none">🎁</div>` : `<div class="gc-img">🎁</div>`}
+        <div class="gc-body">
+          <div class="gc-desc">${item.product_desc || '环保再生物品'}</div>
+          <div class="gc-meta">🏭 ${item.reuser_name} · 📅 ${item.date}</div>
+          <div class="gc-meta">📦 ${item.category} → ${item.destination || ''}</div>
+          ${item.is_mine ? '<span class="gc-mine">✨ 我的回收物在里面</span>' : ''}
+        </div>
+      </div>`).join('')}</div>`;
+  } catch(e) { document.getElementById('galleryGrid').innerHTML = '<div class="empty">加载失败</div>'; }
+}
 </script>
 </body>
 </html>

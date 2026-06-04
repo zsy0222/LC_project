@@ -142,81 +142,6 @@ def _predict_mock(img: Image.Image) -> Tuple[str, float]:
     return "快递纸箱", round(random.uniform(0.58, 0.80), 3)
 
 
-# ---------- 纸箱计数：2D 网格连通区域 ----------
-def _is_cardboard(r: int, g: int, b: int) -> bool:
-    """
-    判断一个像素是否属于纸箱（纸板棕色系/暖灰色）。
-    关键：排除过亮（背景/灯光）和过暗（阴影噪点）。
-    """
-    if r > 225 and g > 225 and b > 225:
-        return False  # 纯白/过曝背景
-    if r < 25 and g < 25 and b < 25:
-        return False  # 极暗噪点
-    brightness = (r + g + b) / 3
-    if brightness > 210:
-        return False  # 浅色背景/桌面/墙壁
-    # 棕色纸板: R 主导，R > G ≥ B，红蓝差 ≥ 25，亮度中等
-    if r > g and g >= b and (r - b) >= 25 and brightness < 180:
-        return True
-    # 浅棕/米色: R ≈ G > B，中等偏低亮度
-    if abs(r - g) < 15 and r > b and g > b and (r - b) >= 12 and brightness < 170:
-        return True
-    # 暖灰（阴影中的纸板）
-    if abs(r - g) < 18 and abs(g - b) < 18 and 50 < brightness < 175:
-        return True
-    return False
-
-
-def count_boxes(image_bytes: bytes) -> int:
-    """
-    2D 网格连通区域计数：将图像划分为网格，识别纸板色单元格，
-    用 BFS 连通分量统计独立物体数量。
-
-    优势：不依赖投影方向，可处理任意排列（一行、一列、网格堆叠）。
-    """
-    img = Image.open(io.BytesIO(image_bytes)).convert("RGB").resize((300, 300))
-    w, h = img.size
-    cell = 10  # 网格单元大小 → 30×30 网格，更细粒度
-    gw, gh = w // cell, h // cell
-
-    # 对每个网格单元：采样判定是否纸箱
-    grid = [[0] * gw for _ in range(gh)]
-    for gy in range(gh):
-        for gx in range(gw):
-            x0, y0 = gx * cell, gy * cell
-            cardboard_px = 0
-            total = 0
-            for y in range(y0, min(y0 + cell, h)):
-                for x in range(x0, min(x0 + cell, w)):
-                    r, g, b = img.getpixel((x, y))
-                    if _is_cardboard(r, g, b):
-                        cardboard_px += 1
-                    total += 1
-            # 单元格内超过 40% 像素为纸板色 → 标记为纸箱单元
-            if total > 0 and cardboard_px / total > 0.30:
-                grid[gy][gx] = 1
-
-    # BFS 连通分量计数（8 邻域）
-    visited = [[False] * gw for _ in range(gh)]
-    regions = 0
-    for gy in range(gh):
-        for gx in range(gw):
-            if grid[gy][gx] == 1 and not visited[gy][gx]:
-                regions += 1
-                queue = [(gy, gx)]
-                visited[gy][gx] = True
-                while queue:
-                    cy, cx = queue.pop(0)
-                    for dy, dx in [(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]:
-                        ny, nx = cy + dy, cx + dx
-                        if 0 <= ny < gh and 0 <= nx < gw:
-                            if grid[ny][nx] == 1 and not visited[ny][nx]:
-                                visited[ny][nx] = True
-                                queue.append((ny, nx))
-
-    return max(1, min(regions, 20))
-
-
 # ---------- 对外主函数 ----------
 def predict_image(image_bytes: bytes) -> dict:
     """主入口：输入图片字节，返回识别结果 dict"""
@@ -236,7 +161,6 @@ def predict_image(image_bytes: bytes) -> dict:
             "recommend": "C",
             "recommend_desc": "无法识别，请重新拍摄回收物照片",
             "co2_estimate": 0.0,
-            "box_count": 0,
             "need_recheck": True,
         }
 
@@ -244,8 +168,7 @@ def predict_image(image_bytes: bytes) -> dict:
     score = round((cat_score * 0.6 + grade_score * 0.4), 3)
 
     recommend = PATH_MAP[grade]
-    box_count = count_boxes(image_bytes)
-    co2_estimate = round(_estimate_co2(category, recommend) * box_count, 3)
+    co2_estimate = round(_estimate_co2(category, recommend), 3)
 
     return {
         "category": category,
@@ -254,7 +177,6 @@ def predict_image(image_bytes: bytes) -> dict:
         "recommend": recommend,
         "recommend_desc": PATH_DESC[recommend],
         "co2_estimate": co2_estimate,
-        "box_count": box_count,
         "need_recheck": score < AI_CONFIDENCE_THRESHOLD,
     }
 
