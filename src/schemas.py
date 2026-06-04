@@ -148,3 +148,10 @@ class RankItem(BaseModel):
     nickname: str
     carbon_score: float
     submission_count: int
+
+
+# ---------- 商城 ----------
+class ShopBuyRequest(BaseModel):
+    user_id: int
+    item_id: str
+    address: str = ""           # 收货地址

@@ -115,3 +115,17 @@ class CarbonFactor(Base):
     path = Column(String(16))         # Reuse / Recycle
     factor = Column(Float)            # kg CO2e / 件
     source = Column(String(128))
+
+
+class ShopOrder(Base):
+    """商城兑换记录"""
+    __tablename__ = "shop_orders"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    item_id = Column(String(16))
+    item_name = Column(String(64))
+    price = Column(Float)
+    address = Column(String(128))
+    status = Column(String(16), default="pending")   # pending / received
+    created_at = Column(DateTime, default=datetime.utcnow)

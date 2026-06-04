@@ -7,6 +7,11 @@ SEED_USERS = [
     {"openid": "stu001", "nickname": "小南", "role": "student"},
     {"openid": "stu002", "nickname": "小京", "role": "student"},
     {"openid": "stu003", "nickname": "小苏", "role": "student"},
+    {"openid": "stu004", "nickname": "小杭", "role": "student"},
+    {"openid": "stu005", "nickname": "小深", "role": "student"},
+    {"openid": "stu006", "nickname": "小蓉", "role": "student"},
+    {"openid": "stu007", "nickname": "小渝", "role": "student"},
+    {"openid": "stu008", "nickname": "小镐", "role": "student"},
     {"openid": "reuser01", "nickname": "美术社", "role": "reuser"},
     {"openid": "reuser02", "nickname": "回收站", "role": "reuser"},
     {"openid": "reuser03", "nickname": "园艺社", "role": "reuser"},
@@ -17,7 +22,7 @@ SEED_USERS = [
     {"openid": "reuser08", "nickname": "宠保社", "role": "reuser"},
     {"openid": "reuser09", "nickname": "手工社", "role": "reuser"},
     {"openid": "reuser10", "nickname": "食监委", "role": "reuser"},
-    {"openid": "admin01", "nickname": "管理员", "role": "admin"},
+    {"openid": "admin01", "nickname": "管理员", "role": "admin", "carbon_score": 100.0},
 ]
 
 SEED_POINTS = [

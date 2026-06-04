@@ -169,6 +169,32 @@
 .reward-card p { font-size: 0.75rem; color: var(--gray); }
 .reward-card .btn { margin-top: 10px; }
 #rewardCard { min-height: 65vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+/* ====== 碳积分商城 ====== */
+.shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.shop-card { background: #fff; border-radius: var(--radius); padding: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.06); transition: .2s; display: flex; flex-direction: column; }
+.shop-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,.12); }
+.shop-card .shop-icon { width: 100%; height: 140px; text-align: center; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; font-size: 2rem; overflow: hidden; border-radius: 8px; background: #f5f5f5; }
+.shop-card .shop-name { font-size: .8rem; font-weight: bold; margin-bottom: 2px; }
+.shop-card .shop-desc { font-size: .65rem; color: var(--gray); margin-bottom: 4px; flex:1; }
+.shop-card .shop-club { font-size: .6rem; color: var(--purple); }
+.shop-card .shop-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
+.shop-card .shop-price { font-size: .85rem; font-weight: bold; color: var(--green); }
+.shop-card .shop-btn { padding: 4px 12px; border: 1px solid var(--green); border-radius: 6px; background: var(--green); color: #fff; cursor: pointer; font-size: .65rem; font-weight: bold; transition: .2s; }
+.shop-card .shop-btn:hover { background: var(--green-light); }
+.shop-card .shop-btn:disabled { background: #ccc; border-color: #ccc; cursor: not-allowed; }
+.shop-card.locked { opacity: .5; }
+.shop-card.locked .shop-btn { background: #999; border-color: #999; cursor: not-allowed; }
+#shopBalance { font-size: .8rem; font-weight: bold; color: var(--green); }
+/* 兑换记录 */
+.order-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+.order-item:last-child { border-bottom: none; }
+.order-info { flex: 1; }
+.order-name { font-size: .8rem; font-weight: bold; }
+.order-meta { font-size: .65rem; color: var(--gray); }
+.order-status { font-size: .65rem; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
+.order-status.pending { color: var(--amber); background: var(--amber-bg); }
+.order-status.received { color: var(--green); background: var(--green-bg); }
   .badge-list { display: flex; gap: 6px; flex-wrap: wrap; }
   .badge-item { text-align: center; width: 62px; }
   .badge-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin: 0 auto 2px; }
@@ -354,6 +380,19 @@
     </section>
   </div>
 
+  <!-- 兑换 tab - 碳积分商城 -->
+  <div class="tab-content" id="tab-shop">
+    <section>
+      <h2>🏪 碳积分商城</h2>
+      <div style="font-size:.7rem;color:var(--gray);margin-bottom:8px;" id="shopBalance">🪙 加载中...</div>
+      <div id="shopGrid"><div class="empty">加载中...</div></div>
+    </section>
+    <section>
+      <h2>📋 兑换记录</h2>
+      <div id="orderList"><div class="empty">暂无兑换记录</div></div>
+    </section>
+  </div>
+
   <!-- 底栏 -->
   <div class="tab-bar">
     <button class="tab-btn active" data-tab="tab-delivery" id="tabBtnDelivery">
@@ -364,6 +403,9 @@
     </button>
     <button class="tab-btn" data-tab="tab-reward" id="tabBtnReward">
       <span class="tb-icon">🎁</span>成果
+    </button>
+    <button class="tab-btn" data-tab="tab-shop" id="tabBtnShop">
+      <span class="tb-icon">🏪</span>兑换
     </button>
     <button class="tab-btn" data-tab="tab-rank" id="tabBtnRank">
       <span class="tb-icon">🏆</span>排行
@@ -415,6 +457,21 @@
     <div style="margin:8px 0;"><strong>📖 减排原理：</strong><br><span id="kwPrinciple">-</span></div>
     <div style="margin:8px 0;"><strong>💡 技术优势：</strong><br><span id="kwAdvantage">-</span></div>
     <div style="margin:8px 0;font-size:0.7rem;color:var(--gray);"><strong>📚 数据来源：</strong><span id="kwSource">-</span></div>
+  </div>
+</div>
+
+<!-- 兑换确认弹窗 -->
+<div class="modal-overlay" id="shopBuyModal">
+  <div class="modal" style="max-width:380px;width:90vw;padding:20px;text-align:center;">
+    <button class="close" onclick="closeModal('shopBuyModal')">&times;</button>
+    <div style="font-size:3rem;margin-bottom:4px;" id="buyIcon">🎁</div>
+    <h3 style="margin-bottom:4px;" id="buyTitle">-</h3>
+    <div style="font-size:0.8rem;color:var(--gray);margin-bottom:4px;" id="buyClub">-</div>
+    <div style="font-size:1.2rem;font-weight:bold;color:var(--green);margin-bottom:12px;" id="buyPrice">-</div>
+    <label style="display:block;text-align:left;font-size:0.75rem;margin-bottom:4px;">📍 收货地址</label>
+    <input type="text" id="buyAddress" placeholder="如：南园3舍、郑钢教学楼" style="width:100%;padding:10px;border:1px solid var(--gray-border);border-radius:8px;font-size:0.9rem;margin-bottom:12px;">
+    <div style="font-size:0.65rem;color:var(--gray);margin-bottom:12px;">🪙 当前余额: <strong id="buyBalance">-</strong></div>
+    <button class="btn btn-accent" id="buyConfirmBtn" onclick="doBuyFromModal()" style="font-size:1rem;padding:12px;">确认兑换</button>
   </div>
 </div>
 
@@ -528,6 +585,7 @@ async function loadTabContent(tabId) {
     case 'tab-delivery': await loadPoints(); break;
     case 'tab-reuser': await loadBatches(); break;
     case 'tab-rank': await loadRank(); break;
+    case 'tab-shop': await loadShop(); break;
     case 'tab-reward': await Promise.all([loadRewardStatus(), loadMySubmissions(), loadTracking(), loadGallery(), loadBadges()]); break;
   }
 }
@@ -1377,6 +1435,107 @@ async function loadGallery() {
         </div>
       </div>`).join('')}</div>`;
   } catch(e) { document.getElementById('galleryGrid').innerHTML = '<div class="empty">加载失败</div>'; }
+}
+
+// ==================== 碳积分商城 ====================
+async function loadShop() {
+  if (!currentUser) return;
+  try {
+    const [shopRes, profileRes, orderRes] = await Promise.all([
+      fetch(API + '/shop'),
+      fetch(API + '/user/' + currentUser.id + '/profile'),
+      fetch(API + '/shop/orders?user_id=' + currentUser.id),
+    ]);
+    const shop = await shopRes.json();
+    const profile = await profileRes.json();
+    const orders = await orderRes.json();
+    const score = profile.user.carbon_score || 0;
+    document.getElementById('shopBalance').innerHTML = '🪙 碳积分余额: <strong>' + score.toFixed(3) + ' kg CO₂</strong>';
+
+    // 商品网格
+    document.getElementById('shopGrid').innerHTML = '<div class="shop-grid">' + shop.items.map(item => {
+      const stock = item.stock || 0;
+      const canBuy = score >= item.price && stock > 0;
+      let btnText = '兑换';
+      if (stock <= 0) btnText = '售罄';
+      else if (!canBuy) btnText = '积分不足';
+      return `<div class="shop-card${canBuy ? '' : ' locked'}">
+        <div class="shop-icon"><img src="${item.image || ''}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" onerror="this.parentElement.textContent='${item.icon}'"></div>
+        <div class="shop-name">${item.name}</div>
+        <div class="shop-desc">${item.desc}</div>
+        <div class="shop-club">🏭 ${item.club} · 📦 库存 ${stock}${item.bonus_stock > 0 ? '<span style="color:var(--green);">(+' + item.bonus_stock + ')</span>' : ''}</div>
+        <div class="shop-footer">
+          <span class="shop-price">${item.price} kg</span>
+          <button class="shop-btn" ${canBuy ? '' : 'disabled'} onclick="openBuyModal('${item.id}','${item.name}','${item.price}')">${btnText}</button>
+        </div>
+      </div>`;
+    }).join('') + '</div>';
+
+    // 兑换记录
+    const ol = document.getElementById('orderList');
+    if (!orders.orders || !orders.orders.length) {
+      ol.innerHTML = '<div class="empty">暂无兑换记录</div>';
+    } else {
+      ol.innerHTML = orders.orders.map(o => `
+        <div class="order-item">
+          <div class="order-info">
+            <div class="order-name">📦 ${o.item_name}</div>
+            <div class="order-meta">-${o.price} kg · ${o.address} · ${new Date(o.created_at).toLocaleString('zh-CN')}</div>
+          </div>
+          <div class="order-actions">
+            <span class="order-status ${o.status}">${o.status_text}</span>
+            ${o.status === 'pending' ? `<button class="btn btn-sm btn-outline" onclick="markReceived(${o.id})">✅ 确认收货</button>` : ''}
+          </div>
+        </div>`).join('');
+    }
+  } catch(e) { document.getElementById('shopGrid').innerHTML = '<div class="empty">加载失败</div>'; }
+}
+
+let _buyItemId = '', _buyItemName = '', _buyItemPrice = 0;
+
+function openBuyModal(itemId, itemName, price) {
+  if (!currentUser) return;
+  _buyItemId = itemId; _buyItemName = itemName; _buyItemPrice = price;
+  document.getElementById('buyIcon').textContent = '🎁';
+  document.getElementById('buyTitle').textContent = itemName;
+  document.getElementById('buyPrice').textContent = price + ' kg CO₂';
+  document.getElementById('buyAddress').value = '';
+  document.getElementById('buyBalance').textContent = (currentUser.carbon_score || 0).toFixed(3) + ' kg';
+  document.getElementById('buyConfirmBtn').disabled = false;
+  document.getElementById('shopBuyModal').classList.add('show');
+}
+
+async function doBuyFromModal() {
+  const address = document.getElementById('buyAddress').value.trim();
+  if (!address) { toast('📍 请填写收货地址'); return; }
+  const btn = document.getElementById('buyConfirmBtn');
+  btn.disabled = true; btn.textContent = '兑换中...';
+  try {
+    const res = await fetch(API + '/shop/buy', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({user_id: currentUser.id, item_id: _buyItemId, address: address}),
+    });
+    if (!res.ok) { const e = await res.json(); toast('❌ ' + e.detail); btn.disabled = false; btn.textContent = '确认兑换'; return; }
+    const d = await res.json();
+    toast('🛒 ' + d.msg);
+    currentUser.carbon_score = d.remaining_score;
+    updateCarbonDisplay();
+    closeModal('shopBuyModal');
+    loadShop();
+  } catch(e) { toast('❌ 兑换失败'); btn.disabled = false; btn.textContent = '确认兑换'; }
+}
+
+async function markReceived(orderId) {
+  if (!currentUser) return;
+  if (!confirm('确认已收到商品？')) return;
+  try {
+    const res = await fetch(API + '/shop/orders/' + orderId + '/receive?user_id=' + currentUser.id, { method: 'POST' });
+    if (!res.ok) { const e = await res.json(); toast('❌ ' + e.detail); return; }
+    const d = await res.json();
+    toast('✅ ' + d.msg);
+    loadShop();
+  } catch(e) { toast('❌ 操作失败'); }
 }
 </script>
 </body>

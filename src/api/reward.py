@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from ..database import get_db
-from ..models import User, Submission, Batch, ReuseItem, Notification, Point
+from ..models import User, Submission, Batch, ReuseItem, Notification, Point, ShopOrder
+from ..schemas import ShopBuyRequest
 
 router = APIRouter(tags=["reward"])
 
@@ -255,3 +256,171 @@ def claim_reward(user_id: int, db: Session = Depends(get_db)):
         "product_photo": latest.product_photo,
         "product_desc": latest.product_desc,
     }
+
+
+# ==================== 碳积分商城 ====================
+
+SHOP_ITEMS = [
+    {"id": "s01", "name": "再生纸书签", "icon": "🔖", "price": 0.3, "desc": "回收纸浆手工压制，每张独一无二",
+     "club": "手工社", "category": "快递纸箱", "image": "/checkin/s01_bookmark.png"},
+    {"id": "s02", "name": "蚯蚓粪盆栽", "icon": "🪴", "price": 0.6, "desc": "蚯蚓粪培育的多肉植物，自带肥料",
+     "club": "生物社", "category": "外卖厨余", "image": "/checkin/s02_plant.png"},
+    {"id": "s03", "name": "3D打印小挂件", "icon": "🧩", "price": 1.0, "desc": "PET瓶回收线材打印，校园LOGO定制",
+     "club": "创客空间", "category": "塑料", "image": "/checkin/s03_keychain.png"},
+    {"id": "s04", "name": "手工再生纸本", "icon": "📒", "price": 1.5, "desc": "废纸重制手工纸装订，A6口袋大小",
+     "club": "手工社", "category": "快递纸箱", "image": "/checkin/s04_notebook.png"},
+    {"id": "s05", "name": "蘑菇菌包DIY", "icon": "🍄", "price": 2.0, "desc": "废纸基料平菇菌包，7天出菇可食用",
+     "club": "生物社", "category": "快递纸箱", "image": "/checkin/s05_mushroom.png"},
+    {"id": "s06", "name": "生态砖花盆", "icon": "🏺", "price": 2.5, "desc": "废塑封存瓶中制成花盆，碳锁定百年",
+     "club": "环保社", "category": "塑料", "image": "/checkin/s06_ecobrick.png"},
+    {"id": "s07", "name": "蛋托育苗套装", "icon": "🌱", "price": 3.0, "desc": "废纸模塑蛋托+种子包，阳台种菜入门",
+     "club": "园艺社", "category": "快递纸箱", "image": "/checkin/s07_seedling.png"},
+    {"id": "s08", "name": "纤维素隔热杯垫", "icon": "☕", "price": 3.5, "desc": "废纸纤维压制，隔热防烫可降解",
+     "club": "手工社", "category": "快递纸箱", "image": "/checkin/s08_coaster.png"},
+    {"id": "s09", "name": "回收金属徽章", "icon": "🏅", "price": 4.0, "desc": "旧电池金属熔铸，校园环保达人限定",
+     "club": "化学社", "category": "有害", "image": "/checkin/s09_badge.png"},
+    {"id": "s10", "name": "再生塑料笔筒", "icon": "✏️", "price": 4.5, "desc": "HDPE瓶盖热压成型，莫兰迪色系",
+     "club": "创客空间", "category": "塑料", "image": "/checkin/s10_penholder.png"},
+    {"id": "s11", "name": "WPC手机支架", "icon": "📱", "price": 5.0, "desc": "塑木复合材料CNC雕刻，比原木更耐用",
+     "club": "创客空间", "category": "塑料", "image": "/checkin/s11_phonestand.png"},
+    {"id": "s12", "name": "碳积分荣誉证书+礼盒", "icon": "📜", "price": 8.0, "desc": "年度减碳证书+随机回收物礼盒，仪式感拉满",
+     "club": "环保社", "category": "混合", "image": "/checkin/s12_certificate.png"},
+]
+
+
+BASE_STOCK = 3                    # 初始库存
+STOCK_PER_SUBMISSION = 5           # 每投递N次，对应品类库存+1
+
+
+def _get_shop_with_stock(db: Session) -> list[dict]:
+    """商品列表 + 动态库存"""
+    # 统计各品类 confirmed 投递总量
+    cat_counts = {}
+    for cat in ["外卖厨余", "快递纸箱", "塑料", "有害"]:
+        cnt = db.query(Submission).filter(
+            Submission.waste_type == cat,
+            Submission.status == "confirmed",
+        ).count()
+        cat_counts[cat] = cnt
+    # 混合品类取均值
+    cat_counts["混合"] = sum(cat_counts.values()) // 4
+
+    items = []
+    for i in SHOP_ITEMS:
+        cat = i["category"]
+        bonus = cat_counts.get(cat, 0) // STOCK_PER_SUBMISSION
+        stock = BASE_STOCK + bonus
+        items.append({**i, "stock": stock, "bonus_stock": bonus})
+    return items
+
+
+@router.get("/shop")
+def list_shop_items(db: Session = Depends(get_db)):
+    """碳积分商城商品列表（含动态库存）"""
+    return {"items": _get_shop_with_stock(db)}
+
+
+def _purchased_count(db: Session, item_id: str) -> int:
+    """某商品已被兑换次数"""
+    return db.query(ShopOrder).filter(ShopOrder.item_id == item_id).count()
+
+
+@router.post("/shop/buy")
+def buy_shop_item(data: ShopBuyRequest, db: Session = Depends(get_db)):
+    """碳积分兑换商品（含库存校验 + 收货地址）"""
+    if not data.address.strip():
+        raise HTTPException(status_code=400, detail="请填写收货地址（如：南园3舍）")
+
+    user = db.query(User).get(data.user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="用户不存在")
+
+    item = next((i for i in SHOP_ITEMS if i["id"] == data.item_id), None)
+    if not item:
+        raise HTTPException(status_code=404, detail="商品不存在")
+
+    # 库存 = 基础 + 投递加成 - 已购买
+    items_with_stock = _get_shop_with_stock(db)
+    stock_item = next((i for i in items_with_stock if i["id"] == data.item_id), None)
+    if stock_item:
+        real_stock = stock_item["stock"] - _purchased_count(db, data.item_id)
+        if real_stock <= 0:
+            raise HTTPException(status_code=400, detail=f"「{item['name']}」已售罄，等社团补货吧～")
+
+    if (user.carbon_score or 0) < item["price"]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"碳积分不足！需要 {item['price']} kg，当前 {user.carbon_score:.3f} kg",
+        )
+
+    user.carbon_score = float(user.carbon_score or 0) - item["price"]
+
+    # 创建兑换记录
+    order = ShopOrder(
+        user_id=data.user_id,
+        item_id=data.item_id,
+        item_name=item["name"],
+        price=item["price"],
+        address=data.address.strip(),
+        status="pending",
+    )
+    db.add(order)
+
+    notif = Notification(
+        user_id=data.user_id,
+        batch_id="SHOP",
+        content=f"🛒 你兑换了「{item['name']}」(-{item['price']} kg)，配送到 {data.address.strip()}",
+        read=False,
+        ts=datetime.utcnow(),
+    )
+    db.add(notif)
+    db.commit()
+
+    new_stock = _get_shop_with_stock(db)
+    new_s = next((i for i in new_stock if i["id"] == data.item_id), None)
+
+    return {
+        "ok": True,
+        "msg": f"兑换成功！{item['name']} (-{item['price']} kg)，将配送到 {data.address.strip()}",
+        "remaining_score": round(user.carbon_score, 3),
+        "new_stock": (new_s["stock"] if new_s else 0) - _purchased_count(db, data.item_id),
+        "order_id": order.id,
+    }
+
+
+@router.get("/shop/orders")
+def list_orders(user_id: int, db: Session = Depends(get_db)):
+    """用户兑换记录"""
+    orders = (
+        db.query(ShopOrder)
+        .filter(ShopOrder.user_id == user_id)
+        .order_by(ShopOrder.created_at.desc())
+        .all()
+    )
+    return {
+        "orders": [
+            {
+                "id": o.id,
+                "item_name": o.item_name,
+                "price": o.price,
+                "address": o.address,
+                "status": o.status,
+                "status_text": "已收货" if o.status == "received" else "配送中",
+                "created_at": o.created_at.isoformat() if o.created_at else "",
+            }
+            for o in orders
+        ]
+    }
+
+
+@router.post("/shop/orders/{order_id}/receive")
+def mark_received(order_id: int, user_id: int, db: Session = Depends(get_db)):
+    """确认收货"""
+    order = db.query(ShopOrder).filter(ShopOrder.id == order_id, ShopOrder.user_id == user_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="订单不存在")
+    if order.status == "received":
+        raise HTTPException(status_code=400, detail="已确认过收货")
+    order.status = "received"
+    db.commit()
+    return {"ok": True, "msg": f"已确认收货「{order.item_name}」"}
