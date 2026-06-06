@@ -12,9 +12,10 @@ router = APIRouter(tags=["activity"])
 
 def _activity_card(a: Activity, joined: bool = False, db: Session = None) -> dict:
     club_avatar_map = {
-        "手工社": "ico_paper", "美术社": "ico_gallery", "园艺社": "ico_sprout",
-        "生物社": "ico_lightbulb", "创客空间": "ico_box", "环保社": "ico_recycle",
-        "化学社": "ico_battery", "宠保社": "ico_food", "食监委": "ico_coin",
+        "手工社": "ico_paper", "手艺社": "ico_paper", "美术社": "ico_gallery",
+        "园艺社": "ico_sprout", "生物社": "ico_lightbulb", "创客空间": "ico_box",
+        "环保社": "ico_recycle", "化学社": "ico_battery", "宠保社": "ico_food",
+        "食监委": "ico_coin",
     }
     return {
         "id": a.id,
