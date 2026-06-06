@@ -129,3 +129,31 @@ class ShopOrder(Base):
     address = Column(String(128))
     status = Column(String(16), default="pending")   # pending / received
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Activity(Base):
+    """社团回收活动"""
+    __tablename__ = "activities"
+
+    id = Column(Integer, primary_key=True)
+    title = Column(String(128))
+    club_name = Column(String(64))
+    category = Column(String(16))
+    description = Column(String(256))
+    time_slot = Column(String(64))          # e.g. "6/8 14:00-16:00"
+    location = Column(String(128))
+    carbon_reward = Column(Float, default=0.3)  # kg CO₂ per join
+    max_participants = Column(Integer, default=20)
+    current_participants = Column(Integer, default=0)
+    status = Column(String(16), default="open")  # open / full / ended
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class ActivityJoin(Base):
+    """用户参与活动记录"""
+    __tablename__ = "activity_joins"
+
+    id = Column(Integer, primary_key=True)
+    activity_id = Column(Integer, ForeignKey("activities.id"))
+    user_id = Column(Integer, ForeignKey("users.id"))
+    created_at = Column(DateTime, default=datetime.utcnow)

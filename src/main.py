@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from .config import BASE_DIR, WEB_DIR, UPLOAD_DIR
 from .database import init_db
 from .seed import seed_all
-from .api import scan, predict, submission, batch, user, rank, reward
+from .api import scan, predict, submission, batch, user, rank, reward, activity
 
 
 def create_app() -> FastAPI:
@@ -32,12 +32,12 @@ def create_app() -> FastAPI:
 
     # 静态文件
     app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
-    app.mount("/checkin", StaticFiles(directory=str(BASE_DIR / "checkin")), name="checkin")
+    app.mount("/image", StaticFiles(directory=str(BASE_DIR / "image")), name="image")
     app.mount("/web", StaticFiles(directory=str(WEB_DIR)), name="web")
 
     # 业务路由
     for r in (scan.router, predict.router, submission.router,
-              batch.router, user.router, rank.router, reward.router):
+              batch.router, user.router, rank.router, reward.router, activity.router):
         app.include_router(r, prefix="/api")
 
     # 首页

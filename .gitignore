@@ -42,4 +42,8 @@ __pycache__/
 lc_project.db
 uploads/*
 !uploads/.gitkeep
+checkin/backup_*/
+checkin/tree_staging/
+DESIGN_VISUAL*.md
+*.docx
 .claude/

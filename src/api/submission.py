@@ -367,7 +367,9 @@ def list_user_submissions(user_id: int, db: Session = Depends(get_db)):
 
 @router.get("/submission/cooldown")
 def check_cooldown(user_id: int, qr_code: str, db: Session = Depends(get_db)):
-    """查询用户在某点位的冷却剩余时间"""
+    """查询用户在某点位的冷却剩余时间（管理员永远无冷却）"""
+    if _is_admin(user_id, db):
+        return {"cooldown": False, "remain_seconds": 0}
     point = db.query(Point).filter(Point.qr_code == qr_code).first()
     if not point:
         raise HTTPException(status_code=404, detail="点位不存在")

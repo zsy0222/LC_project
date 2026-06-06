@@ -6,290 +6,427 @@
 <title>校园低碳回收追踪</title>
 <style>
   :root {
-    --green: #2e7d32; --green-light: #4caf50; --green-bg: #e8f5e9;
-    --amber: #ff8f00; --amber-bg: #fff8e1;
-    --blue: #1565c0; --blue-bg: #e3f2fd;
-    --purple: #7b1fa2; --purple-bg: #f3e5f5;
-    --gray: #666; --gray-border: #ddd; --radius: 12px;
-    --tab-h: 56px; --header-h: 50px;
+    --paper:  #FAF7F2;
+    --moss:   #2D5A27;
+    --ink:    #2C2416;
+    --bark:   #8B7355;
+    --stone:  #D9D0C5;
+    --warm:   #F0EBE0;
+    --green: var(--moss);
+    --green-bg: #E8F5E9;
+    --gray: var(--bark);
+    --gray-border: var(--stone);
+    --amber: #B95E00;
+    --amber-bg: #FFF3E0;
+    --purple: #5C3D6E;
+    --lichen: #5E7C58;
+    --cat-food: #B95E00;
+    --cat-food-bg: #FFF3E0;
+    --cat-paper: #6F5B43;
+    --cat-paper-bg: #F5EFE6;
+    --cat-plastic: #1A6F8A;
+    --cat-plastic-bg: #E6F5F8;
+    --cat-hazard: #9C3D35;
+    --cat-hazard-bg: #FBE9E7;
+    --radius: 14px;
+    --ease-out: cubic-bezier(.22,1,.36,1);
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f5f5f5; color: #333; max-width: 600px; margin: 0 auto; min-height: 100vh; overflow-x: hidden; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Georgia, "PingFang SC", "Microsoft YaHei", serif; background: var(--paper); color: var(--ink); max-width: 600px; margin: 0 auto; min-height: 100vh; overflow-x: hidden; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(45,90,39,.14); }
+  button, select, input, textarea { font: inherit; }
+  button { touch-action: manipulation; }
+  .skip-link { position: fixed; top: 8px; left: 50%; z-index: 500; transform: translate(-50%, -140%); background: var(--ink); color: #FFF; padding: 8px 14px; border-radius: 8px; text-decoration: none; transition: transform .18s var(--ease-out); }
+  .skip-link:focus-visible { transform: translate(-50%, 0); }
+  :focus-visible { outline: 2px solid rgba(45,90,39,.78); outline-offset: 3px; }
+  .icon { width: 1em; height: 1em; display: inline-block; vertical-align: -0.14em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  .inline-icon { width: 1em; height: 1em; margin-right: 4px; }
 
-  /* ====== 登录页 ====== */
-  #loginPage { display: flex; flex-direction: column; min-height: 100vh; background: #fff; }
-  .login-hero { background: linear-gradient(135deg, #1b5e20, #43a047); color: #fff; padding: 48px 24px 32px; text-align: center; }
-  .login-hero .icon { font-size: 3rem; display: block; margin-bottom: 12px; }
-  .login-hero h1 { font-size: 1.4rem; margin-bottom: 4px; }
-  .login-hero p { font-size: 0.8rem; opacity: 0.85; }
-  .login-card { margin: -16px 16px 0; background: #fff; border-radius: var(--radius); padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,.1); position: relative; z-index: 2; }
-  .login-card h2 { font-size: 1rem; margin-bottom: 12px; }
-  .login-card select { width: 100%; padding: 10px; border: 1px solid var(--gray-border); border-radius: 8px; font-size: 0.95rem; margin-bottom: 12px; background: #fafafa; }
-  .login-card .btn { width: 100%; }
-  .login-public { margin: 20px 16px; }
-  .login-public h3 { font-size: 0.9rem; margin-bottom: 8px; color: var(--gray); }
-  .login-public .rank-preview { background: #fafafa; border-radius: 8px; padding: 8px; max-height: 200px; overflow-y: auto; }
-  .login-public .rp-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; font-size: 0.8rem; border-bottom: 1px solid #f0f0f0; }
-  .login-public .rp-item:last-child { border-bottom: none; }
-  .rp-rank { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.7rem; background: #eee; flex-shrink: 0; }
-  .rp-rank.r1 { background: #ffd700; color: #fff; } .rp-rank.r2 { background: #c0c0c0; color: #fff; } .rp-rank.r3 { background: #cd7f32; color: #fff; }
-  .rp-name { flex:1; font-weight: bold; } .rp-co2 { color: var(--green); font-weight: bold; }
+  /* Login */
+  #loginPage { position: fixed; inset: 0; z-index: 0; background: #1B3B1A; overflow: hidden; }
+  .parallax-stage { position: absolute; inset: 0; cursor: grab; user-select: none; -webkit-user-select: none; }
+  .parallax-stage:active { cursor: grabbing; }
+  .parallax-stage .scene-img { position: absolute; top: 0; left: 50%; width: 100%; height: 100%; background: url('/image/login/bg_login.png') center/contain no-repeat; transform: translateX(-50%); transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); will-change: transform; }
+  .parallax-stage .scene-mist { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(27,59,26,.15) 0%, rgba(27,59,26,.50) 70%, rgba(27,59,26,.90) 100%); pointer-events: none; }
+  .art-title { position: absolute; top: 26%; left: 50%; transform: translateX(-50%); z-index: 2; text-align: center; pointer-events: none; }
+  .art-title .line1 { font-family: Georgia, serif; font-size: 2.4rem; font-style: italic; font-weight: 400; letter-spacing: .06em; background: linear-gradient(180deg, #FFF 15%, #A5D6A7 85%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 2px 12px rgba(0,0,0,.35)); }
+  .art-title .line2 { font-family: "KaiTi", "STKaiti", serif; font-size: .78rem; font-weight: 400; letter-spacing: .12em; color: rgba(255,255,255,.55); margin-top: 8px; }
+  .art-title .divider { width: 32px; height: 1.5px; background: rgba(255,255,255,.35); margin: 12px auto; }
+  .login-float { position: absolute; bottom: 16%; left: 50%; transform: translateX(-50%); width: min(320px, 86vw); background: rgba(255,255,255,.88); backdrop-filter: blur(16px); border-radius: 18px; padding: 26px 22px; box-shadow: 0 12px 48px rgba(0,0,0,.18); z-index: 3; opacity: 0; visibility: hidden; transition: opacity .7s ease-out, visibility .7s; border: 1px solid rgba(0,0,0,.06); }
+  .login-float.visible { opacity: 1; visibility: visible; }
+  .login-float .logo-mark { width: 40px; height: 40px; margin: 0 auto 12px; display: block; }
+  .login-float h2 { font-size: .9rem; margin-bottom: 14px; text-align: center; color: var(--moss); font-weight: 400; letter-spacing: .03em; }
+  .login-float select { width: 100%; padding: 12px 14px; border: 1px solid var(--stone); border-radius: 10px; font-size: .88rem; margin-bottom: 12px; background: #FFF; color: var(--ink); font-family: inherit; }
+  .login-float .float-foot { text-align: center; font-size: .58rem; color: var(--bark); margin-top: 10px; }
 
-  /* ====== 主界面 ====== */
-  #appPage { display: none; flex-direction: column; min-height: 100vh; padding-bottom: var(--tab-h); }
+  /* Main shell */
+  #appPage { display: none; flex-direction: column; min-height: 100vh; padding-bottom: 96px; }
   #appPage.show { display: flex; }
-  .app-header { position: sticky; top: 0; z-index: 10; background: linear-gradient(135deg, var(--green), var(--green-light)); color: #fff; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; height: var(--header-h); }
-  .app-header .user-info { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
-  .app-header .user-role { font-size: 0.7rem; opacity: 0.8; background: rgba(255,255,255,.2); padding: 2px 8px; border-radius: 10px; }
-  .app-header .btn-logout { background: rgba(255,255,255,.2); border: none; color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
-  .tab-content { display: none; flex: 1; padding: 12px; }
-  .tab-content.active { display: block; }
+  .app-header { position: sticky; top: 0; z-index: 10; background: linear-gradient(135deg, #1B3B1A 0%, #2D5A27 60%, #3C6E35 100%); color: #FFF; padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; height: 50px; gap: 10px; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+  .app-header .user-info { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
+  .app-header .user-name { font-size: .85rem; font-weight: 500; }
+  .app-header .user-role { font-size: .6rem; opacity: .7; background: rgba(255,255,255,.1); padding: 2px 8px; border-radius: 10px; letter-spacing: .03em; flex-shrink: 0; }
+  .app-header .user-score { font-size: .68rem; opacity: .85; font-family: Georgia,serif; background: rgba(255,255,255,.08); padding: 2px 8px; border-radius: 8px; white-space: nowrap; flex-shrink: 0; }
+  .app-header .btn-logout { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.1); color: #FFF; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: .7rem; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; transition: background .2s; font-family: inherit; }
+  .app-header .btn-logout:hover { background: rgba(255,255,255,.18); }
+  .tab-content { display: none; flex: 1; padding: 16px; }
+  .tab-content.active { display: block; animation: contentIn .24s var(--ease-out) both; }
+  @keyframes contentIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* ====== 底栏 ====== */
-  .tab-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 600px; height: var(--tab-h); background: #fff; border-top: 1px solid var(--gray-border); display: flex; z-index: 20; }
-  .tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: none; background: none; font-size: 0.7rem; color: #999; cursor: pointer; transition: .2s; gap: 2px; }
-  .tab-btn .tb-icon { font-size: 1.2rem; }
-  .tab-btn.active { color: var(--green); }
-  .tab-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  /* Section cards */
+  section { background: #FFF; margin-bottom: 16px; border-radius: var(--radius); padding: 16px; border: 1px solid rgba(0,0,0,.04); }
+  section h2 { font-size: 1.05rem; margin-bottom: 16px; color: var(--bark); font-weight: 400; letter-spacing: .02em; }
+  /* All inline icon images: clean, no bg */
+  h2 img[src*="ico_"], h3 img[src*="ico_"], strong img[src*="ico_"] {
+    width: 1.5em !important; height: 1.5em !important;
+    vertical-align: -.18em; display: inline-block;
+  }
 
-  /* ====== 通用组件 ====== */
-  section { background: #fff; margin-bottom: 12px; border-radius: var(--radius); padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
-  section h2 { font-size: 0.95rem; margin-bottom: 10px; }
-  .btn { display: block; width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: .2s; margin-top: 8px; }
-  .btn-primary { background: var(--green); color: #fff; }
-  .btn-primary:hover { background: var(--green-light); }
-  .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
-  .btn-accent { background: var(--purple); color: #fff; }
-  .btn-outline { background: #fff; color: var(--green); border: 1px solid var(--green); }
-  .btn-sm { display: inline-block; width: auto; padding: 5px 12px; font-size: 0.75rem; }
-  .empty { text-align: center; color: #aaa; padding: 20px; font-size: 0.85rem; }
-  .spinner { display: none; width: 20px; height: 20px; border: 3px solid #ddd; border-top-color: var(--green); border-radius: 50%; animation: spin .6s linear infinite; margin: 10px auto; }
-  .spinner.show { display: block; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  /* Floating bottom nav */
+  .tab-bar { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); width: calc(100% - 36px); max-width: 564px; height: 68px; background: rgba(255,255,255,.90); backdrop-filter: blur(10px); border: 1px solid rgba(0,0,0,.05); border-radius: 34px; display: flex; z-index: 20; box-shadow: 0 2px 16px rgba(0,0,0,.04); padding: 4px; }
+  .tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: none; background: none; font-size: .58rem; color: var(--bark); cursor: pointer; transition: color .2s var(--ease-out), transform .2s var(--ease-out), background-color .2s var(--ease-out); position: relative; font-family: inherit; border-radius: 28px; }
+  .tab-btn:hover:not(:disabled) { background: rgba(45,90,39,.06); transform: translateY(-1px); }
+  .tab-btn .tb-icon { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; margin-bottom: 0px; color: currentColor; }
+  .tab-btn .tb-icon svg { width: 22px; height: 22px; }
+  .tab-btn .tb-icon img { width: 100%; height: 100%; object-fit: contain; }
+  .tab-btn.active { color: var(--moss); }
+  .tab-btn.active .tb-icon { opacity: 1; transform: translateY(-2px) scale(1.04); }
+  .tab-btn.active .tb-icon img { opacity: 1; transform: scale(1.04); }
+  .tab-btn.active::after { content: ''; position: absolute; bottom: 3px; width: 18px; height: 2px; border-radius: 2px; background: var(--moss); }
+  .tab-btn:disabled { opacity: .25; cursor: not-allowed; }
 
-  /* 点位 */
-  .point-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .point-card { border: 2px solid var(--gray-border); border-radius: 8px; padding: 10px; cursor: pointer; transition: .2s; text-align: center; }
-  .point-card:hover { border-color: var(--green-light); background: var(--green-bg); }
-  .point-card.selected { border-color: var(--green); background: var(--green-bg); }
-  .point-card .name { font-weight: bold; font-size: 0.9rem; }
-  .point-card .loc { font-size: 0.7rem; color: var(--gray); }
+  /* Buttons */
+  .btn { display: block; width: 100%; padding: 13px; border: none; border-bottom: 2.5px solid rgba(0,0,0,.15); border-radius: 10px; font-size: .95rem; font-weight: 500; cursor: pointer; margin-top: 10px; font-family: inherit; transition: background-color .14s var(--ease-out), border-color .14s var(--ease-out), color .14s var(--ease-out), transform .14s var(--ease-out), box-shadow .14s var(--ease-out); transform: translateY(0); letter-spacing: .02em; }
+  .btn:hover:not(:disabled) { box-shadow: 0 7px 18px rgba(45,90,39,.13); transform: translateY(-1px); }
+  .btn:active { border-bottom-width: 1px; transform: translateY(1.5px); }
+  .btn .icon { margin-right: 5px; }
+  .btn-primary { background: var(--moss); color: #FFF; }
+  .btn-primary:disabled { background: #C4BDB5; border-bottom-color: #B0A89F; cursor: not-allowed; }
+  .btn-accent { background: #5C3D6E; color: #FFF; }
+  .btn-outline { background: #FFF; color: var(--moss); border: 1px solid var(--moss); border-bottom-width: 2.5px; }
+  .btn-sm { display: inline-block; width: auto; padding: 5px 14px; font-size: .7rem; border-radius: 8px; }
 
-  /* 上传区 */
-  .upload-zone { border: 2px dashed var(--gray-border); border-radius: var(--radius); padding: 24px; text-align: center; cursor: pointer; transition: .2s; }
-  .upload-zone:hover { border-color: var(--green-light); background: #fafafa; }
-  .upload-zone.has-image { padding: 0; border: none; }
-  .upload-zone img { max-width: 100%; max-height: 220px; border-radius: var(--radius); }
-  .ai-result { display: none; margin-top: 10px; padding: 10px; background: #f9f9f9; border-radius: 8px; }
+  /* Category cards */
+  .point-card { border: 1px solid var(--stone); border-radius: 12px; padding: 16px 10px; cursor: pointer; transition: border-color .26s var(--ease-out), background-color .26s var(--ease-out), transform .26s var(--ease-out), box-shadow .26s var(--ease-out), opacity .26s var(--ease-out), filter .26s var(--ease-out); text-align: center; background: #FFF; color: var(--ink); width: 100%; font-family: inherit; }
+  .point-card:hover { border-color: var(--moss); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(45,90,39,.10); }
+  .point-card.selected { border-color: var(--moss); background: linear-gradient(180deg, #FFF, var(--cat-bg, #F2F7EF)); box-shadow: inset 0 0 0 1px rgba(45,90,39,.14), 0 8px 20px rgba(45,90,39,.08); }
+  .point-card .category-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; border-radius: 16px; color: var(--cat-color, var(--moss)); background: var(--cat-bg, var(--green-bg)); transition: transform .24s var(--ease-out), background-color .24s var(--ease-out); }
+  .point-card .category-icon svg { width: 27px; height: 27px; }
+  .point-card.selected .category-icon { transform: scale(1.08) rotate(-3deg); }
+  .point-card .name { font-weight: 600; font-size: .85rem; color: var(--ink); margin-top: 4px; }
+  .point-card .loc { font-size: .68rem; color: var(--bark); }
+  #wasteTypeGrid:has(.selected) .point-card:not(.selected), #pointGrid:has(.selected) .point-card:not(.selected) { opacity: .38; transform: scale(.93); filter: grayscale(.35); }
+  .point-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* Upload */
+  .upload-zone { border: 2px dashed var(--stone); border-radius: 16px 8px 16px 8px; padding: 32px 24px; text-align: center; cursor: pointer; transition: border-color .22s var(--ease-out), background-color .22s var(--ease-out), transform .22s var(--ease-out), box-shadow .22s var(--ease-out); background: var(--warm); color: var(--ink); width: 100%; font-family: inherit; }
+  .upload-zone:hover { border-color: var(--moss); background: #FFF; transform: translateY(-1px); box-shadow: 0 10px 24px rgba(45,90,39,.08); }
+  .upload-zone.has-image { padding: 0; border: none; border-radius: 10px; background: none; }
+  .upload-zone img { max-width: 100%; max-height: 260px; border-radius: 12px; }
+  .upload-hint { display: flex; flex-direction: column; align-items: center; gap: 7px; color: var(--bark); }
+  .upload-hint .icon { width: 34px; height: 34px; color: var(--moss); }
+
+  /* AI result */
+  .ai-result { display: none; margin-top: 12px; padding: 12px; border-radius: 10px; background: var(--warm); }
   .ai-result.show { display: block; }
   .ai-tags { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0; }
-  .ai-tag { padding: 3px 10px; border-radius: 16px; font-size: 0.75rem; font-weight: bold; }
-  .tag-cat { background: var(--blue-bg); color: var(--blue); }
-  .tag-grade { background: var(--amber-bg); color: var(--amber); }
-  .tag-path { background: var(--green-bg); color: var(--green); }
-  .ai-warn { color: #d32f2f; font-size: 0.75rem; margin-top: 4px; }
+  .ai-tag { padding: 3px 12px; border-radius: 16px; font-size: .72rem; font-weight: 600; }
+  .tag-cat { background: #E8F0FE; color: #1A56B0; }
+  .tag-grade { background: #FFF3E0; color: #C56000; }
+  .tag-path { background: #E8F5E9; color: #2D5A27; }
+  .ai-warn { color: #C56000; font-size: .74rem; margin-top: 4px; }
 
-  /* 投递列表 */
-  .sub-item { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+  /* Submissions */
+  .sub-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,.04); }
   .sub-item:last-child { border-bottom: none; }
-  .sub-thumb { width: 44px; height: 44px; object-fit: cover; border-radius: 6px; background: #eee; }
+  .sub-thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 8px; }
   .sub-info { flex: 1; min-width: 0; }
-  .sub-info .meta { font-size: 0.75rem; color: var(--gray); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .sub-co2 { font-weight: bold; color: var(--green); font-size: 0.85rem; white-space: nowrap; }
+  .sub-info .meta { font-size: .72rem; color: var(--bark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sub-co2 { font-weight: 600; color: var(--moss); font-size: .82rem; white-space: nowrap; }
 
-  /* 批次卡片 */
-  .batch-card { border: 1px solid var(--gray-border); border-radius: 8px; padding: 10px; margin-bottom: 8px; }
-  .batch-card .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-  .batch-card .id { font-weight: bold; font-size: 0.85rem; word-break: break-all; }
-  .status { padding: 2px 8px; border-radius: 10px; font-size: 0.65rem; font-weight: bold; }
-  /* ====== 抢单卡片 ====== */
-.order-card { background: #fff; border: 2px solid #e0e0e0; border-radius: var(--radius); padding: 12px; margin-bottom: 8px; transition: .2s; }
-.order-card:hover { border-color: var(--purple); box-shadow: 0 2px 8px rgba(123,31,162,.1); }
-.order-card .order-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
-.order-card .order-urgent { font-size: .65rem; font-weight: bold; }
-.order-card .order-cat { font-size: .8rem; font-weight: bold; }
-.order-card .order-body { font-size: .7rem; color: var(--gray); margin-bottom: 8px; font-family: monospace; }
-.order-card .order-footer { display: flex; align-items: center; justify-content: space-between; }
+  /* Cards: batch, order, track */
+  .batch-card, .order-card, .track-card { background: #FFF; border: 1px solid rgba(0,0,0,.04); border-radius: 12px; padding: 14px; margin-bottom: 10px; transition: border-color .2s var(--ease-out), transform .2s var(--ease-out), box-shadow .2s var(--ease-out); }
+  .batch-card:hover, .order-card:hover, .track-card:hover { border-color: rgba(45,90,39,.18); transform: translateY(-1px); box-shadow: 0 8px 20px rgba(45,90,39,.07); }
+  .batch-card .header, .order-card .order-header, .track-card .track-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .batch-card .id { font-weight: 600; font-size: .82rem; word-break: break-all; }
+  .batch-card .meta, .order-card .order-body { font-size: .72rem; color: var(--bark); }
+  .batch-card .actions { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .order-card { animation: cardSlideIn .35s ease-out both; }
+  @keyframes cardSlideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  .order-card .order-cat { font-size: .82rem; font-weight: 600; }
+  .order-card .order-footer { display: flex; align-items: center; justify-content: space-between; }
+  .order-card .order-urgent { font-size: .64rem; font-weight: 600; }
+  .status { padding: 2px 10px; border-radius: 10px; font-size: .62rem; font-weight: 600; }
+  .status-pending { background: #FFF3E0; color: #C56000; }
+  .status-claimed { background: #E8F0FE; color: #1A56B0; }
+  .status-done { background: #E8F5E9; color: #2D5A27; }
 
-.status-pending { background: var(--amber-bg); color: var(--amber); }
-  .status-claimed { background: var(--blue-bg); color: var(--blue); }
-  .status-done { background: var(--green-bg); color: var(--green); }
-  .batch-card .meta { font-size: 0.75rem; color: var(--gray); }
-  .batch-card .actions { margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; }
+  /* Tracking */
+  .track-progress { display: flex; align-items: flex-start; justify-content: space-between; position: relative; padding: 0 4px; }
+  .track-progress::before { content: ""; position: absolute; top: 18px; left: 30px; right: 30px; height: 1.5px; background: repeating-linear-gradient(90deg, var(--stone) 0, var(--stone) 5px, transparent 5px, transparent 10px); z-index: 0; }
+  .track-step { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; position: relative; z-index: 1; }
+  .track-step .step-dot { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; background: var(--stone); color: var(--bark); transition: background-color .24s var(--ease-out), color .24s var(--ease-out), box-shadow .24s var(--ease-out), transform .24s var(--ease-out); overflow: hidden; }
+  .track-step .step-dot svg { width: 18px; height: 18px; }
+  .track-step.done .step-dot { background: #E8F5E9; color: var(--moss); transform: scale(1.02); }
+  .track-step.active .step-dot { background: var(--moss); color: #FFF; box-shadow: 0 0 0 6px rgba(45,90,39,.10); animation: pulse-dot 2s infinite; }
+  @keyframes pulse-dot { 0%,100% { box-shadow: 0 0 0 6px rgba(45,90,39,.10); } 50% { box-shadow: 0 0 0 12px rgba(45,90,39,.04); } }
+  .track-step .step-label { font-size: .58rem; color: var(--bark); text-align: center; white-space: nowrap; }
+  .track-step.done .step-label, .track-step.active .step-label { color: var(--moss); font-weight: 600; }
+  .track-step .step-detail { font-size: .52rem; color: var(--bark); text-align: center; max-width: 56px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-  /* 排行榜 */
-  .rank-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
-  .rank-item:last-child { border-bottom: none; }
-  .rank-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem; flex-shrink: 0; background: #eee; color: var(--gray); }
-  .rank-1 { background: #ffd700; color: #fff; } .rank-2 { background: #c0c0c0; color: #fff; } .rank-3 { background: #cd7f32; color: #fff; }
-  .rank-info { flex: 1; }
-  .rank-name { font-weight: bold; font-size: 0.9rem; }
-  .rank-count { font-size: 0.7rem; color: var(--gray); }
-  .rank-co2 { font-weight: bold; color: var(--green); font-size: 0.9rem; white-space: nowrap; }
-  .stats-bar { display: flex; justify-content: space-around; padding: 10px 0; margin-bottom: 10px; }
-  .stat-item { text-align: center; }
-  .stat-value { font-size: 1.3rem; font-weight: bold; color: var(--green); }
-  .stat-label { font-size: 0.65rem; color: var(--gray); }
+  /* Gallery */
+  .gallery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .gallery-card { background: #FFF; border: 1px solid rgba(0,0,0,.04); border-radius: 16px 6px 16px 6px; overflow: hidden; transform: rotate(-.8deg); }
+  .gallery-card .gc-img { width: 100%; height: 140px; object-fit: cover; display: flex; align-items: center; justify-content: center; font-size: 2rem; mix-blend-mode: multiply; }
+  .gallery-card .gc-body { padding: 8px 10px; }
+  .gallery-card .gc-desc { font-size: .74rem; font-weight: 600; margin-bottom: 2px; }
+  .gallery-card .gc-meta { font-size: .62rem; color: var(--bark); }
+  .gallery-card .gc-mine { display: inline-block; margin-top: 4px; background: #E8F5E9; color: var(--moss); font-size: .58rem; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
 
-  /* 徽章 */
+  /* Reward */
+  /* ====== Growth rings (tree cross-section) ====== */
+.growth-rings { position: relative; width: 200px; height: 200px; margin: 16px auto; display: flex; align-items: center; justify-content: center; }
+/* ====== Tree stump ring ====== */
+.stump-wrap { position:relative; width:200px; height:200px; margin:12px auto 0; }
+.stump-img { width:100%; height:100%; object-fit:contain; clip-path:circle(0% at 50% 50%); transition:clip-path .8s cubic-bezier(.22,1,.36,1); }
+.stump-img.reveal { clip-path:circle(var(--ring-pct) at 50% 50%); }
+.stump-label { position:absolute; bottom:6px; left:0; right:0; text-align:center; font-size:.65rem; color:var(--bark); font-weight:600; }
+  /** old bar — replaced by growth rings */
+  .reward-card { background: #FFF; border: 1px solid rgba(0,0,0,.04); border-radius: var(--radius); padding: 16px; text-align: center; margin-bottom: 16px; }
+  #rewardCard { min-height: 55vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
-/* ====== 回收物追踪 ====== */
-.track-card { background: #fff; border-radius: var(--radius); padding: 14px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
-.track-card .track-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-.track-card .track-cat { font-weight: bold; font-size: 0.85rem; }
-.track-card .track-dest { font-size: 0.7rem; color: var(--gray); }
-.track-progress { display: flex; align-items: flex-start; justify-content: space-between; position: relative; padding: 0 4px; }
-.track-progress::before { content: ""; position: absolute; top: 16px; left: 28px; right: 28px; height: 3px; background: #e0e0e0; border-radius: 2px; z-index: 0; }
-.track-step { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; position: relative; z-index: 1; }
-.track-step .step-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; background: #e0e0e0; transition: .3s; }
-.track-step.done .step-dot { background: var(--green-bg); }
-.track-step.active .step-dot { background: var(--green); box-shadow: 0 0 0 4px rgba(46,125,50,.2); animation: pulse-dot 1.5s infinite; }
-@keyframes pulse-dot { 0%,100% { box-shadow: 0 0 0 4px rgba(46,125,50,.2); } 50% { box-shadow: 0 0 0 8px rgba(46,125,50,.1); } }
-.track-step .step-label { font-size: 0.6rem; color: #999; text-align: center; white-space: nowrap; }
-.track-step.done .step-label, .track-step.active .step-label { color: var(--green); font-weight: bold; }
-.track-step .step-detail { font-size: 0.55rem; color: #aaa; text-align: center; max-width: 56px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* Shop */
+  /* ====== Activity cards ====== */
+.act-card { background: #FFF; border: 1px solid rgba(0,0,0,.04); border-radius: 16px; padding: 18px; margin-bottom: 14px; position: relative; overflow: hidden; }
+.act-card .act-header { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+.act-card .act-club-icon { width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 16px; overflow: hidden; }
+.act-card .act-club-icon img { width: 100%; height: 100%; object-fit: cover; }
+.act-card .act-info { flex:1; min-width:0; }
+.act-card .act-title { font-size:1rem; font-weight:600; margin-bottom:3px; }
+.act-card .act-club { font-size:.75rem; color:var(--bark); }
+.act-card .act-desc { font-size:.78rem; color:var(--bark); margin-bottom:12px; line-height:1.5; }
+.act-card .act-meta { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:14px; }
+.act-card .act-meta-item { display:flex; align-items:center; gap:5px; font-size:.72rem; color:var(--bark); }
+.act-card .act-meta-item img { width:22px; height:22px; opacity:.7; }
+.act-card .act-footer { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+.act-card .act-reward { font-size:.9rem; font-weight:700; color:var(--moss); }
+.act-card .act-participants { font-size:.7rem; color:var(--bark); }
+.act-card .act-btn { padding:8px 20px; border:none; border-radius:10px; font-size:.78rem; font-weight:600; cursor:pointer; transition:.2s; font-family:inherit; }
+.act-card .act-btn.join { background:var(--moss); color:#FFF; }
+.act-card .act-btn.join:hover { background:#1B5E20; }
+.act-card .act-btn.joined { background:#E8F5E9; color:var(--moss); cursor:default; }
+.act-card .act-btn.full { background:var(--stone); color:#FFF; cursor:not-allowed; }
+.act-card .act-btn.upload-work { background:#5C3D6E; color:#FFF; margin-left:0; }
+.act-card .act-status-tag { position:absolute; top:14px; right:14px; padding:3px 12px; border-radius:10px; font-size:.65rem; font-weight:600; }
+.act-card .act-status-tag.open { background:#E8F5E9; color:var(--moss); }
+.act-card .act-status-tag.full { background:#FFF3E0; color:#C56000; }
+.act-card .act-status-tag.ended { background:#F5F5F5; color:var(--bark); }
 
-/* ====== 成品橱窗 ====== */
-.gallery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.gallery-card { background: #fff; border-radius: var(--radius); overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
-.gallery-card .gc-img { width: 100%; height: 140px; object-fit: cover; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
-.gallery-card .gc-body { padding: 8px 10px; }
-.gallery-card .gc-desc { font-size: 0.75rem; font-weight: bold; margin-bottom: 2px; }
-.gallery-card .gc-meta { font-size: 0.65rem; color: var(--gray); }
-.gallery-card .gc-mine { display: inline-block; margin-top: 4px; background: var(--green-bg); color: var(--green); font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
-.gallery-card .gc-claim { display: block; width: 100%; margin-top: 6px; padding: 6px; border: 1px solid var(--purple); background: var(--purple-bg); color: var(--purple); border-radius: 6px; cursor: pointer; font-size: 0.65rem; font-weight: bold; transition: .2s; }
-.gallery-card .gc-claim:hover { background: var(--purple); color: #fff; }
-.gallery-card .gc-claim:disabled { opacity: .35; cursor: not-allowed; }
+.shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .shop-card { background: #FFF; border: 1px solid rgba(0,0,0,.04); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; transition: border-color .22s var(--ease-out), box-shadow .22s var(--ease-out), transform .22s var(--ease-out), opacity .22s var(--ease-out); }
+  .shop-card:hover { border-color: var(--stone); transform: translateY(-2px); box-shadow: 0 10px 22px rgba(45,90,39,.08); }
+  .shop-card .shop-icon { width: 100%; height: 140px; display: flex; align-items: center; justify-content: center; font-size: 2rem; overflow: hidden; border-radius: 8px; margin-bottom: 6px; }
+  .shop-card .shop-icon img { width: 100%; height: 100%; object-fit: contain; border-radius: 8px; }
+  .shop-card .shop-name { font-size: .78rem; font-weight: 600; margin-bottom: 2px; }
+  .shop-card .shop-desc { font-size: .64rem; color: var(--bark); margin-bottom: 4px; flex: 1; }
+  .shop-card .shop-club { font-size: .6rem; color: #7B5EA7; }
+  .shop-card .shop-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+  .shop-card .shop-price { font-size: .85rem; font-weight: 600; color: var(--moss); }
+  .shop-card .shop-btn { padding: 5px 14px; border: 1px solid var(--moss); border-radius: 8px; background: var(--moss); color: #FFF; cursor: pointer; font-size: .64rem; font-weight: 600; font-family: inherit; transition: background-color .16s var(--ease-out), transform .16s var(--ease-out), box-shadow .16s var(--ease-out); }
+  .shop-card .shop-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(45,90,39,.16); }
+  .shop-card .shop-btn:disabled { background: var(--stone); border-color: var(--stone); cursor: not-allowed; }
+  .shop-card.locked { opacity: .45; }
+  #shopBalance { font-size: .78rem; font-weight: 600; color: var(--moss); }
+  .order-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,.04); }
+  .order-item:last-child { border-bottom: none; }
+  .order-info { flex: 1; }
+  .order-name { font-size: .78rem; font-weight: 600; }
+  .order-meta { font-size: .64rem; color: var(--bark); }
+  .order-status { font-size: .64rem; padding: 2px 10px; border-radius: 4px; font-weight: 600; }
+  .order-status.pending { color: #C56000; background: #FFF3E0; }
+  .order-status.received { color: #2D5A27; background: #E8F5E9; }
 
-/* ====== 奖励进度 ====== */
-.reward-bar-wrap { background: #f0f0f0; border-radius: 10px; height: 20px; overflow: hidden; margin: 8px 0; }
-.reward-bar-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, var(--green-light), var(--green)); transition: width .6s; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; color: #fff; font-weight: bold; min-width: 36px; }
-.reward-card { background: linear-gradient(135deg, var(--purple-bg), #fff); border: 2px solid var(--purple); border-radius: var(--radius); padding: 16px; text-align: center; margin-bottom: 10px; }
-.reward-card h3 { font-size: 1rem; color: var(--purple); margin-bottom: 6px; }
-.reward-card p { font-size: 0.75rem; color: var(--gray); }
-.reward-card .btn { margin-top: 10px; }
-#rewardCard { min-height: 65vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  /* Badges */
+  .badge-list { display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge-item { text-align: center; width: 64px; }
+  .badge-icon { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin: 0 auto 3px; transition: transform .18s var(--ease-out), opacity .18s var(--ease-out); }
+  .badge-icon svg { width: 23px; height: 23px; }
+  .badge-item:hover .badge-icon { transform: translateY(-2px) scale(1.04); }
+  .badge-on { background: #E8F5E9; } .badge-off { background: var(--warm); opacity: .3; }
+  .badge-name { font-size: .62rem; color: var(--bark); }
 
-/* ====== 碳积分商城 ====== */
-.shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.shop-card { background: #fff; border-radius: var(--radius); padding: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.06); transition: .2s; display: flex; flex-direction: column; }
-.shop-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,.12); }
-.shop-card .shop-icon { width: 100%; height: 140px; text-align: center; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; font-size: 2rem; overflow: hidden; border-radius: 8px; background: #f5f5f5; }
-.shop-card .shop-name { font-size: .8rem; font-weight: bold; margin-bottom: 2px; }
-.shop-card .shop-desc { font-size: .65rem; color: var(--gray); margin-bottom: 4px; flex:1; }
-.shop-card .shop-club { font-size: .6rem; color: var(--purple); }
-.shop-card .shop-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
-.shop-card .shop-price { font-size: .85rem; font-weight: bold; color: var(--green); }
-.shop-card .shop-btn { padding: 4px 12px; border: 1px solid var(--green); border-radius: 6px; background: var(--green); color: #fff; cursor: pointer; font-size: .65rem; font-weight: bold; transition: .2s; }
-.shop-card .shop-btn:hover { background: var(--green-light); }
-.shop-card .shop-btn:disabled { background: #ccc; border-color: #ccc; cursor: not-allowed; }
-.shop-card.locked { opacity: .5; }
-.shop-card.locked .shop-btn { background: #999; border-color: #999; cursor: not-allowed; }
-#shopBalance { font-size: .8rem; font-weight: bold; color: var(--green); }
-/* 兑换记录 */
-.order-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
-.order-item:last-child { border-bottom: none; }
-.order-info { flex: 1; }
-.order-name { font-size: .8rem; font-weight: bold; }
-.order-meta { font-size: .65rem; color: var(--gray); }
-.order-status { font-size: .65rem; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
-.order-status.pending { color: var(--amber); background: var(--amber-bg); }
-.order-status.received { color: var(--green); background: var(--green-bg); }
-  .badge-list { display: flex; gap: 6px; flex-wrap: wrap; }
-  .badge-item { text-align: center; width: 62px; }
-  .badge-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin: 0 auto 2px; }
-  .badge-on { background: #ffd54f; } .badge-off { background: #eee; opacity: 0.35; }
-  .badge-name { font-size: 0.65rem; }
+  /* Welcome overlay */
+  #welcomeOverlay { display: none; position: fixed; inset: 0; background: rgba(45,90,39,.62); z-index: 300; justify-content: center; align-items: center; backdrop-filter: blur(3px); }
+  #welcomeOverlay.show { display: flex; }
+  #welcomeOverlay.show .welcome-card { animation: welcomeIn .8s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes welcomeIn { from { opacity: 0; transform: scale(.88) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+  #welcomeOverlay.fading { animation: overlayFade .7s ease-out both; pointer-events: none; }
+  @keyframes overlayFade { from { opacity: 1; } to { opacity: 0; } }
+  .welcome-card {
+    background: #FFFDF7; border-radius: 28px; padding: 32px 24px 24px;
+    width: 86vw; max-width: 360px; text-align: center;
+    box-shadow: 0 16px 48px rgba(27,43,20,.18), 0 2px 8px rgba(27,43,20,.06);
+    border: 1.5px solid rgba(139,195,74,.22);
+    position: relative; overflow: hidden;
+  }
+  .welcome-card::before {
+    content: ''; position: absolute; inset: 0; border-radius: 28px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(139,195,74,.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .welcome-card .welcome-img {
+    width: 180px; height: 180px; margin: 0 auto 20px;
+    border-radius: 50%; overflow: hidden;
+    box-shadow: 0 6px 28px rgba(45,90,39,.12);
+    animation: welcomeFloat 3s ease-in-out infinite;
+  }
+  .welcome-card .welcome-img img { width: 100%; height: 100%; object-fit: cover; }
+  @keyframes welcomeFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  .welcome-card .welcome-divider {
+    width: 40px; height: 1.5px; background: rgba(139,195,74,.35);
+    margin: 18px auto;
+  }
+  .welcome-card .welcome-hint {
+    font-size: .62rem; color: var(--bark); opacity: .45;
+    margin-top: 16px; letter-spacing: .05em;
+  }
+  .welcome-card.dismissing {
+    animation: welcomeOut .7s ease-in both;
+  }
+  @keyframes welcomeOut {
+    0% { opacity: 1; transform: scale(1); filter: blur(0); }
+    50% { opacity: .6; transform: scale(1.02) rotate(.5deg); }
+    100% { opacity: 0; transform: scale(.95) rotate(-1deg); filter: blur(4px); }
+  }
 
-  /* 弹窗 */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 100; justify-content: center; align-items: center; }
+  /* Modals */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 100; justify-content: center; align-items: center; overscroll-behavior: contain; padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); }
   .modal-overlay.show { display: flex; }
-  .modal { background: #fff; border-radius: var(--radius); padding: 18px; max-width: 500px; width: 92%; max-height: 80vh; overflow-y: auto; }
-  .modal h3 { margin-bottom: 10px; }
-  .modal .close { float: right; background: none; border: none; font-size: 1.4rem; cursor: pointer; line-height: 1; }
-  .modal label { display: block; font-weight: bold; font-size: 0.8rem; margin: 8px 0 4px; }
-  .modal select, .modal textarea { width: 100%; padding: 8px; border: 1px solid var(--gray-border); border-radius: 6px; font-size: 0.9rem; }
+  .modal-overlay.show .modal { animation: modalIn .3s cubic-bezier(.25,.46,.45,.94) both; }
+  @keyframes modalIn { from { opacity: 0; transform: scale(.93) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+  .modal { background: #FFF; border-radius: 18px; padding: 20px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; border: 1px solid rgba(0,0,0,.04); box-shadow: 0 20px 60px rgba(0,0,0,.12); }
+  .modal h3 { margin-bottom: 12px; color: var(--moss); font-weight: 400; }
+  .modal .close { float: right; background: rgba(139,115,85,.08); border: none; width: 32px; height: 32px; border-radius: 999px; font-size: 1.4rem; line-height: 1; cursor: pointer; color: var(--bark); transition: background-color .16s var(--ease-out), color .16s var(--ease-out), transform .16s var(--ease-out); }
+  .modal .close:hover { background: rgba(139,115,85,.16); color: var(--ink); transform: rotate(8deg); }
+  .modal label { display: block; font-weight: 600; font-size: .78rem; margin: 10px 0 4px; color: var(--bark); }
+  .modal select, .modal textarea, .modal input[type=text] { width: 100%; padding: 10px; border: 1px solid var(--stone); border-radius: 8px; font-size: .88rem; background: #FFF; font-family: inherit; }
   .modal textarea { resize: vertical; min-height: 50px; }
-  .timeline { position: relative; padding-left: 18px; margin-top: 8px; }
-  .timeline::before { content: ''; position: absolute; left: 5px; top: 0; bottom: 0; width: 2px; background: var(--green-light); }
-  .tl-item { position: relative; margin-bottom: 12px; }
-  .tl-item::before { content: ''; position: absolute; left: -17px; top: 3px; width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
-  .tl-title { font-weight: bold; font-size: 0.8rem; } .tl-detail { font-size: 0.75rem; color: var(--gray); } .tl-time { font-size: 0.65rem; color: #aaa; }
+  .timeline { position: relative; padding-left: 20px; margin-top: 10px; }
+  .timeline::before { content: ''; position: absolute; left: 5px; top: 0; bottom: 0; width: 1.5px; background: var(--moss); }
+  .tl-item { position: relative; margin-bottom: 14px; }
+  .tl-item::before { content: ''; position: absolute; left: -19px; top: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--moss); }
+  .tl-title { font-weight: 600; font-size: .8rem; } .tl-detail { font-size: .74rem; color: var(--bark); } .tl-time { font-size: .64rem; color: var(--bark); }
 
-  /* toast */
-  .toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 22px; border-radius: 20px; font-size: 0.85rem; z-index: 200; opacity: 0; transition: opacity .3s; pointer-events: none; }
-  .toast.show { opacity: 1; }
-
-  /* filter */
-  .filter-bar { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
-  .filter-bar select { padding: 5px 8px; border: 1px solid var(--gray-border); border-radius: 6px; font-size: 0.8rem; }
-  .filter-bar button { padding: 5px 10px; background: var(--green); color: #fff; border: none; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
-  footer { text-align: center; padding: 12px; font-size: 0.65rem; color: #aaa; }
+  /* Misc */
+  .empty { text-align: center; color: var(--bark); padding: 24px; font-size: .82rem; }
+  .spinner { display: none; width: 22px; height: 22px; border: 2.5px solid var(--stone); border-top-color: var(--moss); border-radius: 50%; animation: spin .6s linear infinite; margin: 14px auto; }
+  .spinner.show { display: block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .toast { position: fixed; top: 18px; left: 50%; transform: translateX(-50%) translateY(-6px); background: var(--ink); color: #FFF; padding: 11px 24px; border-radius: 24px; font-size: .82rem; z-index: 200; opacity: 0; transition: opacity .24s var(--ease-out), transform .24s var(--ease-out); pointer-events: none; box-shadow: 0 6px 20px rgba(0,0,0,.2); font-family: inherit; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .rank-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,.04); }
+  .rank-item:last-child { border-bottom: none; }
+  .rank-num { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: .8rem; flex-shrink: 0; background: var(--warm); color: var(--bark); }
+  .rank-1 { background: #FFF8E1; color: #C56000; } .rank-2 { background: #F5F5F5; color: #616161; } .rank-3 { background: #FBE9E7; color: #A0453A; }
+  .rank-info { flex: 1; }
+  .rank-name { font-weight: 600; font-size: .88rem; }
+  .rank-count { font-size: .68rem; color: var(--bark); }
+  .rank-co2 { font-weight: 600; color: var(--moss); font-size: .88rem; white-space: nowrap; }
+  .stats-bar { display: flex; justify-content: space-around; padding: 12px 0; margin-bottom: 12px; }
+  .stat-item { text-align: center; }
+  .stat-value { font-size: 1.4rem; font-weight: 600; color: var(--moss); font-family: Georgia, serif; }
+  .stat-label { font-size: .64rem; color: var(--bark); }
+  .ripple { position: absolute; border-radius: 50%; background: rgba(255,255,255,.12); transform: scale(0); animation: rippleOut .6s ease-out forwards; pointer-events: none; z-index: 1; }
+  @keyframes rippleOut { to { transform: scale(5); opacity: 0; } }
+  .stage-dot { transition: background-color .2s var(--ease-out), transform .2s var(--ease-out); }
+  .stage-dot.done { transform: scale(1.05); }
+  .meta-icon { color: var(--bark); margin-right: 3px; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .001ms !important; }
+    .parallax-stage .scene-img { transition: none !important; }
+  }
 </style>
 </head>
 <body>
+<a href="#appPage" class="skip-link">跳到主内容</a>
 
 <!-- ==================== 登录页 ==================== -->
 <div id="loginPage">
-  <div class="login-hero">
-    <span class="icon">🌱</span>
-    <h1>校园低碳回收追踪</h1>
-    <p>扫码 → AI识别 → 归入批次 → 去向反馈</p>
+  <div class="parallax-stage" id="parallaxStage">
+    <div class="scene-img" id="sceneImg"></div>
+    <div class="scene-mist"></div>
   </div>
-  <div class="login-card">
-    <h2>👤 选择身份进入</h2>
+  <div class="art-title">
+    <div class="line1">Low Carbon</div>
+    <div class="divider"></div>
+    <div class="line2">校园低碳回收 · 全路径追踪</div>
+  </div>
+  <div class="login-float" id="loginFloat">
+    <img class="logo-mark" src="/image/login/logo_tree.png" alt="logo">
+    <h2>选择身份进入</h2>
     <select id="loginUserSelect"><option value="">-- 选择用户 --</option></select>
-    <button class="btn btn-primary" onclick="doLogin()" disabled id="loginBtn">进入系统</button>
+    <button class="btn btn-primary" onclick="doLogin()" disabled id="loginBtn" aria-label="进入系统">进入系统</button>
+    <div class="float-foot">点击画布任意处关闭浮窗</div>
   </div>
-  <div class="login-public">
-    <h3>🏆 公开排行榜</h3>
-    <div class="rank-preview" id="rankPreview"><div class="empty">加载中...</div></div>
-  </div>
-  <footer style="margin-top:auto;">🌍 校园低碳回收追踪 · Demo v0.2</footer>
 </div>
 
 <!-- ==================== 主界面 ==================== -->
 <div id="appPage">
   <div class="app-header">
     <div class="user-info">
-      <span id="appNickname">-</span>
+      <span class="user-name" id="appNickname">-</span>
       <span class="user-role" id="appRole">-</span>
-      <span style="font-size:0.75rem;" id="appCarbon"></span>
+      <span class="user-score" id="appCarbon"></span>
     </div>
-    <button class="btn-logout" onclick="doLogout()">退出</button>
+    <button class="btn-logout" onclick="doLogout()" aria-label="退出当前账号">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+      退出
+    </button>
+  </div>
+
+  <!-- 活动广场 tab -->
+  <div class="tab-content" id="tab-activity">
+    <section>
+      <h2><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v18"/><circle cx="12" cy="10" r="3"/><path d="M18 21H6"/></svg> 活动广场</h2>
+      <p style="font-size:.72rem;color:var(--bark);margin-bottom:10px;">参加社团回收活动，动手创造，获取碳积分</p>
+      <div id="activityList"><div class="empty">加载中...</div></div>
+    </section>
   </div>
 
   <!-- 投递 tab -->
   <div class="tab-content" id="tab-delivery">
     <!-- 品类选择 -->
     <section>
-      <h2>🌱 今天你想分类什么？</h2>
+      <h2><img src="/image/icons/ico_sprout.png" style="width:1.1em;height:1.1em;vertical-align:-.16em;display:inline-block;opacity:.85;" alt=""> 今天你想分类什么？</h2>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="wasteTypeGrid">
-        <div class="point-card" onclick="selectWasteType('外卖厨余','🍚')" id="wt-外卖厨余">
-          <div class="name">🍚 外卖厨余</div><div class="loc">剩饭剩菜·先拍后到</div>
-        </div>
-        <div class="point-card" onclick="selectWasteType('快递纸箱','📦')" id="wt-快递纸箱">
-          <div class="name">📦 快递纸箱</div><div class="loc">纸箱回收·到点投递</div>
-        </div>
-        <div class="point-card" onclick="selectWasteType('塑料','🥡')" id="wt-塑料">
-          <div class="name">🥡 塑料</div><div class="loc">塑料瓶餐盒·到点投递</div>
-        </div>
-        <div class="point-card" onclick="selectWasteType('有害','🔋')" id="wt-有害">
-          <div class="name">🔋 有害</div><div class="loc">电池灯泡药品·到点投递</div>
-        </div>
+        <button type="button" class="point-card" onclick="selectWasteType('外卖厨余','','cat_food')" id="wt-外卖厨余" style="--cat-color:var(--cat-food);--cat-bg:var(--cat-food-bg);" aria-pressed="false" aria-label="选择外卖厨余">
+          <span class="category-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M12 22a7 7 0 0 0 7-7c0-3.8-3.4-8.4-6.1-11.2a1.2 1.2 0 0 0-1.8 0C8.4 6.6 5 11.2 5 15a7 7 0 0 0 7 7Z"/><path d="M8.5 14.5c1.9.7 5.2.7 7 0"/></svg></span>
+          <div class="name">外卖厨余</div><div class="loc">剩饭剩菜·先拍后到</div>
+        </button>
+        <button type="button" class="point-card" onclick="selectWasteType('快递纸箱','','cat_paper')" id="wt-快递纸箱" style="--cat-color:var(--cat-paper);--cat-bg:var(--cat-paper-bg);" aria-pressed="false" aria-label="选择快递纸箱">
+          <span class="category-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="m3 7 9 5 9-5"/><path d="m3 7 9-5 9 5v10l-9 5-9-5Z"/><path d="M12 12v10"/></svg></span>
+          <div class="name">快递纸箱</div><div class="loc">纸箱回收·到点投递</div>
+        </button>
+        <button type="button" class="point-card" onclick="selectWasteType('塑料','','cat_plastic')" id="wt-塑料" style="--cat-color:var(--cat-plastic);--cat-bg:var(--cat-plastic-bg);" aria-pressed="false" aria-label="选择塑料">
+          <span class="category-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M10 2h4"/><path d="M11 2v3l-2.2 2A3 3 0 0 0 8 9.1V20a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V9.1a3 3 0 0 0-.8-2.1L13 5V2"/><path d="M8 13h8"/></svg></span>
+          <div class="name">塑料</div><div class="loc">塑料瓶餐盒·到点投递</div>
+        </button>
+        <button type="button" class="point-card" onclick="selectWasteType('有害','','cat_hazard')" id="wt-有害" style="--cat-color:var(--cat-hazard);--cat-bg:var(--cat-hazard-bg);" aria-pressed="false" aria-label="选择有害垃圾">
+          <span class="category-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M10.3 3.4 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.4a2 2 0 0 0-3.4 0Z"/><path d="M12 8v5"/><path d="M12 17h.01"/></svg></span>
+          <div class="name">有害</div><div class="loc">电池灯泡药品·到点投递</div>
+        </button>
       </div>
       <div style="margin-top:6px;font-size:0.75rem;color:var(--gray);" id="selectedWasteType">👆 请选择回收品类</div>
     </section>
 
     <!-- 外卖厨余待投递列表 -->
     <section id="pendingSection" style="display:none;">
-      <h2>📋 待投递</h2>
+      <h2><img src="/image/icons/ico_document.png" style="width:1.1em;height:1.1em;vertical-align:-.16em;display:inline-block;opacity:.85;" alt=""> 待投递</h2>
       <div id="pendingList"><div class="empty">暂无待投递</div></div>
     </section>
 
     <!-- 点位选择 + 拍照区（选择品类后显示） -->
     <section id="pointSection" style="display:none;">
-      <h2>📍 选择回收点</h2>
+      <h2><img src="/image/icons/ico_pin.png" style="width:1.1em;height:1.1em;vertical-align:-.16em;display:inline-block;opacity:.85;" alt=""> 选择回收点</h2>
       <div class="point-grid" id="pointGrid"><div class="empty">加载中...</div></div>
       <div style="margin-top:6px;font-size:0.75rem;color:var(--gray);" id="selectedPoint">👆 请点击选择一个回收点</div>
       <div id="gpsDebug" style="display:none;margin-top:6px;padding:8px;background:#f9f9f9;border-radius:6px;font-size:0.7rem;font-family:monospace;line-height:1.6;">
@@ -299,18 +436,18 @@
       </div>
     </section>
     <section id="photoSection" style="display:none;">
-      <h2>📸 拍照投递</h2>
+      <h2><img src="/image/icons/ico_camera.png" style="width:1.1em;height:1.1em;vertical-align:-.16em;display:inline-block;opacity:.85;" alt=""> 拍照投递</h2>
       <!-- 外卖厨余确认区（第二步显示，替代上传区） -->
       <div id="foodConfirmBar" style="display:none;padding:16px;background:var(--green-bg);border-radius:var(--radius);text-align:center;">
-        <div style="font-size:1.5rem;margin-bottom:4px;">🍚</div>
+        <div style="font-size:1.5rem;margin-bottom:4px;"><img src="/image/icons/ico_food.png" style="width:2em;height:2em;display:block;margin:0 auto 4px;" alt=""></div>
         <div style="font-size:0.9rem;font-weight:bold;">到达分类点后，一键确认投递</div>
         <div style="font-size:0.7rem;color:var(--gray);margin-top:4px;">需要 GPS 验证位置</div>
       </div>
       <!-- 拍照上传区（选择品类+点位后显示） -->
-      <div class="upload-zone" id="uploadZone" style="display:none;" onclick="document.getElementById('fileInput').click()">
-        <div id="uploadHint">📷<br>点击上传回收物照片</div>
+      <button type="button" class="upload-zone" id="uploadZone" style="display:none;" onclick="document.getElementById('fileInput').click()" aria-label="上传回收物照片">
+        <div id="uploadHint" class="upload-hint"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"/><circle cx="12" cy="13" r="3"/></svg><span>点击上传回收物照片</span></div>
         <img id="previewImg" style="display:none" alt="预览">
-      </div>
+      </button>
       <input type="file" id="fileInput" accept="image/*" capture="environment" onchange="handleFile(event)" style="display:none">
       <div class="spinner" id="aiSpinner"></div>
       <div class="ai-result" id="aiResult">
@@ -324,19 +461,19 @@
         <div class="ai-warn" id="aiWarn" style="display:none">⚠ 置信度较低，建议重新拍摄</div>
       </div>
       <div id="cooldownBar" style="display:none;margin-top:8px;padding:8px 12px;background:var(--amber-bg);border-radius:8px;font-size:0.8rem;color:var(--amber);font-weight:bold;"><span id="cooldownText">⏳ 冷却中</span></div>
-      <button class="btn btn-primary" id="submitBtn" disabled onclick="submitDelivery()">✅ 确认投递</button>
+      <button class="btn btn-primary" id="submitBtn" disabled onclick="submitDelivery()" aria-label="确认投递">确认投递</button>
     </section>
   </div>
 
   <!-- 去向 tab - 抢单大厅 -->
   <div class="tab-content" id="tab-reuser">
     <section id="orderPoolSection">
-      <h2>⚡ 抢单大厅</h2>
+      <h2><img src="/image/icons/ico_lightning.png" style="width:1.1em;height:1.1em;vertical-align:-.16em;display:inline-block;opacity:.85;" alt=""> 抢单大厅</h2>
       <div style="font-size:.7rem;color:var(--amber);margin-bottom:8px;">待认领批次先到先得，选好路径即刻抢单</div>
       <div id="orderPool"><div class="empty">暂无待认领批次</div></div>
     </section>
     <section id="myClaimSection" style="display:none;">
-      <h2>📋 我的认领</h2>
+      <h2><img src="/image/icons/ico_document.png" style="width:1.1em;height:1.1em;vertical-align:-.16em;display:inline-block;opacity:.85;" alt=""> 我的认领</h2>
       <div id="myClaims"><div class="empty">暂未认领任何批次</div></div>
     </section>
   </div>
@@ -344,7 +481,7 @@
   <!-- 排行 tab -->
   <div class="tab-content active" id="tab-rank">
     <section>
-      <h2>🏆 减碳英雄榜</h2>
+      <h2><img src="/image/icons/ico_trophy.png" style="width:1.1em;height:1.1em;vertical-align:-.16em;display:inline-block;opacity:.85;" alt=""> 减碳英雄榜</h2>
       <div class="stats-bar">
         <div class="stat-item"><div class="stat-value" id="totalUsers">-</div><div class="stat-label">参与人数</div></div>
         <div class="stat-item"><div class="stat-value" id="totalSubs">-</div><div class="stat-label">总投递</div></div>
@@ -356,26 +493,26 @@
 
   <!-- 成果 tab -->
   <div class="tab-content" id="tab-reward">
-    <section id="rewardCard" style="background: linear-gradient(135deg, var(--purple-bg), #fff); border: 2px solid var(--purple); border-radius: var(--radius); padding: 24px; text-align: center; min-height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+    <section id="rewardCard" style="border-radius: var(--radius); padding: 24px; text-align: center; min-height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center;">
       <div style="width:100%; max-width: 360px;">
-        <h2 style="font-size:1.2rem;margin-bottom:12px;">🎁 碳积分奖励</h2>
+        <h2 style="font-size:1.2rem;margin-bottom:12px;"><img src="/image/icons/ico_gift.png" style="width:1.1em;height:1.1em;vertical-align:-.16em;display:inline-block;opacity:.85;" alt=""> 碳积分奖励</h2>
         <div id="rewardSection"><div class="empty">加载中...</div></div>
       </div>
     </section>
     <section>
-      <h2>📋 我的投递</h2>
+      <h2><img src="/image/icons/ico_document.png" style="width:1.1em;height:1.1em;vertical-align:-.16em;display:inline-block;opacity:.85;" alt=""> 我的投递</h2>
       <div id="mySubmissions"><div class="empty">暂无记录</div></div>
     </section>
     <section>
-      <h2>📦 回收物追踪</h2>
+      <h2><img src="/image/icons/ico_tracking.png" style="width:1.1em;height:1.1em;vertical-align:-.16em;display:inline-block;opacity:.85;" alt=""> 回收物追踪</h2>
       <div id="trackingList"><div class="empty">暂无投递记录</div></div>
     </section>
     <section>
-      <h2>🖼 成品橱窗</h2>
+      <h2><img src="/image/icons/ico_gallery.png" style="width:1.1em;height:1.1em;vertical-align:-.16em;display:inline-block;opacity:.85;" alt=""> 成品橱窗</h2>
       <div id="galleryGrid"><div class="empty">暂无成品</div></div>
     </section>
     <section>
-      <h2>🏅 成就徽章</h2>
+      <h2><img src="/image/icons/ico_medal.png" style="width:1.1em;height:1.1em;vertical-align:-.16em;display:inline-block;opacity:.85;" alt=""> 成就徽章</h2>
       <div class="badge-list" id="badgeList"><div class="empty">-</div></div>
     </section>
   </div>
@@ -383,67 +520,83 @@
   <!-- 兑换 tab - 碳积分商城 -->
   <div class="tab-content" id="tab-shop">
     <section>
-      <h2>🏪 碳积分商城</h2>
+      <h2><img src="/image/icons/ico_shop.png" style="width:1.1em;height:1.1em;vertical-align:-.16em;display:inline-block;opacity:.85;" alt=""> 碳积分商城</h2>
       <div style="font-size:.7rem;color:var(--gray);margin-bottom:8px;" id="shopBalance">🪙 加载中...</div>
       <div id="shopGrid"><div class="empty">加载中...</div></div>
     </section>
     <section>
-      <h2>📋 兑换记录</h2>
+      <h2><img src="/image/icons/ico_document.png" style="width:1.1em;height:1.1em;vertical-align:-.16em;display:inline-block;opacity:.85;" alt=""> 兑换记录</h2>
       <div id="orderList"><div class="empty">暂无兑换记录</div></div>
     </section>
   </div>
 
-  <!-- 底栏 -->
+  <!-- 底栏 — 浮动胶囊 -->
   <div class="tab-bar">
-    <button class="tab-btn active" data-tab="tab-delivery" id="tabBtnDelivery">
-      <span class="tb-icon">📸</span>投递
+    <button class="tab-btn active" data-tab="tab-delivery" id="tabBtnDelivery" aria-label="切换到投递">
+      <span class="tb-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"/><circle cx="12" cy="13" r="3"/></svg></span>投递
     </button>
-    <button class="tab-btn" data-tab="tab-reuser" id="tabBtnReuser">
-      <span class="tb-icon">📦</span>去向
+    <button class="tab-btn" data-tab="tab-reuser" id="tabBtnReuser" aria-label="切换到去向">
+      <span class="tb-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M3 17 9 7l4 6 2-3 6 7"/><path d="M14 17h7"/><path d="M3 17h7"/><path d="M9 7h6"/></svg></span>去向
     </button>
-    <button class="tab-btn" data-tab="tab-reward" id="tabBtnReward">
-      <span class="tb-icon">🎁</span>成果
+    <button class="tab-btn" data-tab="tab-activity" id="tabBtnActivity" aria-label="切换到活动广场">
+      <span class="tb-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M6 3v18"/><circle cx="12" cy="10" r="3"/><path d="M18 21H6"/></svg></span>活动
     </button>
-    <button class="tab-btn" data-tab="tab-shop" id="tabBtnShop">
-      <span class="tb-icon">🏪</span>兑换
+    <button class="tab-btn" data-tab="tab-reward" id="tabBtnReward" aria-label="切换到成果">
+      <span class="tb-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M12 22v-8"/><path d="M12 14c-4.5 0-8-3.5-8-8V3h3c5 0 8 3.5 8 8"/><path d="M12 14c4.5 0 8-3.5 8-8V3h-3c-2.4 0-4.4.8-5.8 2.2"/></svg></span>成果
     </button>
-    <button class="tab-btn" data-tab="tab-rank" id="tabBtnRank">
-      <span class="tb-icon">🏆</span>排行
+    <button class="tab-btn" data-tab="tab-shop" id="tabBtnShop" aria-label="切换到兑换">
+      <span class="tb-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>兑换
     </button>
+    <button class="tab-btn" data-tab="tab-rank" id="tabBtnRank" aria-label="切换到排行">
+      <span class="tb-icon" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v4a5 5 0 0 1-10 0V4Z"/><path d="M5 5H3v2a4 4 0 0 0 4 4"/><path d="M19 5h2v2a4 4 0 0 1-4 4"/></svg></span>排行
+    </button>
+  </div>
+</div>
+
+<!-- ====== 欢迎弹窗 ====== -->
+<div id="welcomeOverlay" onclick="dismissWelcome()">
+  <div class="welcome-card">
+    <div class="welcome-img"><img src="/image/welcome/welcome_01.png" alt="" onerror="this.style.display='none'"></div>
+    <div id="welcomeQuote"></div>
+    <div class="welcome-divider"></div>
+    <div class="welcome-hint">轻触任意处，开始你的低碳之旅</div>
   </div>
 </div>
 
 <!-- ====== 弹窗 ====== -->
 <div class="modal-overlay" id="storyModal">
   <div class="modal">
-    <button class="close" onclick="closeModal('storyModal')">&times;</button>
-    <h3>📖 批次故事</h3>
+    <button class="close" onclick="closeModal('storyModal')" aria-label="关闭批次故事弹窗">&times;</button>
+    <h3><img src="/image/icons/ico_book.png" style="width:1.1em;height:1.1em;vertical-align:-.16em;display:inline-block;opacity:.85;" alt=""> 批次故事</h3>
     <div id="storyContent"></div>
   </div>
 </div>
 <div class="modal-overlay" id="claimModal">
   <div class="modal">
-    <button class="close" onclick="closeModal('claimModal')">&times;</button>
-    <h3>⚡ 确认抢单</h3>
+    <button class="close" onclick="closeModal('claimModal')" aria-label="关闭抢单弹窗">&times;</button>
+    <h3><img src="/image/icons/ico_lightning.png" style="width:1.1em;height:1.1em;vertical-align:-.16em;display:inline-block;opacity:.85;" alt=""> 确认抢单</h3>
     <p style="margin-bottom:8px;font-size:0.9rem;" id="claimBatchInfo"></p>
     <div id="claimPathOptions" style="max-height:200px;overflow-y:auto;"></div>
   </div>
 </div>
 <div class="modal-overlay" id="reuseModal">
   <div class="modal">
-    <button class="close" onclick="closeModal('reuseModal')">&times;</button>
-    <h3>📸 上传成品反馈</h3>
+    <button class="close" onclick="closeModal('reuseModal')" aria-label="关闭成品反馈弹窗">&times;</button>
+    <h3><img src="/image/icons/ico_camera.png" style="width:1.1em;height:1.1em;vertical-align:-.16em;display:inline-block;opacity:.85;" alt=""> 上传成品反馈</h3>
     <p style="margin-bottom:6px;font-size:0.9rem;" id="reuseBatchInfo"></p>
     <label>成品照片：</label>
-    <div class="upload-zone" id="reuseUploadZone" onclick="document.getElementById('reuseFileInput').click()">
-      <div id="reuseUploadHint">📷 点击上传成品照片</div>
+    <button type="button" class="upload-zone" id="reuseUploadZone" onclick="document.getElementById('reuseFileInput').click()" aria-label="上传成品照片">
+      <div id="reuseUploadHint" class="upload-hint"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"/><circle cx="12" cy="13" r="3"/></svg><span>点击上传成品照片</span></div>
       <img id="reusePreviewImg" style="display:none" alt="预览">
-    </div>
+    </button>
     <input type="file" id="reuseFileInput" accept="image/*" onchange="handleReuseFile(event)" style="display:none">
     <div class="spinner" id="reuseUploadSpinner"></div>
     <label>描述：</label>
     <textarea id="reuseDesc" placeholder="如：改造成宿舍收纳盒..."></textarea>
-    <button class="btn btn-accent" style="margin-top:10px;" id="reuseSubmitBtn" disabled onclick="doReuse()">📤 提交成品反馈</button>
+    <button class="btn btn-accent" style="margin-top:10px;" id="reuseSubmitBtn" disabled onclick="doReuse()" aria-label="提交成品反馈">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>
+      提交成品反馈
+    </button>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -451,27 +604,67 @@
 <!-- 知识弹窗 -->
 <div class="modal-overlay" id="knowledgeModal">
   <div class="modal">
-    <button class="close" onclick="closeModal('knowledgeModal')">&times;</button>
+    <button class="close" onclick="closeModal('knowledgeModal')" aria-label="关闭知识弹窗">&times;</button>
     <h3 id="kwTitle">-</h3>
     <div style="font-size:1.2rem;color:var(--green);font-weight:bold;margin:4px 0;" id="kwCo2">-</div>
-    <div style="margin:8px 0;"><strong>📖 减排原理：</strong><br><span id="kwPrinciple">-</span></div>
-    <div style="margin:8px 0;"><strong>💡 技术优势：</strong><br><span id="kwAdvantage">-</span></div>
-    <div style="margin:8px 0;font-size:0.7rem;color:var(--gray);"><strong>📚 数据来源：</strong><span id="kwSource">-</span></div>
+    <div style="margin:8px 0;"><strong><img src="/image/icons/ico_lightbulb.png" style="width:1.1em;height:1.1em;vertical-align:-.16em;display:inline-block;opacity:.85;" alt=""> 减排原理：</strong><br><span id="kwPrinciple">-</span></div>
+    <div style="margin:8px 0;"><strong><img src="/image/icons/ico_check.png" style="width:1.1em;height:1.1em;vertical-align:-.16em;display:inline-block;opacity:.85;" alt=""> 技术优势：</strong><br><span id="kwAdvantage">-</span></div>
+    <div style="margin:8px 0;font-size:0.7rem;color:var(--gray);"><strong><img src="/image/icons/ico_source.png" style="width:1.1em;height:1.1em;vertical-align:-.16em;display:inline-block;opacity:.85;" alt=""> 数据来源：</strong><span id="kwSource">-</span></div>
   </div>
 </div>
 
 <!-- 兑换确认弹窗 -->
 <div class="modal-overlay" id="shopBuyModal">
   <div class="modal" style="max-width:380px;width:90vw;padding:20px;text-align:center;">
-    <button class="close" onclick="closeModal('shopBuyModal')">&times;</button>
-    <div style="font-size:3rem;margin-bottom:4px;" id="buyIcon">🎁</div>
+    <button class="close" onclick="closeModal('shopBuyModal')" aria-label="关闭兑换确认弹窗">&times;</button>
+    <div style="font-size:3rem;margin-bottom:4px;color:var(--moss);" id="buyIcon" aria-hidden="true">
+      <svg class="icon" viewBox="0 0 24 24" style="width:48px;height:48px;"><path d="M20 12v10H4V12"/><path d="M2 7h20v5H2Z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 1 1 2.2-3.7L12 7Z"/><path d="M12 7h4.5a2.5 2.5 0 1 0-2.2-3.7L12 7Z"/></svg>
+    </div>
     <h3 style="margin-bottom:4px;" id="buyTitle">-</h3>
     <div style="font-size:0.8rem;color:var(--gray);margin-bottom:4px;" id="buyClub">-</div>
     <div style="font-size:1.2rem;font-weight:bold;color:var(--green);margin-bottom:12px;" id="buyPrice">-</div>
-    <label style="display:block;text-align:left;font-size:0.75rem;margin-bottom:4px;">📍 收货地址</label>
+    <label style="display:block;text-align:left;font-size:0.75rem;margin-bottom:4px;">收货地址</label>
     <input type="text" id="buyAddress" placeholder="如：南园3舍、郑钢教学楼" style="width:100%;padding:10px;border:1px solid var(--gray-border);border-radius:8px;font-size:0.9rem;margin-bottom:12px;">
-    <div style="font-size:0.65rem;color:var(--gray);margin-bottom:12px;">🪙 当前余额: <strong id="buyBalance">-</strong></div>
-    <button class="btn btn-accent" id="buyConfirmBtn" onclick="doBuyFromModal()" style="font-size:1rem;padding:12px;">确认兑换</button>
+    <div style="font-size:0.65rem;color:var(--gray);margin-bottom:12px;">当前余额: <strong id="buyBalance">-</strong></div>
+    <button class="btn btn-accent" id="buyConfirmBtn" onclick="doBuyFromModal()" style="font-size:1rem;padding:12px;" aria-label="确认兑换">确认兑换</button>
+  </div>
+</div>
+
+<!-- 确认收货弹窗 -->
+<div class="modal-overlay" id="receiveModal">
+  <div class="modal" style="max-width:340px;width:85vw;text-align:center;padding:24px;">
+    <button class="close" onclick="closeModal('receiveModal')" aria-label="关闭收货确认弹窗">&times;</button>
+    <div style="font-size:3rem;margin-bottom:8px;" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" style="width:46px;height:46px;color:var(--moss);"><path d="m3 7 9 5 9-5"/><path d="m3 7 9-5 9 5v10l-9 5-9-5Z"/><path d="M12 12v10"/></svg></div>
+    <h3 style="margin-bottom:6px;">确认收货</h3>
+    <p style="font-size:.8rem;color:var(--gray);margin-bottom:4px;" id="receiveItemName">-</p>
+    <p style="font-size:.7rem;color:var(--lichen);margin-bottom:16px;">收到实物后请确认，感谢支持校园环保 ♻️</p>
+    <button class="btn btn-primary" id="receiveConfirmBtn" onclick="doMarkReceived()" style="font-size:.9rem;" aria-label="确认已收到">确认已收到</button>
+    <button class="btn btn-outline" style="margin-top:6px;font-size:.8rem;" onclick="closeModal('receiveModal')" aria-label="暂不确认收货">再等等</button>
+  </div>
+</div>
+
+<!-- 发布活动弹窗 -->
+<div class="modal-overlay" id="createActivityModal">
+  <div class="modal" style="max-width:380px;width:90vw;">
+    <button class="close" onclick="closeModal('createActivityModal')" aria-label="关闭">&times;</button>
+    <h3>发布活动招募</h3>
+    <label>活动标题</label>
+    <input type="text" id="actTitle" placeholder="如：废纸换花盆" style="width:100%;padding:8px;border:1px solid var(--stone);border-radius:8px;font-size:.85rem;margin-bottom:8px;font-family:inherit;">
+    <label>品类</label>
+    <select id="actCategory" style="width:100%;padding:8px;border:1px solid var(--stone);border-radius:8px;font-size:.85rem;margin-bottom:8px;font-family:inherit;">
+      <option value="快递纸箱">快递纸箱</option><option value="塑料">塑料</option><option value="外卖厨余">外卖厨余</option><option value="有害">有害</option>
+    </select>
+    <label>时间</label>
+    <input type="text" id="actTimeSlot" placeholder="如：6/15 周六 14:00-16:00" style="width:100%;padding:8px;border:1px solid var(--stone);border-radius:8px;font-size:.85rem;margin-bottom:8px;font-family:inherit;">
+    <label>地点</label>
+    <input type="text" id="actLocation" placeholder="如：大学生活动中心" style="width:100%;padding:8px;border:1px solid var(--stone);border-radius:8px;font-size:.85rem;margin-bottom:8px;font-family:inherit;">
+    <label>描述</label>
+    <textarea id="actDesc" placeholder="活动内容简介..." style="width:100%;min-height:60px;"></textarea>
+    <label>碳积分奖励 (kg)</label>
+    <input type="number" id="actReward" value="0.5" step="0.1" min="0.1" max="5" style="width:100%;padding:8px;border:1px solid var(--stone);border-radius:8px;font-size:.85rem;margin-bottom:8px;font-family:inherit;">
+    <label>招募人数</label>
+    <input type="number" id="actMaxP" value="3" min="1" max="10" style="width:100%;padding:8px;border:1px solid var(--stone);border-radius:8px;font-size:.85rem;margin-bottom:12px;font-family:inherit;">
+    <button class="btn btn-accent" onclick="doCreateActivity()" style="font-size:.9rem;">发布招募</button>
   </div>
 </div>
 
@@ -482,7 +675,7 @@
     <h3 id="streakDays" style="font-size:2rem;font-weight:bold;color:var(--green);margin-top:12px;"></h3>
     <div id="streakBadge" style="font-size:0.9rem;color:var(--amber);margin:4px 0;"></div>
     <div id="streakMultiplier" style="font-size:0.8rem;color:var(--gray);margin-bottom:12px;"></div>
-    <button class="btn btn-primary" onclick="closeModal('streakModal')">👍 继续分类</button>
+    <button class="btn btn-primary" onclick="closeModal('streakModal')" aria-label="继续分类">继续分类</button>
   </div>
 </div>
 
@@ -495,12 +688,104 @@ let demoMode = false;
 let currentWasteType = '';  // 当前选择的品类
 let pendingSubId = null;    // 外卖厨余待确认的记录ID
 
+const ICONS = {
+  camera: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"/><circle cx="12" cy="13" r="3"/></svg>',
+  box: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 7 9 5 9-5"/><path d="m3 7 9-5 9 5v10l-9 5-9-5Z"/><path d="M12 12v10"/></svg>',
+  hand: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V7a2 2 0 0 1 4 0v4"/><path d="M11 10V6a2 2 0 0 1 4 0v7"/><path d="M15 12v-2a2 2 0 0 1 4 0v4a7 7 0 0 1-7 7h-1a7 7 0 0 1-5.6-2.8L3 15a2 2 0 0 1 3.2-2.4L8 15"/></svg>',
+  gift: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12v10H4V12"/><path d="M2 7h20v5H2Z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 1 1 2.2-3.7L12 7Z"/><path d="M12 7h4.5a2.5 2.5 0 1 0-2.2-3.7L12 7Z"/></svg>',
+  check: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
+  mapPin: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>',
+  clock: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>',
+  flame: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 14.5A5 5 0 0 0 18 12c0-5-5-8-5-8 .3 3-1 4.5-2.5 6C9 11.5 8.5 12.8 8.5 14.5Z"/><path d="M6 14a6 6 0 0 0 12 0"/></svg>',
+  spark: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 3 14h8l-1 8 11-13h-8Z"/></svg>',
+  story: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>',
+  upload: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>',
+  coin: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>',
+  factory: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V9l5 3V9l5 3V5h4v16"/><path d="M9 17h1"/><path d="M14 17h1"/></svg>',
+  calendar: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/></svg>',
+  trophy: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v4a5 5 0 0 1-10 0V4Z"/><path d="M5 5H3v2a4 4 0 0 0 4 4"/><path d="M19 5h2v2a4 4 0 0 1-4 4"/></svg>',
+  leaf: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22v-8"/><path d="M12 14c-4.5 0-8-3.5-8-8V3h3c5 0 8 3.5 8 8"/><path d="M12 14c4.5 0 8-3.5 8-8V3h-3c-2.4 0-4.4.8-5.8 2.2"/></svg>',
+  recycle: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 19-3-5 3-5"/><path d="M4 14h7"/><path d="m17 5 3 5-3 5"/><path d="M20 10h-7"/><path d="m8 5 4-3 4 3"/></svg>',
+  globe: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 0 20"/><path d="M12 2a15.3 15.3 0 0 0 0 20"/></svg>',
+  star: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8-6.2-3.3L5.8 21 7 14.2 2 9.3l6.9-1Z"/></svg>',
+};
+
+function icon(name, cls = '') {
+  const svg = ICONS[name] || '';
+  return cls ? svg.replace('class="icon"', `class="icon ${cls}"`) : svg;
+}
+
+function buttonLabel(text, iconName) {
+  return `${icon(iconName)}${text}`;
+}
+
 // ==================== 登录 ====================
+// ---- 全屏视差拖拽（translateX，景物动背景框不动） ----
+(function initParallax() {
+  const stage = document.getElementById('parallaxStage');
+  const img = document.getElementById('sceneImg');
+  const flt = document.getElementById('loginFloat');
+  if (!stage || !img || !flt) return;
+
+  const MAX_SHIFT = 20;
+  let dragging = false, startX = 0, currentX = 0, targetX = 0;
+  let animFrame = null, hasInteracted = false;
+
+  function updateImg() { img.style.transform = 'translateX(-50%) translateX(' + currentX + 'vw)'; }
+  function lerp() {
+    const diff = targetX - currentX;
+    if (Math.abs(diff) < 0.02) { currentX = targetX; updateImg(); animFrame = null; return; }
+    currentX += diff * 0.08; updateImg();
+    animFrame = requestAnimationFrame(lerp);
+  }
+  function handleStart(cx) { dragging = true; startX = cx; targetX = currentX; img.style.transition = 'none'; if (!hasInteracted) hasInteracted = true; }
+  function handleMove(cx) {
+    if (!dragging) return;
+    const shift = ((cx - startX) / window.innerWidth * 100) / 2;
+    targetX = Math.max(-MAX_SHIFT, Math.min(MAX_SHIFT, shift));
+    if (!animFrame) animFrame = requestAnimationFrame(lerp);
+  }
+  function handleEnd() {
+    if (!dragging) return; dragging = false; targetX = 0;
+    if (!animFrame) animFrame = requestAnimationFrame(lerp); img.style.transition = '';
+  }
+  stage.addEventListener('mousedown', e => { e.preventDefault(); handleStart(e.clientX); });
+  stage.addEventListener('touchstart', e => { handleStart(e.touches[0].clientX); }, {passive: false});
+  window.addEventListener('mousemove', e => { handleMove(e.clientX); });
+  window.addEventListener('touchmove', e => { handleMove(e.touches[0].clientX); }, {passive: false});
+  window.addEventListener('mouseup', handleEnd);
+  window.addEventListener('touchend', handleEnd);
+
+  // click ripple + float login window
+  stage.addEventListener('click', e => {
+    // ripple
+    const rc = stage.getBoundingClientRect();
+    const rx = e.clientX - rc.left, ry = e.clientY - rc.top;
+    const r = document.createElement('div'); r.className = 'ripple';
+    r.style.left = rx + 'px'; r.style.top = ry + 'px';
+    r.style.width = r.style.height = '40px';
+    stage.appendChild(r);
+    setTimeout(() => r.remove(), 700);
+
+    if (Math.abs(currentX) > 1.5) return;
+    if (!flt.classList.contains('visible')) flt.classList.add('visible');
+  });
+  // click outside float -> close
+  document.addEventListener('click', e => {
+    if (flt.classList.contains('visible') && !flt.contains(e.target) && e.target !== stage && !stage.contains(e.target)) {
+      flt.classList.remove('visible');
+    }
+  });
+
+  // initial gentle auto-drift
+  let autoDrift = 0, dir = 1;
+  function autoLoop() { if (hasInteracted || dragging) return; autoDrift += 0.015*dir; if (Math.abs(autoDrift)>1.5) dir*=-1; currentX += (autoDrift-currentX)*0.05; updateImg(); requestAnimationFrame(()=>{if(!hasInteracted&&!dragging)autoLoop();}); }
+  setTimeout(autoLoop, 1000);
+})();
+
 async function initLogin() {
-  const [usersRes, rankRes] = await Promise.all([
-    fetch(`${API}/users`), fetch(`${API}/rank`)
-  ]);
-  const users = await usersRes.json();
+  const res = await fetch(`${API}/users`);
+  const users = await res.json();
   const sel = document.getElementById('loginUserSelect');
   sel.innerHTML = '<option value="">-- 选择用户 --</option>';
   users.forEach(u => {
@@ -510,34 +795,68 @@ async function initLogin() {
     sel.appendChild(opt);
   });
   sel.onchange = () => { document.getElementById('loginBtn').disabled = !sel.value; };
-
-  // 公开排行榜预览
-  const ranks = await rankRes.json();
-  document.getElementById('rankPreview').innerHTML = ranks.slice(0, 10).map(r => {
-    let rc = ''; if (r.rank === 1) rc = 'r1'; else if (r.rank === 2) rc = 'r2'; else if (r.rank === 3) rc = 'r3';
-    return `<div class="rp-item"><span class="rp-rank ${rc}">${r.rank}</span><span class="rp-name">${r.nickname}</span><span class="rp-co2">${r.carbon_score.toFixed(2)} kg</span></div>`;
-  }).join('');
 }
 
 function doLogin() {
   const val = document.getElementById('loginUserSelect').value;
   if (!val) return;
   currentUser = JSON.parse(val);
-  document.getElementById('loginPage').style.display = 'none';
-  document.getElementById('appPage').classList.add('show');
+  document.getElementById('loginPage').style.display = 'none'; document.getElementById('loginFloat').classList.remove('visible');
+  // 主界面先不显示，等弹窗消失后再出现
   document.getElementById('appNickname').textContent = currentUser.nickname;
   const roleText = currentUser.role === 'student' ? '学生' : currentUser.role === 'reuser' ? '去向端' : '管理员';
   document.getElementById('appRole').textContent = roleText;
   updateCarbonDisplay();
   setupTabs();
-  switchTab(currentUser.role === 'reuser' ? 'tab-reuser' : 'tab-delivery');
+  switchTab(currentUser.role === 'reuser' ? 'tab-reuser' : 'tab-activity');
   loadTabContent();
+  // 立即弹出欢迎弹窗（不先显示界面）
+  showWelcomeModal();
 }
+
+function showWelcomeModal() {
+  const overlay = document.getElementById('welcomeOverlay');
+  if (!overlay) return;
+  // Welcome — 10 random quote+illustration pairs
+  const welcomeCards = [
+    { img:'welcome_01.png', q:'每一次投递，\n都在土壤里埋下一颗种子', author:'— 校园低碳回收' },
+    { img:'welcome_02.png', q:'露珠知道自己微小，\n但千万颗露珠就是一场春雨', author:'— 自然物语' },
+    { img:'welcome_03.png', q:'橡果从不着急长成大树，\n它只是每天向着光生长一点', author:'— 植物智慧' },
+    { img:'welcome_04.png', q:'蝴蝶振翅，\n也能改变风的走向', author:'— 蝴蝶效应' },
+    { img:'welcome_05.png', q:'小鸟歌唱不是因为有了答案，\n而是因为它相信黎明', author:'— 清晨低语' },
+    { img:'welcome_06.png', q:'你捧起的不是泥土，\n是未来的森林', author:'— 致回收者' },
+    { img:'welcome_07.png', q:'让每一粒种子，\n都找到属于自己的风', author:'— 蒲公英说' },
+    { img:'welcome_08.png', q:'再小的蘑菇，\n也有属于自己的雨后清晨', author:'— 林间偶得' },
+    { img:'welcome_09.png', q:'做一叶纸舟，\n不必问水流向何方', author:'— 随心而去' },
+    { img:'welcome_10.png', q:'提一盏灯，\n比诅咒黑暗更有力量', author:'— 灯下寄语' },
+  ];
+  const w = welcomeCards[Math.floor(Math.random() * welcomeCards.length)];
+  const lines = w.q.split('\n').map(l => '<div style="font-size:1.15rem;font-weight:500;color:var(--moss);line-height:1.8;letter-spacing:.03em;">' + l + '</div>').join('');
+  document.getElementById('welcomeQuote').innerHTML = lines + '<div style="font-size:.65rem;color:var(--bark);opacity:.5;margin-top:6px;letter-spacing:.04em;font-style:italic;">' + w.author + '</div>';
+  document.querySelector('#welcomeOverlay .welcome-img img').src = '/image/welcome/' + w.img;
+  overlay.classList.add('show');
+  setTimeout(() => dismissWelcome(), 4200);
+}
+
+function dismissWelcome() {
+  const overlay = document.getElementById('welcomeOverlay');
+  if (!overlay || !overlay.classList.contains('show')) return;
+  const card = overlay.querySelector('.welcome-card');
+  if (card) card.classList.add('dismissing');
+  overlay.classList.add('fading');
+  // 弹窗消失后显示主界面
+  setTimeout(() => {
+    overlay.classList.remove('show','fading');
+    if(card) card.classList.remove('dismissing');
+    document.getElementById('appPage').classList.add('show');
+  }, 800);
+}
+
 
 function doLogout() {
   currentUser = null; currentPoint = null; currentAiResult = null; currentPhotoUrl = ''; photoHash = ''; locationVerified = false; cooldownRemain = 0;
   document.getElementById('appPage').classList.remove('show');
-  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('loginPage').style.display = 'block';
   document.getElementById('loginBtn').disabled = true;
   document.getElementById('loginUserSelect').value = '';
   document.getElementById('previewImg').style.display = 'none';
@@ -552,36 +871,43 @@ function doLogout() {
 
 function updateCarbonDisplay() {
   if (!currentUser) return;
-  document.getElementById('appCarbon').textContent = `🪙 ${(currentUser.carbon_score || 0).toFixed(3)} kg`;
+  document.getElementById('appCarbon').textContent = `⊹ ${(currentUser.carbon_score || 0).toFixed(3)} kg`;
 }
 
 // ==================== Tab 切换 ====================
 function setupTabs() {
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.disabled = false;
+    btn.setAttribute('aria-selected', btn.classList.contains('active') ? 'true' : 'false');
     btn.onclick = () => switchTab(btn.dataset.tab);
   });
-  // admin 全部可用，student 禁用去向，reuser 禁用投递
+  // 学生：移除去向；去向端：移除投递；管理员：全部
   if (currentUser.role === 'admin') {
-    document.querySelectorAll('.tab-btn').forEach(b => b.disabled = false);
+    document.querySelectorAll('.tab-btn').forEach(b => b.style.display = '');
   } else if (currentUser.role === 'student') {
-    document.getElementById('tabBtnReuser').disabled = true;
+    document.getElementById('tabBtnReuser').style.display = 'none';
   } else if (currentUser.role === 'reuser') {
-    document.getElementById('tabBtnDelivery').disabled = true;
+    document.getElementById('tabBtnDelivery').style.display = 'none';
   }
 }
 
 function switchTab(tabId) {
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.remove('active');
+    b.setAttribute('aria-selected', 'false');
+  });
   document.getElementById(tabId).classList.add('active');
-  document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+  const activeBtn = document.querySelector(`[data-tab="${tabId}"]`);
+  activeBtn.classList.add('active');
+  activeBtn.setAttribute('aria-selected', 'true');
   loadTabContent(tabId);
 }
 
 async function loadTabContent(tabId) {
   if (!tabId) tabId = document.querySelector('.tab-content.active').id;
   switch (tabId) {
+    case 'tab-activity': await loadActivities(); break;
     case 'tab-delivery': await loadPoints(); break;
     case 'tab-reuser': await loadBatches(); break;
     case 'tab-rank': await loadRank(); break;
@@ -595,10 +921,15 @@ async function loadTabContent(tabId) {
 function selectWasteType(wasteType, icon) {
   currentWasteType = wasteType;
   resetDelivery();
-  document.getElementById('selectedWasteType').innerHTML = `✅ 已选择：<strong>${icon} ${wasteType}</strong>`;
-  document.querySelectorAll('#wasteTypeGrid .point-card').forEach(c => c.classList.remove('selected'));
-  document.getElementById('wt-' + wasteType).classList.add('selected');
-  document.getElementById('selectedPoint').innerHTML = '👆 请点击选择一个回收点';
+  document.getElementById('selectedWasteType').innerHTML = `✅ 已选择：<strong>${icon ? icon + ' ' : ''}${wasteType}</strong>`;
+  document.querySelectorAll('#wasteTypeGrid .point-card').forEach(c => {
+    c.classList.remove('selected');
+    c.setAttribute('aria-pressed', 'false');
+  });
+  const selectedCard = document.getElementById('wt-' + wasteType);
+  selectedCard.classList.add('selected');
+  selectedCard.setAttribute('aria-pressed', 'true');
+  document.getElementById('selectedPoint').innerHTML = '请点击选择一个回收点';
   document.getElementById('gpsDebug').style.display = 'none';
   document.getElementById('submitBtn').disabled = true;
   document.querySelectorAll('#pointGrid .point-card').forEach(c => c.classList.remove('selected'));
@@ -620,14 +951,14 @@ function selectWasteType(wasteType, icon) {
     document.getElementById('photoSection').style.display = 'block';
     document.getElementById('uploadZone').style.display = 'block';
     document.getElementById('foodConfirmBar').style.display = 'none';
-    document.getElementById('submitBtn').textContent = '📸 请先拍照';
+    document.getElementById('submitBtn').textContent = '请先拍照';
     loadPendingList();
   } else {
     // 其他品类：选点+GPS通过后才显示拍照区
     document.getElementById('pendingSection').style.display = 'none';
     document.getElementById('uploadZone').style.display = 'none';
     document.getElementById('foodConfirmBar').style.display = 'none';
-    document.getElementById('submitBtn').textContent = '✅ 确认投递';
+    document.getElementById('submitBtn').textContent = '确认投递';
     loadPoints();
   }
 }
@@ -643,11 +974,11 @@ async function loadPendingList() {
       return;
     }
     c.innerHTML = items.map(s => `
-      <div class="sub-item" style="cursor:pointer;" onclick="openConfirm('${s.id}','${s.waste_type}','${s.photo}')">
-        <img class="sub-thumb" src="${s.photo}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22><rect fill=%22%23ddd%22 width=%2244%22 height=%2244%22/><text x=%2222%22 y=%2228%22 text-anchor=%22middle%22 font-size=%2216%22>🍚</text></svg>'">
-        <div class="sub-info"><div><strong>🍚 ${s.waste_type}</strong> · ${s.category}</div><div class="meta">拍摄于 ${new Date(s.ts).toLocaleString('zh-CN')}</div></div>
-        <span style="font-size:0.75rem;color:var(--amber);">⏳ 待确认</span>
-      </div>`).join('');
+      <button type="button" class="sub-item" style="cursor:pointer;width:100%;background:none;border:none;text-align:left;font-family:inherit;color:inherit;" onclick="openConfirm('${s.id}','${s.waste_type}','${s.photo}')" aria-label="确认 ${s.waste_type} 待投递记录">
+        <img class="sub-thumb" src="${s.photo}" alt="${s.waste_type}照片" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22><rect fill=%22%23e8f5e9%22 width=%2244%22 height=%2244%22/><path d=%22M22 34c5 0 9-4 9-9 0-5-4-11-7.5-14.5a2 2 0 0 0-3 0C17 14 13 20 13 25c0 5 4 9 9 9Z%22 fill=%22none%22 stroke=%22%232d5a27%22 stroke-width=%222%22/></svg>'">
+        <div class="sub-info"><div><strong>${icon('leaf','inline-icon')} ${s.waste_type}</strong> · ${s.category}</div><div class="meta">拍摄于 ${new Date(s.ts).toLocaleString('zh-CN')}</div></div>
+        <span style="font-size:0.75rem;color:var(--amber);display:inline-flex;align-items:center;gap:3px;">${icon('clock')}待确认</span>
+      </button>`).join('');
   } catch(e) { /* ignore */ }
 }
 
@@ -655,14 +986,14 @@ function openConfirm(subId, wasteType, photo) {
   pendingSubId = subId;
   locationVerified = false;  // 确认阶段需GPS
   currentPoint = null;
-  document.getElementById('selectedPoint').innerHTML = '👆 请选择分类回收点';
+  document.getElementById('selectedPoint').innerHTML = '请选择分类回收点';
   document.getElementById('gpsDebug').style.display = 'none';
   document.getElementById('pendingSection').style.display = 'none';
   document.getElementById('pointSection').style.display = 'block';
   document.getElementById('uploadZone').style.display = 'none';
   document.getElementById('aiResult').classList.remove('show');
   document.getElementById('foodConfirmBar').style.display = 'block';
-  document.getElementById('submitBtn').textContent = '✅ 我已分类投放';
+  document.getElementById('submitBtn').textContent = '我已分类投放';
   document.getElementById('submitBtn').disabled = true;
   loadPoints();
 }
@@ -675,16 +1006,22 @@ async function loadPoints() {
   document.getElementById('pointGrid').innerHTML = points.map((p, i) => {
     window._pointData[i] = { qr: p.qr_code, name: p.name, gps: p.gps };
     return `
-    <div class="point-card" onclick="selectPoint(${i})">
+    <button type="button" class="point-card" onclick="selectPoint(${i})" aria-pressed="false" aria-label="选择回收点 ${p.name}">
+      <span class="category-icon" aria-hidden="true">${icon('mapPin')}</span>
       <div class="name">${p.name}</div><div class="loc">${p.location}</div>
-    </div>`;
+    </button>`;
   }).join('');
 }
 function selectPoint(idx) {
   const pd = window._pointData[idx];
   if (!pd) return;
-  document.querySelectorAll('#pointGrid .point-card').forEach(c => c.classList.remove('selected'));
-  document.querySelectorAll('#pointGrid .point-card')[idx].classList.add('selected');
+  document.querySelectorAll('#pointGrid .point-card').forEach(c => {
+    c.classList.remove('selected');
+    c.setAttribute('aria-pressed', 'false');
+  });
+  const selectedPointCard = document.querySelectorAll('#pointGrid .point-card')[idx];
+  selectedPointCard.classList.add('selected');
+  selectedPointCard.setAttribute('aria-pressed', 'true');
   const gpsPoints = parseGpsPoints(pd.gps);
   currentPoint = { qr_code: pd.qr, name: pd.name, gps: pd.gps, gps_points: gpsPoints };
   document.getElementById('selectedPoint').innerHTML = `✅ 已选择：<strong>${pd.name}</strong>`;
@@ -847,27 +1184,27 @@ async function handleFile(e) {
 }
 function checkSubmitReady() {
   const isFood = currentWasteType === '外卖厨余';
-  let msg = '✅ 确认投递';
+  let msg = '确认投递';
   let disabled = false;
 
-  if (!currentUser || !currentWasteType) { disabled = true; msg = '👆 请先选择品类'; }
+  if (!currentUser || !currentWasteType) { disabled = true; msg = '请先选择品类'; }
   else if (isFood) {
     if (pendingSubId) {
       // 确认阶段：需要选点+GPS
-      msg = '✅ 我已分类投放';
+      msg = '我已分类投放';
       disabled = !currentPoint || cooldownRemain > 0 || !locationVerified;
-      if (!currentPoint && !cooldownRemain) msg = '📍 请选择回收点';
-      else if (!locationVerified) msg = '📍 请通过位置验证';
-    } else if (!currentAiResult) { msg = '📸 请先拍照'; disabled = true; }
-    else if (currentAiResult.category === '无法识别') { msg = '⚠ 无法识别，请重新拍照'; disabled = true; }
-    else { msg = '📸 拍照记录'; disabled = false; }
+      if (!currentPoint && !cooldownRemain) msg = '请选择回收点';
+      else if (!locationVerified) msg = '请通过位置验证';
+    } else if (!currentAiResult) { msg = '请先拍照'; disabled = true; }
+    else if (currentAiResult.category === '无法识别') { msg = '无法识别，请重新拍照'; disabled = true; }
+    else { msg = '拍照记录'; disabled = false; }
   } else {
     // 其他品类：需要选点 + GPS + 拍照
-    if (!currentPoint) { msg = '📍 请选择回收点'; disabled = true; }
-    else if (!locationVerified) { msg = '📍 请先通过位置验证'; disabled = true; }
-    else if (!currentAiResult) { msg = '📸 请拍照'; disabled = true; }
-    else if (currentAiResult.category === '无法识别') { msg = '⚠ 无法识别'; disabled = true; }
-    else if (cooldownRemain > 0) { msg = `⏳ 冷却 (${cooldownRemain.toFixed(0)}s)`; disabled = true; }
+    if (!currentPoint) { msg = '请选择回收点'; disabled = true; }
+    else if (!locationVerified) { msg = '请先通过位置验证'; disabled = true; }
+    else if (!currentAiResult) { msg = '请拍照'; disabled = true; }
+    else if (currentAiResult.category === '无法识别') { msg = '无法识别'; disabled = true; }
+    else if (cooldownRemain > 0) { msg = `<img src="/image/icons/ico_clock.png" style="width:1em;height:1em;vertical-align:-.14em;display:inline-block;opacity:.85;"> 冷却 (${cooldownRemain.toFixed(0)}s)`; disabled = true; }
   }
   document.getElementById('submitBtn').disabled = disabled;
   document.getElementById('submitBtn').textContent = msg;
@@ -881,7 +1218,7 @@ async function checkCooldown() {
     cooldownRemain = d.remain_seconds || 0;
     if (cooldownRemain > 0) {
       document.getElementById('cooldownBar').style.display = 'block';
-      document.getElementById('cooldownText').textContent = `⏳ 冷却中，剩余 ${cooldownRemain.toFixed(0)} 秒`;
+      document.getElementById('cooldownText').innerHTML = `<img src="/image/icons/ico_clock.png" style="width:1em;height:1em;vertical-align:-.14em;display:inline-block;opacity:.85;"> 冷却中，剩余 ${cooldownRemain.toFixed(0)} 秒`;
       const timer = setInterval(() => {
         cooldownRemain = Math.max(0, cooldownRemain - 0.1);
         if (cooldownRemain <= 0) {
@@ -889,7 +1226,7 @@ async function checkCooldown() {
           document.getElementById('cooldownBar').style.display = 'none';
           checkSubmitReady();
         } else {
-          document.getElementById('cooldownText').textContent = `⏳ 冷却中，剩余 ${cooldownRemain.toFixed(0)} 秒`;
+          document.getElementById('cooldownText').innerHTML = `<img src="/image/icons/ico_clock.png" style="width:1em;height:1em;vertical-align:-.14em;display:inline-block;opacity:.85;"> 冷却中，剩余 ${cooldownRemain.toFixed(0)} 秒`;
         }
       }, 100);
     } else {
@@ -939,9 +1276,9 @@ async function submitDelivery() {
       document.getElementById('uploadZone').classList.remove('has-image');
       document.getElementById('aiResult').classList.remove('show');
       document.getElementById('fileInput').value = '';
-      btn.textContent = '📍 到达分类点后确认';
+      btn.textContent = '到达分类点后确认';
       loadPendingList();
-    } catch(e) { toast('❌ ' + e.message); btn.disabled = false; btn.textContent = '📸 先拍照记录'; }
+    } catch(e) { toast('[X] ' + e.message); btn.disabled = false; btn.textContent = '先拍照记录'; }
     return;
   }
 
@@ -969,17 +1306,17 @@ async function submitDelivery() {
       currentUser.carbon_score = (currentUser.carbon_score || 0) + (sub.co2_saved || 0);
       updateCarbonDisplay();
       resetDelivery();
-      btn.textContent = '📸 先拍照记录';
+      btn.textContent = '先拍照记录';
       btn.disabled = true;
       showStreak(sub);
       await Promise.all([loadPendingList(), loadMySubmissions(), loadBadges(), loadRank()]);
-    } catch(e) { toast('❌ ' + e.message); btn.disabled = false; btn.textContent = '✅ 我已分类投放'; }
+    } catch(e) { toast('[X] ' + e.message); btn.disabled = false; btn.textContent = '我已分类投放'; }
     return;
   }
 
   // 非外卖厨余：一步到位
   if (!currentPoint || !currentAiResult) return;
-  if (!locationVerified) { toast('📍 请先通过位置验证'); return; }
+  if (!locationVerified) { toast('<img src="/image/icons/ico_pin.png" style="width:1em;height:1em;vertical-align:-.14em;display:inline-block;opacity:.85;"> 请先通过位置验证'); return; }
   if (cooldownRemain > 0) { toast(`⏳ 冷却中 (${cooldownRemain.toFixed(0)}s)`); return; }
   btn.disabled = true; btn.textContent = '提交中...';
   try {
@@ -1000,10 +1337,10 @@ async function submitDelivery() {
     currentUser.carbon_score = (currentUser.carbon_score || 0) + (sub.co2_saved || 0);
     resetDelivery();
     showStreak(sub);
-    btn.textContent = '✅ 确认投递';
+    btn.textContent = '确认投递';
     updateCarbonDisplay();
     await Promise.all([loadMySubmissions(), loadBadges(), loadRank()]);
-  } catch(e) { toast('❌ ' + e.message); btn.disabled = false; btn.textContent = '✅ 确认投递'; }
+  } catch(e) { toast('[X] ' + e.message); btn.disabled = false; btn.textContent = '确认投递'; }
 }
 
 async function loadMySubmissions() {
@@ -1013,13 +1350,13 @@ async function loadMySubmissions() {
   const confirmed = subs.filter(s => s.status === 'confirmed');
   const c = document.getElementById('mySubmissions');
   if (!confirmed.length) { c.innerHTML = '<div class="empty">还没有投递记录 📸</div>'; return; }
-  const icons = {'外卖厨余':'🍚','快递纸箱':'📦','塑料':'🥡','有害':'🔋'};
+  const icons = {'外卖厨余':'leaf','快递纸箱':'box','塑料':'recycle','有害':'spark'};
   c.innerHTML = confirmed.map(s => `
     <div class="sub-item">
-      <img class="sub-thumb" src="${s.photo}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22><rect fill=%22%23ddd%22 width=%2244%22 height=%2244%22/><text x=%2222%22 y=%2228%22 text-anchor=%22middle%22 font-size=%2216%22>${icons[s.waste_type]||'📦'}</text></svg>'">
-      <div class="sub-info"><div><strong>${icons[s.waste_type]||''} ${s.waste_type||s.category}</strong> · ${s.grade||''}</div><div class="meta">${s.batch_id} | ${new Date(s.ts).toLocaleString('zh-CN')}</div></div>
+      <img class="sub-thumb" src="${s.photo}" alt="${s.waste_type || s.category}照片" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22><rect fill=%22%23f0ebe0%22 width=%2244%22 height=%2244%22/><path d=%22m8 14 14 8 14-8M8 14l14-8 14 8v16l-14 8-14-8Z%22 fill=%22none%22 stroke=%22%232d5a27%22 stroke-width=%222%22/></svg>'">
+      <div class="sub-info"><div><strong>${icon(icons[s.waste_type] || 'box','inline-icon')} ${s.waste_type||s.category}</strong> · ${s.grade||''}</div><div class="meta">${s.batch_id} | ${new Date(s.ts).toLocaleString('zh-CN')}</div></div>
       <div class="sub-co2">-${s.co2_saved?.toFixed(3)} kg</div>
-      <button class="btn btn-outline btn-sm" onclick="openStory('${s.batch_id}')">📖</button>
+      <button class="btn btn-outline btn-sm" onclick="openStory('${s.batch_id}')" aria-label="查看批次 ${s.batch_id} 故事">${icon('story')}</button>
     </div>`).join('');
 }
 
@@ -1031,14 +1368,14 @@ async function loadBadges() {
   updateCarbonDisplay();
   const badges = data.badges; const subCnt = data.submission_count;
   const all = [
-    { key:'first_box', name:'环保萌新', icon:'🌱', earned: subCnt >= 1 },
-    { key:'five_box', name:'回收能手', icon:'♻️', earned: subCnt >= 5 },
-    { key:'co2_1kg', name:'减碳1kg', icon:'🌍', earned: (currentUser.carbon_score||0) >= 1.0 },
-    { key:'ten_box', name:'环保达人', icon:'🌟', earned: subCnt >= 10 },
-    { key:'co2_5kg', name:'减碳5kg', icon:'🏆', earned: (currentUser.carbon_score||0) >= 5.0 },
+    { key:'first_box', name:'环保萌新', icon:'leaf', earned: subCnt >= 1 },
+    { key:'five_box', name:'回收能手', icon:'recycle', earned: subCnt >= 5 },
+    { key:'co2_1kg', name:'减碳1kg', icon:'globe', earned: (currentUser.carbon_score||0) >= 1.0 },
+    { key:'ten_box', name:'环保达人', icon:'star', earned: subCnt >= 10 },
+    { key:'co2_5kg', name:'减碳5kg', icon:'trophy', earned: (currentUser.carbon_score||0) >= 5.0 },
   ];
   document.getElementById('badgeList').innerHTML = all.map(b =>
-    `<div class="badge-item"><div class="badge-icon ${b.earned?'badge-on':'badge-off'}">${b.icon}</div><div class="badge-name">${b.earned?b.name:'???'}</div></div>`
+    `<div class="badge-item"><div class="badge-icon ${b.earned?'badge-on':'badge-off'}" aria-hidden="true">${icon(b.icon)}</div><div class="badge-name">${b.earned?b.name:'???'}</div></div>`
   ).join('');
 }
 
@@ -1085,19 +1422,19 @@ async function loadBatches() {
   if (!poolBatches.length) {
     pool.innerHTML = '<div class="empty">暂无当前角色可处理的批次</div>';
   } else {
-    pool.innerHTML = poolBatches.map(b => {
+    pool.innerHTML = poolBatches.map((b, idx) => {
       const age = getAgeText(b.created_at || b.date);
-      const urgency = age.totalHours > 24 ? '⏰' : age.totalHours > 6 ? '🔥' : '🆕';
+      const urgency = age.totalHours > 24 ? icon('clock') : age.totalHours > 6 ? icon('flame') : icon('spark');
       const urgencyColor = age.totalHours > 24 ? 'var(--amber)' : age.totalHours > 6 ? '#ff4444' : 'var(--green)';
-      return `<div class="order-card">
+      return `<div class="order-card" style="animation-delay:${idx*0.06}s">
         <div class="order-header">
-          <span class="order-urgent" style="color:${urgencyColor}">${urgency} ${age.text}</span>
+          <span class="order-urgent" style="color:${urgencyColor};display:inline-flex;align-items:center;gap:3px;">${urgency} ${age.text}</span>
           <span class="order-cat">${b.category}</span>
         </div>
         <div class="order-body">${b.id}</div>
         <div class="order-footer">
           <span style="font-size:.65rem;color:var(--gray);">#${b.point_id} | ${b.date}</span>
-          <button class="btn btn-sm btn-accent" onclick="grabOrder('${b.id}','${b.category}')">抢单</button>
+          <button class="btn btn-sm btn-accent" onclick="grabOrder('${b.id}','${b.category}')" aria-label="抢单批次 ${b.id}">${buttonLabel('抢单','spark')}</button>
         </div>
       </div>`;
     }).join('');
@@ -1121,8 +1458,8 @@ async function loadBatches() {
         <div class="header"><span class="id">${b.id}</span><span class="status ${sc}">${stText}</span></div>
         <div class="meta">#${b.point_id} | ${b.date} | ${b.category} | ${destText}</div>
         <div class="actions">
-          ${b.status==='claimed'?`<button class="btn btn-sm btn-accent" onclick="openReuse('${b.id}')">上传成品</button>`:''}
-          <button class="btn btn-sm btn-outline" onclick="openStory('${b.id}')">故事</button>
+          ${b.status==='claimed'?`<button class="btn btn-sm btn-accent" onclick="openReuse('${b.id}')" aria-label="上传批次 ${b.id} 的成品">${buttonLabel('上传成品','upload')}</button>`:''}
+          <button class="btn btn-sm btn-outline" onclick="openStory('${b.id}')" aria-label="查看批次 ${b.id} 故事">${buttonLabel('故事','story')}</button>
         </div>
       </div>`;
     }).join('');
@@ -1210,7 +1547,7 @@ async function grabOrder(batchId, batchCategory) {
   document.getElementById('claimBatchInfo').innerHTML = '批次 ' + batchId + ' · ' + batchCategory + '<br><span style="font-size:.65rem;color:var(--amber);">选择处理路径后即刻抢单，先到先得</span>';
   let html = '';
   filtered.forEach(o => {
-    html += `<button class="btn btn-outline" style="display:block;width:100%;margin-bottom:6px;text-align:left;font-size:.8rem;" onclick="doGrabClaim('${batchId}','${o.v}')">${o.t}</button>`;
+    html += `<button class="btn btn-outline" style="display:block;width:100%;margin-bottom:6px;text-align:left;font-size:.8rem;" onclick="doGrabClaim('${batchId}','${o.v}')" aria-label="选择 ${o.t} 并抢单">${buttonLabel(o.t,'mapPin')}</button>`;
   });
   document.getElementById('claimPathOptions').innerHTML = html;
   document.getElementById('claimModal').classList.add('show');
@@ -1256,18 +1593,20 @@ async function doReuse() {
   if (!reuseTarget || !currentUser || !reusePhotoUrl) return;
   const desc = document.getElementById('reuseDesc').value || '无描述';
   const res = await fetch(`${API}/batch/reuse`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({batch_id:reuseTarget, reuser_id:currentUser.id, product_photo:reusePhotoUrl, product_desc:desc}) });
-  if (!res.ok) { toast('❌ '+ (await res.json()).detail); return; }
+  if (!res.ok) { toast('[X] '+ (await res.json()).detail); return; }
   toast((await res.json()).msg); closeModal('reuseModal'); loadBatches();
 }
 
 // ==================== 打卡弹窗 ====================
 function showStreak(sub) {
-  if (!sub || !sub.is_today_first) return;  // 仅今天首次显示
+  if (!sub || !sub.is_today_first) return;
   const s = sub.streak || 1;
-  // 天数映射打卡图片: 1→01, 2→02, 3→03, 4→04, 5→05, 6→06, 7→07, 14→07, 30→07
-  let imgNum = Math.min(s, 7);
+  // 打卡天→新树图映射
+  const treeMap = {1:'seed_01', 2:'seed_03', 3:'sprout_01', 4:'sprout_03', 5:'sapling_01', 6:'sapling_04', 7:'small_tree_01'};
+  let key = s >= 30 ? 'big_tree_03' : s >= 14 ? 'big_tree_01' : (treeMap[s] || 'seed_01');
+  const treeNum = {seed_01:1,seed_03:3,sprout_01:4,sprout_03:6,sapling_01:8,sapling_04:11,small_tree_01:13,big_tree_01:18,big_tree_03:20}[key] || 1;
   const imgEl = document.getElementById('streakImage');
-  imgEl.src = `/checkin/checkin_0${imgNum}.png`;
+  imgEl.src = `/image/tree/tree_stage_${String(treeNum).padStart(2,'0')}_${key}.png`;
   imgEl.style.display = 'block';
   document.getElementById('streakDays').textContent = `第 ${s} 天`;
   document.getElementById('streakBadge').textContent = sub.streak_badge ? `🏅 ${sub.streak_badge}` : '';
@@ -1287,8 +1626,8 @@ async function openStory(batchId) {
   const destIsTreatment = treatmentKeys.includes(dest);
   document.getElementById('storyContent').innerHTML = `
     <div style="margin-bottom:8px;"><strong>${story.batch.id}</strong> · ${story.batch.category} · ${story.batch.status}</div>
-    <div style="font-size:0.8rem;">📦 ${story.submissions_count} 次投递 | 🌱 ${story.total_co2} kg</div>
-    ${dest ? `<div style="font-size:0.8rem;margin-top:4px;">🏭 处理去向: ${destIsTreatment ? `<a href=\"javascript:void(0)\" onclick=\"openKnowledge('${dest}')\" style=\"color:var(--green);text-decoration:underline;cursor:pointer;\">${dest}</a>` : dest}</div>` : ''}
+    <div style="font-size:0.8rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">${icon('box')} ${story.submissions_count} 次投递 <span>|</span> ${icon('leaf')} ${story.total_co2} kg</div>
+    ${dest ? `<div style="font-size:0.8rem;margin-top:4px;display:flex;align-items:center;gap:4px;">${icon('factory')} 处理去向: ${destIsTreatment ? `<a href=\"javascript:void(0)\" onclick=\"openKnowledge('${dest}')\" style=\"color:var(--green);text-decoration:underline;cursor:pointer;\">${dest}</a>` : dest}</div>` : ''}
     ${story.reuse_photo?`<div style="margin:8px 0;"><strong>成品：</strong><br><img src="${story.reuse_photo}" style="max-width:100%;max-height:180px;border-radius:8px;margin-top:4px;"><br><span style="font-size:0.8rem;">${story.reuse_desc||''}</span></div>`:''}
     <div class="timeline">${story.flows.map(f=>`<div class="tl-item"><div class="tl-title">${f.title}</div><div class="tl-detail">${f.detail}</div><div class="tl-time">${new Date(f.ts).toLocaleString('zh-CN')}</div></div>`).join('')}</div>`;
   document.getElementById('storyModal').classList.add('show');
@@ -1337,43 +1676,48 @@ function toast(msg) { const el=document.getElementById('toast'); el.textContent=
 async function loadRewardStatus() {
   if (!currentUser) return;
   try {
-    const res = await fetch(`${API}/user/${currentUser.id}/reward-status`);
+    const res = await fetch(API + '/user/' + currentUser.id + '/reward-status');
     const d = await res.json();
     const pct = d.progress_pct;
+    const stageImg = d.stage_image || '/image/tree/tree_stage_01_acorn_sprout.png';
+    const stage = d.current_stage || 0;
     const c = document.getElementById('rewardSection');
-    const phaseNames = ['🌰 种子','🌱 发芽','🌿 树苗','🪴 小树','🌳 大树'];
-  const stageImg = d.stage_image || '/checkin/tree_stage_01_seed_01.png';
-  const stage = d.current_stage || 0;
-  c.innerHTML = `
-      <div class="reward-card" style="padding:16px 12px;">
-        <div style="font-size:1rem;font-weight:bold;color:var(--purple);margin-bottom:4px;">
-          ${stage >= 20 ? '🎉 大树已成！' : '🌱 碳积分成长'}
-        </div>
-        <div style="width:100%;max-width:280px;margin:0 auto;border-radius:12px;overflow:hidden;background:linear-gradient(180deg,#e8f5e9,#f1f8e9);">
-          <img src="${stageImg}" style="width:100%;height:auto;display:block;" alt="第${stage}阶段" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-        </div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0;">
-          <span style="font-size:1.6rem;">${d.phase_emoji || '🌰'}</span>
-          <span style="font-size:1rem;font-weight:bold;color:var(--green);">${d.phase_name || '种子'} · ${stage}/20</span>
-        </div>
-        <!-- 20阶段圆点 -->
-        <div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;max-width:300px;margin:0 auto;">
-          ${Array.from({length:20},(_,i)=>`<div style="width:14px;height:14px;border-radius:50%;background:${i<stage?'var(--green)':'#e0e0e0'};transition:.2s;" title="第${i+1}阶段"></div>`).join('')}
-        </div>
-        <div class="reward-bar-wrap" style="height:22px;max-width:300px;margin:10px auto 0;">
-          <div class="reward-bar-fill" style="width:${pct}%;font-size:0.7rem;">${pct}%</div>
-        </div>
-        <p style="margin-top:8px;font-size:0.75rem;">${d.message}</p>
-        ${stage >= 20 ? `<button class="btn btn-accent" onclick="claimReward()" style="margin-top:10px;padding:12px;font-size:1rem;">🎁 领取实物奖励</button>` : `<p style="font-size:0.65rem;color:var(--gray);margin-top:4px;">投递满20次可领取环保再生物品</p>`}
-      </div>`;
-  } catch(e) { document.getElementById('rewardSection').innerHTML = '<div class="empty">加载失败</div>'; }
+
+    if (stage === 0) {
+      c.innerHTML = '<div class=\"reward-card\" style=\"padding:40px 12px;text-align:center;\">' +
+        '<div style=\"width:100%;max-width:200px;margin:0 auto 12px;\">' +
+        '<img src=\"/image/tree/tree_stage_00_empty.png\" style=\"width:100%;height:auto;display:block;border-radius:8px;\" alt=\"空地\" onerror=\"this.style.display:none;\">' +
+        '</div>' +
+        '<p style=\"font-size:1rem;font-weight:bold;color:var(--bark);\">快去投递回收吧</p>' +
+        '<p style=\"font-size:.72rem;color:var(--gray);margin-top:6px;\">每一次投递，都会让种子长成大树</p>' +
+        '<p style=\"margin-top:8px;font-size:0.75rem;\">' + (d.message || '还差 20 次投递即可获得实物奖励') + '</p>' +
+        '</div>';
+      return;
+    }
+
+    c.innerHTML = '<div class=\"reward-card\" style=\"padding:16px 12px;\">' +
+      '<div style=\"font-size:1rem;font-weight:bold;color:var(--purple);margin-bottom:4px;\">' +
+      (stage >= 20 ? icon('trophy','inline-icon') + ' 大树已成！' : icon('leaf','inline-icon') + ' 碳积分成长') +
+      '</div>' +
+      '<div style=\"width:100%;max-width:280px;margin:0 auto;border-radius:12px;overflow:hidden;\">' +
+      '<img src=\"' + stageImg + '\" style=\"width:100%;height:auto;display:block;object-fit:contain;max-height:40vh;\" alt=\"第' + stage + '阶段\">' +
+      '</div>' +
+      '<div style=\"display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0;\">' +
+      '<span style=\"font-size:1.6rem;color:var(--moss);\" aria-hidden=\"true\">' + icon('leaf') + '</span>' +
+      '<span style=\"font-size:1rem;font-weight:bold;color:var(--green);\">' + (d.phase_name || '种子') + ' ' + stage + '/20</span>' +
+      '</div>' +
+      createGrowthRings(stage, pct) +
+      '<p style=\"margin-top:8px;font-size:0.75rem;\">' + (d.message || '') + '</p>' +
+      (stage >= 20 ? '<button class=\"btn btn-accent\" onclick=\"claimReward()\" style=\"margin-top:10px;padding:12px;font-size:1rem;\" aria-label=\"领取实物奖励\">' + buttonLabel('领取实物奖励','gift') + '</button>' : '<p style=\"font-size:0.65rem;color:var(--gray);margin-top:4px;\">投递满 20 次可领取环保再生物品</p>') +
+      '</div>';
+  } catch(e) { document.getElementById('rewardSection').innerHTML = '<div class=\"empty\">加载失败</div>'; }
 }
 
 async function claimReward() {
   if (!currentUser) return;
   try {
     const res = await fetch(`${API}/user/${currentUser.id}/claim-reward`, { method: 'POST' });
-    if (!res.ok) { const e = await res.json(); toast('❌ ' + e.detail); return; }
+    if (!res.ok) { const e = await res.json(); toast('[X] ' + e.detail); return; }
     const d = await res.json();
     toast('🎉 ' + d.msg);
     loadRewardStatus();
@@ -1388,10 +1732,11 @@ async function loadTracking() {
     const d = await res.json();
     if (!d.items.length) { document.getElementById('trackingList').innerHTML = '<div class="empty">投递后将在此追踪回收物去向</div>'; return; }
     document.getElementById('trackingList').innerHTML = d.items.map(item => {
-      const stageEmoji = ['','📸','📦','🤝','🎁'][item.current_stage];
+      const stageIcons = ['', 'camera', 'box', 'hand', 'gift'];
+      const stageIcon = icon(stageIcons[item.current_stage] || 'box');
       return `<div class="track-card">
         <div class="track-header">
-          <span class="track-cat">${stageEmoji} ${item.category}</span>
+          <span class="track-cat" style="display:inline-flex;align-items:center;gap:4px;">${stageIcon} ${item.category}</span>
           <span class="track-dest">${item.destination || '待认领'}</span>
         </div>
         <div class="track-progress">
@@ -1404,14 +1749,15 @@ async function loadTracking() {
             if (i + 1 === item.current_stage) cls = 'active';  // current stage is active
             // actually: 1=done, 2=active if pending, done if beyond
             let stageCls = i + 1 < item.current_stage ? 'done' : (i + 1 === item.current_stage ? 'active' : '');
+            const dotIcon = stageCls === 'done' ? 'check' : (stageIcons[i+1] || 'box');
             return `<div class="track-step ${stageCls}">
-              <div class="step-dot">${stageCls==='done'?'✅':stageCls==='active'?['','📸','📦','🤝','🎁'][i+1]:['','📸','📦','🤝','🎁'][i+1]}</div>
+              <div class="step-dot" aria-hidden="true">${icon(dotIcon)}</div>
               <div class="step-label">${s.label}</div>
               <div class="step-detail">${s.detail}</div>
             </div>`;
           }).join('')}
         </div>
-        ${item.has_product ? `<div style="margin-top:8px;text-align:center;font-size:0.7rem;color:var(--purple);">🎁 ${item.product_desc || '成品已生成'}</div>` : ''}
+        ${item.has_product ? `<div style="margin-top:8px;text-align:center;font-size:0.7rem;color:var(--purple);display:flex;align-items:center;justify-content:center;gap:4px;">${icon('gift')} ${item.product_desc || '成品已生成'}</div>` : ''}
       </div>`;
     }).join('');
   } catch(e) { document.getElementById('trackingList').innerHTML = '<div class="empty">加载失败</div>'; }
@@ -1426,15 +1772,144 @@ async function loadGallery() {
     if (!d.items.length) { document.getElementById('galleryGrid').innerHTML = '<div class="empty">暂无成品，去向端上传后将在此展示</div>'; return; }
     document.getElementById('galleryGrid').innerHTML = `<div class="gallery-grid">${d.items.map(item => `
       <div class="gallery-card">
-        ${item.product_photo ? `<img class="gc-img" src="${item.product_photo}" alt="${item.product_desc}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="gc-img" style="display:none">🎁</div>` : `<div class="gc-img">🎁</div>`}
+        ${item.product_photo ? `<img class="gc-img" src="${item.product_photo}" alt="${item.product_desc}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="gc-img" style="display:none;color:var(--moss);">${icon('gift')}</div>` : `<div class="gc-img" style="color:var(--moss);">${icon('gift')}</div>`}
         <div class="gc-body">
           <div class="gc-desc">${item.product_desc || '环保再生物品'}</div>
-          <div class="gc-meta">🏭 ${item.reuser_name} · 📅 ${item.date}</div>
-          <div class="gc-meta">📦 ${item.category} → ${item.destination || ''}</div>
+          <div class="gc-meta">${icon('factory','inline-icon')} ${item.reuser_name} · ${icon('calendar','inline-icon')} ${item.date}</div>
+          <div class="gc-meta">${icon('box','inline-icon')} ${item.category} → ${item.destination || ''}</div>
           ${item.is_mine ? '<span class="gc-mine">✨ 我的回收物在里面</span>' : ''}
         </div>
       </div>`).join('')}</div>`;
   } catch(e) { document.getElementById('galleryGrid').innerHTML = '<div class="empty">加载失败</div>'; }
+}
+
+/** Generate tree-ring circle HTML for reward status */
+function createGrowthRings(stage, pct) {
+  var clipPct = pct ? (pct / 100) : 0;
+  // Use requestAnimationFrame to trigger CSS transition after DOM render
+  return '<div class="stump-wrap">' +
+    '<img src="/image/tree/tree_stump.png" class="stump-img" style="--ring-pct:' + clipPct + '%" onload="this.classList.add(\'reveal\')" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'<div class=stump-wrap style=text-align:center;color:var(--bark);padding:40px;>�� 树桩生长中</div>\'">' +
+    '<div class="stump-label">' + stage + ' / 20 圈</div>' +
+    '</div>';
+}
+
+// ==================== 活动广场 ====================
+async function loadActivities() {
+  if (!currentUser) return;
+  try {
+    const uid = currentUser.id;
+    const r = await fetch(API + '/activities?user_id=' + uid);
+    const d = await r.json();
+    const isReuser = currentUser.role === 'reuser' || currentUser.role === 'admin';
+    const createBtn = isReuser ? '<div style="margin-bottom:12px;text-align:right;"><button class="btn btn-sm btn-accent" onclick="openCreateActivity()" style="font-size:.7rem;">+ 发布活动招募</button></div>' : '';
+    const list = document.getElementById('activityList');
+    if (!d.activities.length) { list.innerHTML = createBtn + '<div class="empty">暂无活动</div>'; return; }
+    list.innerHTML = createBtn + d.activities.map(a => {
+      var statusTag = '';
+      if (a.status === 'full' && !a.joined) statusTag = '<span class="act-status-tag full">名额已满</span>';
+      else if (a.status === 'ended') statusTag = '<span class="act-status-tag ended">已结束</span>';
+      else statusTag = '<span class="act-status-tag open">报名中</span>';
+
+      var btn = '';
+      if (currentUser.role === 'reuser' || currentUser.role === 'admin') {
+        btn = '<span style="font-size:.65rem;color:var(--bark);">' + a.full_text + ' 人报名</span>';
+      } else if (a.joined) {
+        btn = '<button class="act-btn joined">已报名</button>' +
+              '<button class="act-btn upload-work" onclick="uploadActivityWork(' + a.id + ')">上传作品</button>';
+      } else if (a.status === 'open') {
+        btn = '<button class="act-btn join" onclick="joinActivity(' + a.id + ',this)">立即报名</button>';
+      } else if (a.status === 'full') {
+        btn = '<button class="act-btn full">名额已满</button>';
+      } else {
+        btn = '<button class="act-btn full">已结束</button>';
+      }
+
+      var clubIcon = a.club_icon || 'ico_sprout';
+      return '<div class="act-card">' + statusTag +
+        '<div class="act-header">' +
+        '<div class="act-club-icon"><img src="/image/icons/' + clubIcon + '.png" alt="' + a.club_name + '"></div>' +
+        '<div class="act-info"><div class="act-title">' + a.title + '</div><div class="act-club">' + a.club_name + '</div></div>' +
+        '</div>' +
+        '<div class="act-desc">' + a.description + '</div>' +
+        '<div class="act-meta">' +
+        '<span class="act-meta-item"><img src="/image/icons/ico_calendar.png" alt="">' + a.time_slot + '</span>' +
+        '<span class="act-meta-item"><img src="/image/icons/ico_pin.png" alt="">' + a.location + '</span>' +
+        '</div>' +
+        '<div class="act-footer">' +
+        '<span class="act-reward">+' + a.carbon_reward + ' kg</span>' +
+        '<span class="act-participants">' + a.full_text + '</span>' +
+        btn +
+        '</div></div>';
+    }).join('');
+  } catch(e) { document.getElementById('activityList').innerHTML = '<div class="empty">加载失败</div>'; }
+}
+
+async function joinActivity(activityId, btn) {
+  if (!currentUser) return;
+  btn.disabled = true; btn.textContent = '报名中...';
+  try {
+    const r = await fetch(API + '/activities/' + activityId + '/join', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({user_id: currentUser.id}),
+    });
+    if (!r.ok) { const e = await r.json(); toast(e.detail); btn.disabled = false; btn.textContent = '立即报名'; return; }
+    const d = await r.json();
+    toast(d.msg);
+    currentUser.carbon_score = d.new_score;
+    updateCarbonDisplay();
+    loadActivities();
+  } catch(e) { toast('报名失败'); btn.disabled = false; btn.textContent = '立即报名'; }
+}
+
+function uploadActivityWork(activityId) {
+  if (!currentUser) return;
+  var input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/*'; input.capture = 'environment';
+  input.onchange = async function(e) {
+    var file = e.target.files[0]; if (!file) return;
+    var form = new FormData(); form.append('file', file);
+    try {
+      var upRes = await fetch(API + '/upload', {method:'POST', body:form});
+      var upData = await upRes.json();
+      var photoUrl = upData.url;
+      var desc = prompt('给你的作品取个名字（可选）：');
+      var r = await fetch(API + '/activities/' + activityId + '/upload', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({user_id: currentUser.id, photo: photoUrl, desc: desc || ''}),
+      });
+      if (!r.ok) { var e = await r.json(); toast(e.detail); return; }
+      var d = await r.json();
+      toast(d.msg);
+      loadActivities();
+    } catch(ex) { toast('上传失败'); }
+  };
+  input.click();
+}
+
+function openCreateActivity() {
+  document.getElementById('createActivityModal').classList.add('show');
+}
+
+async function doCreateActivity() {
+  const club = currentUser.nickname;
+  const title = document.getElementById('actTitle').value.trim();
+  const cat = document.getElementById('actCategory').value;
+  const ts = document.getElementById('actTimeSlot').value.trim();
+  const loc = document.getElementById('actLocation').value.trim();
+  const desc = document.getElementById('actDesc').value.trim();
+  const reward = parseFloat(document.getElementById('actReward').value) || 0.5;
+  const maxP = parseInt(document.getElementById('actMaxP').value) || 3;
+  if (!title || !ts || !loc) { toast('请填写标题、时间和地点'); return; }
+
+  const params = new URLSearchParams({title, club_name:club, category:cat, description:desc, time_slot:ts, location:loc, carbon_reward:reward.toString(), max_participants:maxP.toString()});
+  try {
+    const r = await fetch(API + '/activities/create?' + params.toString(), {method:'POST'});
+    if (!r.ok) { const e = await r.json(); toast(e.detail); return; }
+    const d = await r.json();
+    toast(d.msg);
+    closeModal('createActivityModal');
+    loadActivities();
+  } catch(e) { toast('发布失败'); }
 }
 
 // ==================== 碳积分商城 ====================
@@ -1450,7 +1925,7 @@ async function loadShop() {
     const profile = await profileRes.json();
     const orders = await orderRes.json();
     const score = profile.user.carbon_score || 0;
-    document.getElementById('shopBalance').innerHTML = '🪙 碳积分余额: <strong>' + score.toFixed(3) + ' kg CO₂</strong>';
+    document.getElementById('shopBalance').innerHTML = icon('coin','inline-icon') + '碳积分余额: <strong>' + score.toFixed(3) + ' kg CO₂</strong>';
 
     // 商品网格
     document.getElementById('shopGrid').innerHTML = '<div class="shop-grid">' + shop.items.map(item => {
@@ -1463,10 +1938,10 @@ async function loadShop() {
         <div class="shop-icon"><img src="${item.image || ''}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" onerror="this.parentElement.textContent='${item.icon}'"></div>
         <div class="shop-name">${item.name}</div>
         <div class="shop-desc">${item.desc}</div>
-        <div class="shop-club">🏭 ${item.club} · 📦 库存 ${stock}${item.bonus_stock > 0 ? '<span style="color:var(--green);">(+' + item.bonus_stock + ')</span>' : ''}</div>
+        <div class="shop-club">${icon('factory','inline-icon')} ${item.club} · ${icon('box','inline-icon')} 库存 ${stock}${item.bonus_stock > 0 ? '<span style="color:var(--green);">(+' + item.bonus_stock + ')</span>' : ''}</div>
         <div class="shop-footer">
           <span class="shop-price">${item.price} kg</span>
-          <button class="shop-btn" ${canBuy ? '' : 'disabled'} onclick="openBuyModal('${item.id}','${item.name}','${item.price}')">${btnText}</button>
+          <button class="shop-btn" ${canBuy ? '' : 'disabled'} onclick="openBuyModal('${item.id}','${item.name}','${item.price}')" aria-label="${btnText} ${item.name}">${btnText}</button>
         </div>
       </div>`;
     }).join('') + '</div>';
@@ -1479,12 +1954,12 @@ async function loadShop() {
       ol.innerHTML = orders.orders.map(o => `
         <div class="order-item">
           <div class="order-info">
-            <div class="order-name">📦 ${o.item_name}</div>
+            <div class="order-name">${icon('box','inline-icon')} ${o.item_name}</div>
             <div class="order-meta">-${o.price} kg · ${o.address} · ${new Date(o.created_at).toLocaleString('zh-CN')}</div>
           </div>
           <div class="order-actions">
             <span class="order-status ${o.status}">${o.status_text}</span>
-            ${o.status === 'pending' ? `<button class="btn btn-sm btn-outline" onclick="markReceived(${o.id})">✅ 确认收货</button>` : ''}
+            ${o.status === 'pending' ? `<button class="btn btn-sm btn-outline" onclick="markReceived(${o.id})" aria-label="确认收到 ${o.item_name}">${buttonLabel('确认收货','check')}</button>` : ''}
           </div>
         </div>`).join('');
     }
@@ -1496,7 +1971,6 @@ let _buyItemId = '', _buyItemName = '', _buyItemPrice = 0;
 function openBuyModal(itemId, itemName, price) {
   if (!currentUser) return;
   _buyItemId = itemId; _buyItemName = itemName; _buyItemPrice = price;
-  document.getElementById('buyIcon').textContent = '🎁';
   document.getElementById('buyTitle').textContent = itemName;
   document.getElementById('buyPrice').textContent = price + ' kg CO₂';
   document.getElementById('buyAddress').value = '';
@@ -1516,7 +1990,7 @@ async function doBuyFromModal() {
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({user_id: currentUser.id, item_id: _buyItemId, address: address}),
     });
-    if (!res.ok) { const e = await res.json(); toast('❌ ' + e.detail); btn.disabled = false; btn.textContent = '确认兑换'; return; }
+    if (!res.ok) { const e = await res.json(); toast('[X] ' + e.detail); btn.disabled = false; btn.textContent = '确认兑换'; return; }
     const d = await res.json();
     toast('🛒 ' + d.msg);
     currentUser.carbon_score = d.remaining_score;
@@ -1526,16 +2000,28 @@ async function doBuyFromModal() {
   } catch(e) { toast('❌ 兑换失败'); btn.disabled = false; btn.textContent = '确认兑换'; }
 }
 
-async function markReceived(orderId) {
+let _pendingReceiveOrderId = null;
+
+function markReceived(orderId) {
   if (!currentUser) return;
-  if (!confirm('确认已收到商品？')) return;
+  _pendingReceiveOrderId = orderId;
+  document.getElementById('receiveModal').classList.add('show');
+}
+
+async function doMarkReceived() {
+  if (!currentUser || !_pendingReceiveOrderId) return;
+  const btn = document.getElementById('receiveConfirmBtn');
+  btn.disabled = true; btn.textContent = '确认中...';
   try {
-    const res = await fetch(API + '/shop/orders/' + orderId + '/receive?user_id=' + currentUser.id, { method: 'POST' });
-    if (!res.ok) { const e = await res.json(); toast('❌ ' + e.detail); return; }
+    const res = await fetch(API + '/shop/orders/' + _pendingReceiveOrderId + '/receive?user_id=' + currentUser.id, { method: 'POST' });
+    if (!res.ok) { const e = await res.json(); toast('[X] ' + e.detail); btn.disabled = false; btn.textContent = '确认已收到'; return; }
     const d = await res.json();
-    toast('✅ ' + d.msg);
+    toast('[v] ' + d.msg);
+    closeModal('receiveModal');
+    _pendingReceiveOrderId = null;
+    btn.disabled = false; btn.textContent = '确认已收到';
     loadShop();
-  } catch(e) { toast('❌ 操作失败'); }
+  } catch(e) { toast('❌ 操作失败'); btn.disabled = false; btn.textContent = '确认已收到'; }
 }
 </script>
 </body>

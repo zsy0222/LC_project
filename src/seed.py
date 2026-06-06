@@ -1,6 +1,6 @@
 """种子数据初始化"""
 from .database import SessionLocal
-from .models import User, Point, CarbonFactor
+from .models import User, Point, CarbonFactor, Activity
 
 
 SEED_USERS = [
@@ -66,6 +66,21 @@ SEED_FACTORS = [
     {"category": "有害", "path": "Recycle",         "factor": 750.0,  "source": "降级兼容"},
 ]
 
+SEED_ACTIVITIES = [
+    {"title": "废纸换花盆", "club_name": "手艺社", "category": "快递纸箱",
+     "description": "带旧纸箱来，现场教你压制成育苗杯和花盆，成品可带走", "time_slot": "6/8 周六 14:00-16:00", "location": "大学生活动中心", "carbon_reward": 0.5, "max_participants": 3},
+    {"title": "塑料瓶改造工坊", "club_name": "创客空间", "category": "塑料",
+     "description": "自带塑料瓶，教你制作3D打印线材，现场打印小挂件", "time_slot": "6/8 周六 15:00-17:00", "location": "工训中心A101", "carbon_reward": 0.6, "max_participants": 2},
+    {"title": "蘑菇菌包DIY", "club_name": "生物社", "category": "快递纸箱",
+     "description": "废纸箱碎屑变菌包，每人带走两个平菇菌包，7天出菇", "time_slot": "6/9 周日 10:00-12:00", "location": "生物实验楼201", "carbon_reward": 0.8, "max_participants": 3},
+    {"title": "旧电池回收换盆栽", "club_name": "化学社", "category": "有害",
+     "description": "带5节旧电池来，换一盆多肉植物，学习电池拆解回收知识", "time_slot": "6/9 周日 14:00-15:30", "location": "化学楼大厅", "carbon_reward": 0.4, "max_participants": 3},
+    {"title": "厨余堆肥体验", "club_name": "园艺社", "category": "外卖厨余",
+     "description": "学蚯蚓堆肥和好氧堆肥，现场做一小桶堆肥带回去养花", "time_slot": "6/10 周一 16:00-17:30", "location": "校园花圃温室", "carbon_reward": 0.5, "max_participants": 2},
+    {"title": "生态砖环保搭建", "club_name": "环保社", "category": "塑料",
+     "description": "用废塑料瓶制作生态砖，一起搭校园景观长椅", "time_slot": "6/15 周六 9:00-12:00", "location": "图书馆前草坪", "carbon_reward": 1.0, "max_participants": 3},
+]
+
 
 def seed_all():
     db = SessionLocal()
@@ -76,6 +91,8 @@ def seed_all():
             db.add_all([Point(**p) for p in SEED_POINTS])
         if db.query(CarbonFactor).count() == 0:
             db.add_all([CarbonFactor(**c) for c in SEED_FACTORS])
+        if db.query(Activity).count() == 0:
+            db.add_all([Activity(**a) for a in SEED_ACTIVITIES])
         db.commit()
     finally:
         db.close()

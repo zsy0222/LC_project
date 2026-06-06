@@ -175,9 +175,8 @@ def reward_status(user_id: int, db: Session = Depends(get_db)):
     stage = min(20, total)
     progress_pct = min(100, round(stage / REWARD_THRESHOLD * 100))
 
-    # 20阶段命名：种子→发芽→树苗→小树→大树
     if stage == 0:
-        phase_name = "种子"; phase_emoji = "🌰"; phase_idx = 0
+        phase_name = "空地"; phase_emoji = ""; phase_idx = 0
     elif stage <= 3:
         phase_name = "种子"; phase_emoji = "🌰"; phase_idx = 0
     elif stage <= 7:
@@ -197,16 +196,17 @@ def reward_status(user_id: int, db: Session = Depends(get_db)):
         "phase_name": phase_name,
         "phase_emoji": phase_emoji,
         "phase_idx": phase_idx,
-        "stage_image": f"/checkin/tree_stage_{stage:02d}_" + {
-            1: "seed_01", 2: "seed_02", 3: "seed_03",
-            4: "sprout_01", 5: "sprout_02", 6: "sprout_03", 7: "sprout_04",
-            8: "sapling_01", 9: "sapling_02", 10: "sapling_03", 11: "sapling_04", 12: "sapling_05",
-            13: "small_tree_01", 14: "small_tree_02", 15: "small_tree_03", 16: "small_tree_04", 17: "small_tree_05",
-            18: "big_tree_01", 19: "big_tree_02", 20: "big_tree_03",
-        }.get(stage, "seed_01") + ".png",
+        "stage_image": ("/image/tree/tree_stage_00_empty.png" if stage == 0 else
+            f"/image/tree/tree_stage_{stage:02d}_" + {
+                1: "acorn_sprout", 2: "acorn_crack", 3: "acorn_root",
+                4: "seedling_emerge", 5: "seedling_leaf", 6: "seedling_grow", 7: "seedling_strong",
+                8: "sapling_young", 9: "sapling_branch", 10: "sapling_tall", 11: "sapling_crown", 12: "sapling_vigorous",
+                13: "tree_small", 14: "tree_growing", 15: "tree_bloom", 16: "tree_shade", 17: "tree_majestic",
+                18: "giant_mature", 19: "giant_grand", 20: "giant_ancient",
+            }[stage] + ".png"),
         "eligible": total >= REWARD_THRESHOLD,
         "has_notification": bool(existing),
-        "message": f"还差 {max(0, REWARD_THRESHOLD - total)} 次投递即可获得实物回收成品奖励！"
+        "message": f"还差 {max(0, REWARD_THRESHOLD - total)} 次投递即可获得奖励！"
         if total < REWARD_THRESHOLD
         else "🎉 恭喜！你已达标，可从成品橱窗中选取一件实物成品作为奖励！",
     }
@@ -225,7 +225,7 @@ def claim_reward(user_id: int, db: Session = Depends(get_db)):
     ).count()
 
     if total < REWARD_THRESHOLD:
-        raise HTTPException(status_code=400, detail=f"还需投递 {REWARD_THRESHOLD - total} 次才能领取")
+        raise HTTPException(status_code=400, detail=f"还差 {REWARD_THRESHOLD - total} 次投递，加油！")
 
     # 获取最新完成的成品
     latest = (
@@ -262,29 +262,29 @@ def claim_reward(user_id: int, db: Session = Depends(get_db)):
 
 SHOP_ITEMS = [
     {"id": "s01", "name": "再生纸书签", "icon": "🔖", "price": 0.3, "desc": "回收纸浆手工压制，每张独一无二",
-     "club": "手工社", "category": "快递纸箱", "image": "/checkin/s01_bookmark.png"},
+     "club": "手工社", "category": "快递纸箱", "image": "/image/shop/s01_bookmark.png"},
     {"id": "s02", "name": "蚯蚓粪盆栽", "icon": "🪴", "price": 0.6, "desc": "蚯蚓粪培育的多肉植物，自带肥料",
-     "club": "生物社", "category": "外卖厨余", "image": "/checkin/s02_plant.png"},
+     "club": "生物社", "category": "外卖厨余", "image": "/image/shop/s02_plant.png"},
     {"id": "s03", "name": "3D打印小挂件", "icon": "🧩", "price": 1.0, "desc": "PET瓶回收线材打印，校园LOGO定制",
-     "club": "创客空间", "category": "塑料", "image": "/checkin/s03_keychain.png"},
+     "club": "创客空间", "category": "塑料", "image": "/image/shop/s03_keychain.png"},
     {"id": "s04", "name": "手工再生纸本", "icon": "📒", "price": 1.5, "desc": "废纸重制手工纸装订，A6口袋大小",
-     "club": "手工社", "category": "快递纸箱", "image": "/checkin/s04_notebook.png"},
+     "club": "手工社", "category": "快递纸箱", "image": "/image/shop/s04_notebook.png"},
     {"id": "s05", "name": "蘑菇菌包DIY", "icon": "🍄", "price": 2.0, "desc": "废纸基料平菇菌包，7天出菇可食用",
-     "club": "生物社", "category": "快递纸箱", "image": "/checkin/s05_mushroom.png"},
+     "club": "生物社", "category": "快递纸箱", "image": "/image/shop/s05_mushroom.png"},
     {"id": "s06", "name": "生态砖花盆", "icon": "🏺", "price": 2.5, "desc": "废塑封存瓶中制成花盆，碳锁定百年",
-     "club": "环保社", "category": "塑料", "image": "/checkin/s06_ecobrick.png"},
+     "club": "环保社", "category": "塑料", "image": "/image/shop/s06_ecobrick.png"},
     {"id": "s07", "name": "蛋托育苗套装", "icon": "🌱", "price": 3.0, "desc": "废纸模塑蛋托+种子包，阳台种菜入门",
-     "club": "园艺社", "category": "快递纸箱", "image": "/checkin/s07_seedling.png"},
+     "club": "园艺社", "category": "快递纸箱", "image": "/image/shop/s07_seedling.png"},
     {"id": "s08", "name": "纤维素隔热杯垫", "icon": "☕", "price": 3.5, "desc": "废纸纤维压制，隔热防烫可降解",
-     "club": "手工社", "category": "快递纸箱", "image": "/checkin/s08_coaster.png"},
+     "club": "手工社", "category": "快递纸箱", "image": "/image/shop/s08_coaster.png"},
     {"id": "s09", "name": "回收金属徽章", "icon": "🏅", "price": 4.0, "desc": "旧电池金属熔铸，校园环保达人限定",
-     "club": "化学社", "category": "有害", "image": "/checkin/s09_badge.png"},
+     "club": "化学社", "category": "有害", "image": "/image/shop/s09_badge.png"},
     {"id": "s10", "name": "再生塑料笔筒", "icon": "✏️", "price": 4.5, "desc": "HDPE瓶盖热压成型，莫兰迪色系",
-     "club": "创客空间", "category": "塑料", "image": "/checkin/s10_penholder.png"},
+     "club": "创客空间", "category": "塑料", "image": "/image/shop/s10_penholder.png"},
     {"id": "s11", "name": "WPC手机支架", "icon": "📱", "price": 5.0, "desc": "塑木复合材料CNC雕刻，比原木更耐用",
-     "club": "创客空间", "category": "塑料", "image": "/checkin/s11_phonestand.png"},
+     "club": "创客空间", "category": "塑料", "image": "/image/shop/s11_phonestand.png"},
     {"id": "s12", "name": "碳积分荣誉证书+礼盒", "icon": "📜", "price": 8.0, "desc": "年度减碳证书+随机回收物礼盒，仪式感拉满",
-     "club": "环保社", "category": "混合", "image": "/checkin/s12_certificate.png"},
+     "club": "环保社", "category": "混合", "image": "/image/shop/s12_certificate.png"},
 ]
 
 
