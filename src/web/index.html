@@ -183,14 +183,8 @@
   .gallery-card .gc-mine { display: inline-block; margin-top: 4px; background: #E8F5E9; color: var(--moss); font-size: .58rem; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
 
   /* Reward */
-  /* ====== Growth rings (tree cross-section) ====== */
-.growth-rings { position: relative; width: 200px; height: 200px; margin: 16px auto; display: flex; align-items: center; justify-content: center; }
-/* ====== Tree stump ring ====== */
-.stump-wrap { position:relative; width:200px; height:200px; margin:12px auto 0; }
-.stump-img { width:100%; height:100%; object-fit:contain; clip-path:circle(0% at 50% 50%); transition:clip-path .8s cubic-bezier(.22,1,.36,1); }
-.stump-img.reveal { clip-path:circle(var(--ring-pct) at 50% 50%); }
-.stump-label { position:absolute; bottom:6px; left:0; right:0; text-align:center; font-size:.65rem; color:var(--bark); font-weight:600; }
-  /** old bar — replaced by growth rings */
+  .reward-bar-wrap { background: var(--stone); border-radius: 10px; height: 22px; overflow: hidden; margin: 12px auto 0; max-width: 280px; }
+  .reward-bar-fill { height: 100%; border-radius: 10px; background: var(--moss); transition: width .6s; display: flex; align-items: center; justify-content: center; font-size: .6rem; color: #FFF; font-weight: 600; min-width: 36px; }
   .reward-card { background: #FFF; border: 1px solid rgba(0,0,0,.04); border-radius: var(--radius); padding: 16px; text-align: center; margin-bottom: 16px; }
   #rewardCard { min-height: 55vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
@@ -1690,6 +1684,9 @@ async function loadRewardStatus() {
         '</div>' +
         '<p style=\"font-size:1rem;font-weight:bold;color:var(--bark);\">快去投递回收吧</p>' +
         '<p style=\"font-size:.72rem;color:var(--gray);margin-top:6px;\">每一次投递，都会让种子长成大树</p>' +
+        '<div class=\"reward-bar-wrap\" style=\"margin:12px auto 0;max-width:280px;\">' +
+        '<div class=\"reward-bar-fill\" style=\"width:0%;\">0%</div>' +
+        '</div>' +
         '<p style=\"margin-top:8px;font-size:0.75rem;\">' + (d.message || '还差 20 次投递即可获得实物奖励') + '</p>' +
         '</div>';
       return;
@@ -1706,7 +1703,9 @@ async function loadRewardStatus() {
       '<span style=\"font-size:1.6rem;color:var(--moss);\" aria-hidden=\"true\">' + icon('leaf') + '</span>' +
       '<span style=\"font-size:1rem;font-weight:bold;color:var(--green);\">' + (d.phase_name || '种子') + ' ' + stage + '/20</span>' +
       '</div>' +
-      createGrowthRings(stage, pct) +
+      '<div class=\"reward-bar-wrap\" style=\"margin:12px auto 0;max-width:280px;\">' +
+      '<div class=\"reward-bar-fill\" style=\"width:' + pct + '%;\">' + pct + '%</div>' +
+      '</div>' +
       '<p style=\"margin-top:8px;font-size:0.75rem;\">' + (d.message || '') + '</p>' +
       (stage >= 20 ? '<button class=\"btn btn-accent\" onclick=\"claimReward()\" style=\"margin-top:10px;padding:12px;font-size:1rem;\" aria-label=\"领取实物奖励\">' + buttonLabel('领取实物奖励','gift') + '</button>' : '<p style=\"font-size:0.65rem;color:var(--gray);margin-top:4px;\">投递满 20 次可领取环保再生物品</p>') +
       '</div>';
@@ -1781,16 +1780,6 @@ async function loadGallery() {
         </div>
       </div>`).join('')}</div>`;
   } catch(e) { document.getElementById('galleryGrid').innerHTML = '<div class="empty">加载失败</div>'; }
-}
-
-/** Generate tree-ring circle HTML for reward status */
-function createGrowthRings(stage, pct) {
-  var clipPct = pct ? (pct / 100) : 0;
-  // Use requestAnimationFrame to trigger CSS transition after DOM render
-  return '<div class="stump-wrap">' +
-    '<img src="/image/tree/tree_stump.png" class="stump-img" style="--ring-pct:' + clipPct + '%" onload="this.classList.add(\'reveal\')" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'<div class=stump-wrap style=text-align:center;color:var(--bark);padding:40px;>�� 树桩生长中</div>\'">' +
-    '<div class="stump-label">' + stage + ' / 20 圈</div>' +
-    '</div>';
 }
 
 // ==================== 活动广场 ====================
