@@ -1473,6 +1473,28 @@ async function loadMySubmissions() {
     </div>`).join('');
 }
 
+async function loadRank() {
+  try {
+    const [rankRes, usersRes] = await Promise.all([fetch(`${API}/rank`), fetch(`${API}/users`)]);
+    if (!rankRes.ok || !usersRes.ok) throw new Error('API error');
+    const rankings = await rankRes.json();
+    const users = await usersRes.json();
+    const students = users.filter(u => u.role === 'student');
+    document.getElementById('totalUsers').textContent = students.length;
+    document.getElementById('totalCo2').textContent = students.reduce((s, u) => s + (u.carbon_score || 0), 0).toFixed(2);
+    document.getElementById('totalSubs').textContent = rankings.reduce((s, r) => s + (r.submission_count || 0), 0);
+    const c = document.getElementById('rankList');
+    if (!rankings.length) { c.innerHTML = '<div class="empty">暂无数据</div>'; return; }
+    c.innerHTML = rankings.map(r => {
+      let rc = ''; let m = '';
+      if (r.rank === 1) { rc = 'rank-1'; m = '🥇'; }
+      else if (r.rank === 2) { rc = 'rank-2'; m = '🥈'; }
+      else if (r.rank === 3) { rc = 'rank-3'; m = '🥉'; }
+      return `<div class="rank-item"><div class="rank-num ${rc}">${r.rank}</div><div class="rank-info"><div class="rank-name">${m} ${r.nickname}</div><div class="rank-count">投递 ${r.submission_count} 次</div></div><div class="rank-co2">${(r.carbon_score || 0).toFixed(3)} kg</div></div>`;
+    }).join('');
+  } catch(e) { document.getElementById('rankList').innerHTML = '<div class="empty">加载失败</div>'; }
+}
+
 async function loadBadges() {
   if (!currentUser) return;
   const res = await fetch(`${API}/user/${currentUser.id}/profile`);
@@ -1714,12 +1736,10 @@ async function doReuse() {
 function showStreak(sub) {
   if (!sub || !sub.is_today_first) return;
   const s = sub.streak || 1;
-  // 打卡天→新树图映射
-  const treeMap = {1:'seed_01', 2:'seed_03', 3:'sprout_01', 4:'sprout_03', 5:'sapling_01', 6:'sapling_04', 7:'small_tree_01'};
-  let key = s >= 30 ? 'big_tree_03' : s >= 14 ? 'big_tree_01' : (treeMap[s] || 'seed_01');
-  const treeNum = {seed_01:1,seed_03:3,sprout_01:4,sprout_03:6,sapling_01:8,sapling_04:11,small_tree_01:13,big_tree_01:18,big_tree_03:20}[key] || 1;
+  // 打卡天→checkin 图片映射 (1-7, 7+ 用 checkin_07)
+  const num = Math.min(s, 7);
   const imgEl = document.getElementById('streakImage');
-  imgEl.src = `/image/tree/tree_stage_${String(treeNum).padStart(2,'0')}_${key}.png`;
+  imgEl.src = `/image/checkin/checkin_${String(num).padStart(2,'0')}.png`;
   imgEl.style.display = 'block';
   document.getElementById('streakDays').textContent = `第 ${s} 天`;
   document.getElementById('streakBadge').textContent = sub.streak_badge ? `🏅 ${sub.streak_badge}` : '';
