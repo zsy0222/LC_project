@@ -6,7 +6,7 @@
 <title>校园低碳回收追踪</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
 <style>
   :root {
     --paper:  #FAF7F2;
@@ -45,21 +45,26 @@
   .inline-icon { width: 1em; height: 1em; margin-right: 4px; }
 
   /* Login */
-  #loginPage { position: fixed; inset: 0; z-index: 0; background: #1B3B1A; overflow: hidden; }
-  .parallax-stage { position: absolute; inset: 0; cursor: grab; user-select: none; -webkit-user-select: none; }
-  .parallax-stage:active { cursor: grabbing; }
-  .parallax-stage .scene-img { position: absolute; top: 0; left: 50%; width: 100%; height: 100%; background: url('/image/login/bg_login.png') center/contain no-repeat; transform: translateX(-50%); transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); will-change: transform; }
-  .parallax-stage .scene-mist { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(27,59,26,.15) 0%, rgba(27,59,26,.50) 70%, rgba(27,59,26,.90) 100%); pointer-events: none; }
-  .art-title { position: absolute; top: 26%; left: 50%; transform: translateX(-50%); z-index: 2; text-align: center; pointer-events: none; }
-  .art-title .line1 { font-family: Georgia, serif; font-size: 2.4rem; font-style: italic; font-weight: 400; letter-spacing: .06em; background: linear-gradient(180deg, #FFF 15%, #A5D6A7 85%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 2px 12px rgba(0,0,0,.35)); }
-  .art-title .line2 { font-family: "KaiTi", "STKaiti", serif; font-size: .78rem; font-weight: 400; letter-spacing: .12em; color: rgba(255,255,255,.55); margin-top: 8px; }
-  .art-title .divider { width: 32px; height: 1.5px; background: rgba(255,255,255,.35); margin: 12px auto; }
-  .login-float { position: absolute; bottom: 16%; left: 50%; transform: translateX(-50%); width: min(320px, 86vw); background: rgba(255,255,255,.88); backdrop-filter: blur(16px); border-radius: 18px; padding: 26px 22px; box-shadow: 0 12px 48px rgba(0,0,0,.18); z-index: 3; opacity: 0; visibility: hidden; transition: opacity .7s ease-out, visibility .7s; border: 1px solid rgba(0,0,0,.06); }
-  .login-float.visible { opacity: 1; visibility: visible; }
-  .login-float .logo-mark { width: 40px; height: 40px; margin: 0 auto 12px; display: block; }
-  .login-float h2 { font-size: .9rem; margin-bottom: 14px; text-align: center; color: var(--moss); font-weight: 400; letter-spacing: .03em; }
-  .login-float select { width: 100%; padding: 12px 14px; border: 1px solid var(--stone); border-radius: 10px; font-size: .88rem; margin-bottom: 12px; background: #FFF; color: var(--ink); font-family: inherit; }
-  .login-float .float-foot { text-align: center; font-size: .58rem; color: var(--bark); margin-top: 10px; }
+  /* ====== 登录封面 ====== */
+  #loginPage { position: fixed; inset: 0; z-index: 0; background: #0E1E0E; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+  .login-hero { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+  .login-hero img { width: 75%; height: 100%; object-fit: contain; object-position: center; display: block; }
+  .login-hero::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(14,30,14,.50) 68%, #0E1E0E 100%); pointer-events: none; }
+
+  /* 英文花体标题 — 高度80%处 */
+  .login-poem { position: absolute; left: 0; right: 0; top: 17%; z-index: 2; text-align: center; pointer-events: none; }
+  .login-poem .lp-line { display: block; font-family: \"Playfair Display\", Georgia, serif; font-size: 2.8rem; font-style: italic; font-weight: 400; color: #5C3D2E; text-shadow: 0 2px 6px rgba(0,0,0,.12); line-height: 1.2; letter-spacing: .04em; }
+  .login-poem .lp-sub { display: block; position: fixed; left: 0; right: 0; bottom: 19%; font-size: .72rem; color: #5C3D2E; opacity: 1; letter-spacing: .12em; font-weight: 300; }
+
+  /* 登录卡片 */
+  .login-float { position: absolute; bottom: 8%; left: 50%; transform: translateX(-50%) translateY(30px); width: min(300px, 82vw); background: rgba(255,255,255,.78); backdrop-filter: blur(24px) saturate(1.4); -webkit-backdrop-filter: blur(24px) saturate(1.4); border-radius: 18px; padding: 24px 22px 22px; box-shadow: 0 12px 48px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.08) inset; border: 1px solid rgba(255,255,255,.18); text-align: center; z-index: 3; opacity: 0; visibility: hidden; transition: opacity .5s ease-out, transform .5s cubic-bezier(.22,1,.36,1), visibility .5s; }
+  .login-float.revealed { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+  .login-float h2 { font-size: .78rem; margin-bottom: 16px; color: var(--bark); font-weight: 400; letter-spacing: .08em; }
+  .login-float select { width: 100%; padding: 12px 14px; border: 1.5px solid rgba(139,115,85,.12); border-radius: 12px; font-size: .84rem; margin-bottom: 16px; background: rgba(250,247,242,.7); color: var(--ink); font-family: inherit; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238B7355' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 38px; transition: border-color .25s, box-shadow .25s, background .25s; }
+  .login-float select:hover { border-color: rgba(139,115,85,.25); }
+  .login-float select:focus { outline: none; border-color: var(--moss); box-shadow: 0 0 0 4px rgba(45,90,39,.06); background: rgba(255,255,255,.95); }
+  .login-float .btn { margin-top: 0; border-radius: 12px; font-size: .9rem; padding: 12px; letter-spacing: .06em; font-weight: 500; box-shadow: 0 3px 14px rgba(45,90,39,.25), 0 1px 3px rgba(0,0,0,.08); }
+  .login-float .btn:not(:disabled):hover { box-shadow: 0 5px 20px rgba(45,90,39,.35); transform: translateY(-1px); }
 
   /* Main shell */
   #appPage { display: none; flex-direction: column; min-height: 100vh; padding-bottom: 96px; }
@@ -421,14 +426,14 @@
   .stat-item { text-align: center; }
   .stat-value { font-size: 1.4rem; font-weight: 600; color: var(--moss); }
   .stat-label { font-size: .64rem; color: var(--bark); }
-  .ripple { position: absolute; border-radius: 50%; background: rgba(255,255,255,.12); transform: scale(0); animation: rippleOut .6s ease-out forwards; pointer-events: none; z-index: 1; }
-  @keyframes rippleOut { to { transform: scale(5); opacity: 0; } }
+
   .stage-dot { transition: background-color .2s var(--ease-out), transform .2s var(--ease-out); }
   .stage-dot.done { transform: scale(1.05); }
   .meta-icon { color: var(--bark); margin-right: 3px; }
+  
+  }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .001ms !important; }
-    .parallax-stage .scene-img { transition: none !important; }
   }
 </style>
 </head>
@@ -437,21 +442,21 @@
 
 <!-- ==================== 登录页 ==================== -->
 <div id="loginPage">
-  <div class="parallax-stage" id="parallaxStage">
-    <div class="scene-img" id="sceneImg"></div>
-    <div class="scene-mist"></div>
+  <div class="login-hero" aria-hidden="true">
+    <img src="/image/login/login_badge.png" alt="">
   </div>
-  <div class="art-title">
-    <div class="line1">Low Carbon</div>
-    <div class="divider"></div>
-    <div class="line2">校园低碳回收 · 全路径追踪</div>
+
+  <!-- 英文花体标题 -->
+  <div class="login-poem">
+    <span class="lp-line">Low Carbon</span>
+    <span class="lp-sub">校园低碳回收 · 全路径追踪</span>
   </div>
+
+  <!-- 登录卡片 -->
   <div class="login-float" id="loginFloat">
-    <img class="logo-mark" src="/image/login/logo_tree.png" alt="logo">
     <h2>选择身份进入</h2>
     <select id="loginUserSelect"><option value="">-- 选择用户 --</option></select>
     <button class="btn btn-primary" onclick="doLogin()" disabled id="loginBtn" aria-label="进入系统">进入系统</button>
-    <div class="float-foot">点击画布任意处关闭浮窗</div>
   </div>
 </div>
 
@@ -881,68 +886,6 @@ function buttonLabel(text, iconName) {
 }
 
 // ==================== 登录 ====================
-// ---- 全屏视差拖拽（translateX，景物动背景框不动） ----
-(function initParallax() {
-  const stage = document.getElementById('parallaxStage');
-  const img = document.getElementById('sceneImg');
-  const flt = document.getElementById('loginFloat');
-  if (!stage || !img || !flt) return;
-
-  const MAX_SHIFT = 20;
-  let dragging = false, startX = 0, currentX = 0, targetX = 0;
-  let animFrame = null, hasInteracted = false;
-
-  function updateImg() { img.style.transform = 'translateX(-50%) translateX(' + currentX + 'vw)'; }
-  function lerp() {
-    const diff = targetX - currentX;
-    if (Math.abs(diff) < 0.02) { currentX = targetX; updateImg(); animFrame = null; return; }
-    currentX += diff * 0.08; updateImg();
-    animFrame = requestAnimationFrame(lerp);
-  }
-  function handleStart(cx) { dragging = true; startX = cx; targetX = currentX; img.style.transition = 'none'; if (!hasInteracted) hasInteracted = true; }
-  function handleMove(cx) {
-    if (!dragging) return;
-    const shift = ((cx - startX) / window.innerWidth * 100) / 2;
-    targetX = Math.max(-MAX_SHIFT, Math.min(MAX_SHIFT, shift));
-    if (!animFrame) animFrame = requestAnimationFrame(lerp);
-  }
-  function handleEnd() {
-    if (!dragging) return; dragging = false; targetX = 0;
-    if (!animFrame) animFrame = requestAnimationFrame(lerp); img.style.transition = '';
-  }
-  stage.addEventListener('mousedown', e => { e.preventDefault(); handleStart(e.clientX); });
-  stage.addEventListener('touchstart', e => { handleStart(e.touches[0].clientX); }, {passive: false});
-  window.addEventListener('mousemove', e => { handleMove(e.clientX); });
-  window.addEventListener('touchmove', e => { handleMove(e.touches[0].clientX); }, {passive: false});
-  window.addEventListener('mouseup', handleEnd);
-  window.addEventListener('touchend', handleEnd);
-
-  // click ripple + float login window
-  stage.addEventListener('click', e => {
-    // ripple
-    const rc = stage.getBoundingClientRect();
-    const rx = e.clientX - rc.left, ry = e.clientY - rc.top;
-    const r = document.createElement('div'); r.className = 'ripple';
-    r.style.left = rx + 'px'; r.style.top = ry + 'px';
-    r.style.width = r.style.height = '40px';
-    stage.appendChild(r);
-    setTimeout(() => r.remove(), 700);
-
-    if (Math.abs(currentX) > 1.5) return;
-    if (!flt.classList.contains('visible')) flt.classList.add('visible');
-  });
-  // click outside float -> close
-  document.addEventListener('click', e => {
-    if (flt.classList.contains('visible') && !flt.contains(e.target) && e.target !== stage && !stage.contains(e.target)) {
-      flt.classList.remove('visible');
-    }
-  });
-
-  // initial gentle auto-drift
-  let autoDrift = 0, dir = 1;
-  function autoLoop() { if (hasInteracted || dragging) return; autoDrift += 0.015*dir; if (Math.abs(autoDrift)>1.5) dir*=-1; currentX += (autoDrift-currentX)*0.05; updateImg(); requestAnimationFrame(()=>{if(!hasInteracted&&!dragging)autoLoop();}); }
-  setTimeout(autoLoop, 1000);
-})();
 
 async function initLogin() {
   const res = await fetch(`${API}/users`);
@@ -958,11 +901,23 @@ async function initLogin() {
   sel.onchange = () => { document.getElementById('loginBtn').disabled = !sel.value; };
 }
 
+// 点击封面任意处 → 卡片浮现
+(function initLoginReveal() {
+  var page = document.getElementById('loginPage');
+  var flt = document.getElementById('loginFloat');
+  if (!page || !flt) return;
+  page.addEventListener('click', function(e) {
+    if (flt.classList.contains('revealed')) return;
+    flt.classList.add('revealed');
+  });
+})();
+
 function doLogin() {
   const val = document.getElementById('loginUserSelect').value;
   if (!val) return;
   currentUser = JSON.parse(val);
-  document.getElementById('loginPage').style.display = 'none'; document.getElementById('loginFloat').classList.remove('visible');
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('loginFloat').classList.remove('revealed');
   // 主界面先不显示，等弹窗消失后再出现
   document.getElementById('appNickname').textContent = currentUser.nickname;
   const roleText = currentUser.role === 'student' ? '学生' : currentUser.role === 'reuser' ? '去向端' : '管理员';
