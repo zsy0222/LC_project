@@ -219,6 +219,9 @@
 .act-card .act-btn.joined { background:#E8F5E9; color:var(--moss); cursor:default; }
 .act-card .act-btn.full { background:var(--stone); color:#FFF; cursor:not-allowed; }
 .act-card .act-btn.upload-work { background:#5C3D6E; color:#FFF; margin-left:0; }
+.act-card .act-btn.cancel { background:transparent; color:var(--bark); border:1px solid rgba(139,115,85,.25); font-size:.68rem; margin-top:4px; }
+.act-card .act-btn.cancel:hover { background:rgba(220,80,60,.08); color:#c44; border-color:rgba(220,80,60,.3); }
+.act-card .act-btn.uploaded { background:#E8F0E8; color:var(--moss); cursor:default; }
 .act-card .act-status-tag { position:absolute; top:14px; right:14px; padding:3px 12px; border-radius:10px; font-size:.65rem; font-weight:600; }
 .act-card .act-status-tag.open { background:#E8F5E9; color:var(--moss); }
 .act-card .act-status-tag.full { background:#FFF3E0; color:#C56000; }
@@ -373,6 +376,26 @@
     .wn-btn-icon { display:inline-block; }
     .wn-skip { display:block; width:100%; margin-top:8px; padding:8px; border:none; background:none; color:var(--bark); font-size:.72rem; cursor:pointer; font-family:inherit; opacity:.6; transition:opacity .2s; }
     .wn-skip:hover { opacity:1; }
+
+    /* 取消报名确认弹窗 */
+    .cn-modal { position:relative; max-width:360px; width:88vw; padding:28px 22px 18px; text-align:center; overflow:visible; background:linear-gradient(175deg, #FFF8F6 0%, #FFF 30%, #FEF9F8 100%); border:1px solid rgba(180,120,110,.12); box-shadow:0 20px 56px rgba(120,60,40,.12), 0 4px 12px rgba(0,0,0,.04); }
+    .cn-top { margin-bottom:8px; }
+    .cn-icon-wrap { display:inline-flex; align-items:center; justify-content:center; width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #FFF0ED 0%, #FDE8E3 100%); border:2px solid rgba(200,120,100,.15); animation:cnPulse 2s ease-in-out infinite; }
+    .cn-icon-wrap svg { width:26px; height:26px; color:var(--bark); }
+    @keyframes cnPulse { 0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(200,120,100,.15)} 50%{transform:scale(1.04);box-shadow:0 0 0 8px rgba(200,120,100,0)} }
+    .cn-title { margin-bottom:4px !important; font-size:1.05rem !important; color:var(--ink) !important; font-weight:600 !important; letter-spacing:.02em; }
+    .cn-desc { font-size:.82rem; color:var(--bark); margin-bottom:4px; padding:4px 12px; background:rgba(0,0,0,.03); border-radius:8px; display:inline-block; letter-spacing:.02em; }
+    .cn-note { font-size:.65rem; color:var(--bark); opacity:.55; margin-bottom:16px; line-height:1.5; }
+    .cn-actions { display:flex; gap:10px; }
+    .cn-btn { flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:12px; border:none; border-radius:12px; font-size:.85rem; font-weight:600; cursor:pointer; font-family:inherit; transition:all .18s var(--ease-out); }
+    .cn-btn svg { width:18px; height:18px; display:block; }
+    .cn-btn-back { background:rgba(139,115,85,.06); color:var(--bark); border:1px solid rgba(139,115,85,.1); }
+    .cn-btn-back:hover { background:rgba(139,115,85,.12); }
+    .cn-btn-confirm { background:linear-gradient(135deg, #c4715a 0%, #a0523e 100%); color:#FFF; box-shadow:0 3px 12px rgba(180,100,70,.25); }
+    .cn-btn-confirm:hover { transform:translateY(-1px); box-shadow:0 5px 18px rgba(180,100,70,.35); }
+    .cn-btn-confirm:active { transform:scale(.97); }
+    .cn-btn:disabled { opacity:.5; pointer-events:none; }
+
   .timeline { position: relative; padding-left: 20px; margin-top: 10px; }
   .timeline::before { content: ''; position: absolute; left: 5px; top: 0; bottom: 0; width: 1.5px; background: var(--moss); }
   .tl-item { position: relative; margin-bottom: 14px; }
@@ -723,6 +746,31 @@
       确认上传
     </button>
     <button class="wn-skip" onclick="confirmWorkName(true)" aria-label="跳过命名直接上传">跳过，直接上传</button>
+  </div>
+</div>
+
+<!-- 取消报名确认弹窗 -->
+<div class="modal-overlay" id="cancelJoinModal">
+  <div class="modal cn-modal">
+    <button class="close" onclick="closeModal('cancelJoinModal')" aria-label="关闭取消报名弹窗">&times;</button>
+    <div class="cn-top">
+      <span class="cn-icon-wrap" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m8 12 2 2 4-4"/><path d="M8 4V2"/><path d="M16 4V2"/><path d="M12 4V2"/><path d="M4 8H2"/><path d="M4 16H2"/></svg>
+      </span>
+    </div>
+    <h3 class="cn-title">确认取消报名</h3>
+    <p class="cn-desc" id="cnActivityTitle">-</p>
+    <p class="cn-note">取消后可重新报名，但已上传的作品不受影响</p>
+    <div class="cn-actions">
+      <button class="cn-btn cn-btn-back" onclick="closeModal('cancelJoinModal')" aria-label="返回">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        再想想
+      </button>
+      <button class="cn-btn cn-btn-confirm" id="cnConfirmBtn" onclick="doCancelJoin()" aria-label="确认取消报名">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        确认取消
+      </button>
+    </div>
   </div>
 </div>
 
@@ -2031,9 +2079,11 @@ async function loadActivities() {
       var btn = '';
       if (currentUser.role === 'reuser' || currentUser.role === 'admin') {
         btn = '<span style="font-size:.65rem;color:var(--bark);">' + a.full_text + ' 人报名</span>';
+      } else if (a.uploaded) {
+        btn = '<button class="act-btn uploaded">已上传作品</button>';
       } else if (a.joined) {
-        btn = '<button class="act-btn joined">已报名</button>' +
-              '<button class="act-btn upload-work" onclick="uploadActivityWork(' + a.id + ')">上传作品</button>';
+        btn = '<button class="act-btn upload-work" onclick="uploadActivityWork(' + a.id + ')">上传作品</button>' +
+              '<button class="act-btn cancel" onclick="cancelJoin(' + a.id + ',this)">取消报名</button>';
       } else if (a.status === 'open') {
         btn = '<button class="act-btn join" onclick="joinActivity(' + a.id + ',this)">立即报名</button>';
       } else if (a.status === 'full') {
@@ -2070,10 +2120,37 @@ async function joinActivity(activityId, btn) {
     if (!r.ok) { const e = await r.json(); toast(e.detail); btn.disabled = false; btn.textContent = '立即报名'; return; }
     const d = await r.json();
     toast(d.msg);
-    currentUser.carbon_score = d.new_score;
-    updateCarbonDisplay();
     loadActivities();
   } catch(e) { toast('报名失败'); btn.disabled = false; btn.textContent = '立即报名'; }
+}
+
+var _cancelTarget = null; // { activityId, btn }
+
+function cancelJoin(activityId, btn) {
+  if (!currentUser) return;
+  _cancelTarget = { activityId: activityId, btn: btn };
+  // 从活动列表中提取活动标题
+  var card = btn.closest('.act-card');
+  var title = card ? (card.querySelector('.act-title') || {}).textContent : '该活动';
+  document.getElementById('cnActivityTitle').textContent = '「' + title + '」';
+  document.getElementById('cancelJoinModal').classList.add('show');
+}
+
+async function doCancelJoin() {
+  if (!_cancelTarget) return;
+  var t = _cancelTarget;
+  var btn = document.getElementById('cnConfirmBtn');
+  btn.disabled = true; btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> 取消中...';
+  try {
+    const r = await fetch(API + '/activities/' + t.activityId + '/leave?user_id=' + currentUser.id, { method: 'DELETE' });
+    if (!r.ok) { const e = await r.json(); toast(e.detail); btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> 确认取消'; return; }
+    const d = await r.json();
+    closeModal('cancelJoinModal');
+    toast(d.msg);
+    loadActivities();
+    _cancelTarget = null;
+    btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> 确认取消';
+  } catch(e) { toast('取消失败'); btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> 确认取消'; }
 }
 
 var _pendingWork = null; // { activityId, photoUrl }
@@ -2122,6 +2199,7 @@ async function confirmWorkName(skip) {
     var d = await r.json();
     closeModal('workNameModal');
     toast(d.msg);
+    if (d.new_score) { currentUser.carbon_score = d.new_score; updateCarbonDisplay(); }
     loadActivities();
     _pendingWork = null;
   } catch(ex) { toast('上传失败'); btn.disabled = false; btn.innerHTML = '<span class="wn-btn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m8 7 4-4 4 4"/><path d="M4 17v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg></span>确认上传'; }

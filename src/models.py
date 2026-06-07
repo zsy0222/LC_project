@@ -156,4 +156,5 @@ class ActivityJoin(Base):
     id = Column(Integer, primary_key=True)
     activity_id = Column(Integer, ForeignKey("activities.id"))
     user_id = Column(Integer, ForeignKey("users.id"))
+    uploaded = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)

@@ -10,7 +10,7 @@ from ..models import Activity, ActivityJoin, User, ReuseItem, Batch
 router = APIRouter(tags=["activity"])
 
 
-def _activity_card(a: Activity, joined: bool = False, db: Session = None) -> dict:
+def _activity_card(a: Activity, joined: bool = False, uploaded: bool = False, db: Session = None) -> dict:
     club_avatar_map = {
         "手工社": "ico_paper", "手艺社": "ico_paper", "美术社": "ico_gallery",
         "园艺社": "ico_sprout", "生物社": "ico_lightbulb", "创客空间": "ico_box",
@@ -30,6 +30,7 @@ def _activity_card(a: Activity, joined: bool = False, db: Session = None) -> dic
         "current_participants": a.current_participants,
         "status": a.status,
         "joined": joined,
+        "uploaded": uploaded,
         "club_icon": club_avatar_map.get(a.club_name, "ico_sprout"),
         "full_text": "已满" if a.current_participants >= a.max_participants else f"{a.current_participants}/{a.max_participants}",
     }
@@ -43,13 +44,13 @@ def list_activities(user_id: int | None = None, db: Session = Depends(get_db)):
         Activity.created_at.desc()
     ).all()
 
-    joined_ids = set()
+    joined_map = {}
     if user_id:
         joins = db.query(ActivityJoin).filter(ActivityJoin.user_id == user_id).all()
-        joined_ids = {j.activity_id for j in joins}
+        joined_map = {j.activity_id: j.uploaded for j in joins}
 
     return {
-        "activities": [_activity_card(a, a.id in joined_ids, db) for a in activities],
+        "activities": [_activity_card(a, a.id in joined_map, joined_map.get(a.id, False), db) for a in activities],
     }
 
 
@@ -84,14 +85,11 @@ def join_activity(activity_id: int, user_id: int, db: Session = Depends(get_db))
     if a.current_participants >= a.max_participants:
         a.status = "full"
 
-    user.carbon_score = float(user.carbon_score or 0) + a.carbon_reward
     db.commit()
 
     return {
         "ok": True,
-        "msg": f"成功参与「{a.title}」，获得 +{a.carbon_reward} kg 碳积分！",
-        "carbon_earned": a.carbon_reward,
-        "new_score": round(user.carbon_score, 3),
+        "msg": f"已报名「{a.title}」，上传作品后可获得 +{a.carbon_reward} kg 碳积分！",
     }
 
 
@@ -133,14 +131,49 @@ def upload_activity_work(activity_id: int, user_id: int, photo: str, desc: str =
         product_desc=desc or f"我在「{activity.title}」的作品 ✨",
     )
     db.add(item)
+
+    # 上传作品后才发放碳积分（如果之前未发放过）
+    was_uploaded = joined.uploaded
+    new_score = 0
+    if not was_uploaded:
+        joined.uploaded = True
+        user = db.query(User).get(user_id)
+        if user:
+            user.carbon_score = float(user.carbon_score or 0) + activity.carbon_reward
+            new_score = round(user.carbon_score, 3)
     db.commit()
 
     return {
         "ok": True,
-        "msg": "作品已上传！将出现在你的成品橱窗中",
+        "msg": f"作品已上传！获得 +{activity.carbon_reward} kg 碳积分 🎉",
+        "carbon_earned": activity.carbon_reward if not was_uploaded else 0,
+        "new_score": new_score,
         "product_photo": photo,
         "product_desc": item.product_desc,
     }
+
+
+@router.delete("/activities/{activity_id}/leave")
+def leave_activity(activity_id: int, user_id: int, db: Session = Depends(get_db)):
+    """取消报名（未上传作品时可取消）"""
+    j = db.query(ActivityJoin).filter(
+        ActivityJoin.activity_id == activity_id,
+        ActivityJoin.user_id == user_id,
+    ).first()
+    if not j:
+        raise HTTPException(status_code=404, detail="未参与该活动")
+    if j.uploaded:
+        raise HTTPException(status_code=400, detail="已上传作品，无法取消报名")
+
+    a = db.query(Activity).get(activity_id)
+    if a:
+        a.current_participants = max(0, a.current_participants - 1)
+        if a.status == "full" and a.current_participants < a.max_participants:
+            a.status = "open"
+
+    db.delete(j)
+    db.commit()
+    return {"ok": True, "msg": "已取消报名"}
 
 
 @router.post("/activities/create")
