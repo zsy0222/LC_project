@@ -47,3 +47,6 @@ checkin/tree_staging/
 DESIGN_VISUAL*.md
 *.docx
 .claude/
+model/**
+train_output.txt
+dataset/**

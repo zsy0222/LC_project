@@ -1,11 +1,9 @@
 """AI 识别服务
 
-策略：
-1) 优先使用 torchvision 预训练 MobileNetV3 提取 ImageNet 类别概率
-   - 用 ImageNet 中与「纸箱 / 塑料瓶 / 玻璃瓶」相关的类别索引聚合得到品类概率
-   - 用图像清晰度/对比度/纹理统计估计完整度
-2) 若 torch 不可用 / AI_MOCK_MODE=True，降级为基于图像统计的 mock
-3) 所有输出均给出置信度与是否需要重拍提示
+加载优先级：
+  1) 微调 MobileNetV3 四分类模型（model/recycle_classifier.pth）→ 精准分类
+  2) ImageNet 预训练 MobileNetV3 + 索引聚合 → 粗糙但可用
+  3) 图像统计启发式 mock → 纯降级
 
 输出统一为 dict：
     {category, grade, score, recommend, recommend_desc, co2_estimate, need_recheck}
@@ -13,6 +11,7 @@
 from __future__ import annotations
 
 import io
+import json
 import random
 import math
 from datetime import datetime
@@ -23,63 +22,84 @@ from PIL import Image, ImageFilter, ImageStat
 from ..config import (
     AI_MOCK_MODE, AI_CONFIDENCE_THRESHOLD,
     CATEGORIES, GRADES, PATH_MAP, PATH_DESC,
+    AI_MODEL_PATH, AI_CLASS_LABELS_PATH,
 )
 
-# ---------- 尝试加载 torch ----------
-_TORCH_OK = False
-_model = None
-_transform = None
-_imagenet_idx_to_cat: dict[int, str] = {}
+# ---------- 层级 1：尝试加载微调四分类模型 ----------
+_FINETUNED_OK = False
+_finetuned_model = None
+_finetuned_transform = None
+_finetuned_classes: list[str] = []
 
 if not AI_MOCK_MODE:
     try:
         import torch
         from torchvision import models, transforms
 
-        # ImageNet 1000 类索引聚合到四个回收品类
-        _imagenet_idx_to_cat = {
-            # 外卖厨余
-            930: "外卖厨余", 416: "外卖厨余", 964: "外卖厨余",  # rice/bulgur/mashed_potato
-            489: "外卖厨余", 497: "外卖厨余", 965: "外卖厨余",  # spaghetti/carbonara/meat_loaf
-            101: "外卖厨余", 937: "外卖厨余", 943: "外卖厨余",  # cauliflower/broccoli/cucumber
-            925: "外卖厨余", 587: "外卖厨余", 967: "外卖厨余",  # plate/trifle/potpie
-            933: "外卖厨余", 934: "外卖厨余", 745: "外卖厨余",  # hamburger/hotdog/stew
-            # 快递纸箱
-            478: "快递纸箱", 692: "快递纸箱", 720: "快递纸箱",
-            # 塑料
-            898: "塑料", 728: "塑料", 737: "塑料",
-            # 有害（电池/药品相关）
-            617: "有害", 660: "有害",  # match/pill_bottle 近似映射
-        }
+        checkpoint = torch.load(str(AI_MODEL_PATH), map_location="cpu", weights_only=False)
+        num_classes = checkpoint.get("num_classes", 4)
+        _finetuned_classes = checkpoint.get("classes", CATEGORIES)
 
-        _model = models.mobilenet_v3_small(weights=models.MobileNet_V3_Small_Weights.DEFAULT)
-        _model.eval()
-        _transform = transforms.Compose([
+        _finetuned_model = models.mobilenet_v3_small(weights=None)
+        in_features = _finetuned_model.classifier[-1].in_features
+        _finetuned_model.classifier[-1] = torch.nn.Sequential(
+            torch.nn.Dropout(0.3),
+            torch.nn.Linear(in_features, num_classes),
+        )
+        _finetuned_model.load_state_dict(checkpoint["model_state_dict"])
+        _finetuned_model.eval()
+
+        _finetuned_transform = transforms.Compose([
             transforms.Resize(256),
             transforms.CenterCrop(224),
             transforms.ToTensor(),
-            transforms.Normalize(
-                mean=[0.485, 0.456, 0.406],
-                std=[0.229, 0.224, 0.225],
-            ),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ])
-        _TORCH_OK = True
-    except Exception as e:  # noqa: BLE001
-        print(f"[ai_service] torch 加载失败，降级为 mock 模式: {e}")
-        _TORCH_OK = False
+        _FINETUNED_OK = True
+        print(f"[ai_service] [OK] 加载微调模型 (val_acc={checkpoint.get('val_acc', '?')}, classes={_finetuned_classes})")
+    except FileNotFoundError:
+        print(f"[ai_service] [warn] 微调模型不存在 ({AI_MODEL_PATH})，降级到 ImageNet 聚合")
+    except Exception as e:
+        print(f"[ai_service] [warn] 微调模型加载失败: {e}，降级到 ImageNet 聚合")
+
+# ---------- 层级 2：ImageNet 预训练 + 索引聚合 ----------
+_IMAGENET_OK = False
+_imagenet_model = None
+_imagenet_transform = None
+_imagenet_idx_to_cat: dict[int, str] = {}
+
+if not _FINETUNED_OK and not AI_MOCK_MODE:
+    try:
+        import torch
+        from torchvision import models, transforms
+
+        _imagenet_idx_to_cat = {
+            930: "外卖厨余", 416: "外卖厨余", 964: "外卖厨余",
+            489: "外卖厨余", 497: "外卖厨余", 965: "外卖厨余",
+            101: "外卖厨余", 937: "外卖厨余", 943: "外卖厨余",
+            925: "外卖厨余", 587: "外卖厨余", 967: "外卖厨余",
+            933: "外卖厨余", 934: "外卖厨余", 745: "外卖厨余",
+            478: "快递纸箱", 692: "快递纸箱", 720: "快递纸箱",
+            898: "塑料", 728: "塑料", 737: "塑料",
+            617: "有害", 660: "有害",
+        }
+
+        _imagenet_model = models.mobilenet_v3_small(weights=models.MobileNet_V3_Small_Weights.DEFAULT)
+        _imagenet_model.eval()
+        _imagenet_transform = transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ])
+        _IMAGENET_OK = True
+    except Exception as e:
+        print(f"[ai_service] torch 加载失败，降级为 mock: {e}")
+        _IMAGENET_OK = False
 
 
 # ---------- 图像统计：估计完整度 ----------
 def _grade_by_stats(img: Image.Image) -> Tuple[str, float]:
-    """根据图像的亮度/对比度/边缘密度估计完整度
-
-    返回 (grade, sub_score 0~1)
-    经验启发式：
-        - 边缘密度越高（破损边缘多）→ 越倾向 破损
-        - 颜色方差极低（受潮变深均匀）→ 受潮
-        - 中等清晰、对比正常 → 轻损
-        - 高清晰、低边缘噪声 → 完好
-    """
     gray = img.convert("L").resize((128, 128))
     stat = ImageStat.Stat(gray)
     mean = stat.mean[0]
@@ -89,7 +109,6 @@ def _grade_by_stats(img: Image.Image) -> Tuple[str, float]:
     edge_stat = ImageStat.Stat(edge)
     edge_mean = edge_stat.mean[0]
 
-    # 启发评分（0~1）
     if mean < 70 and stddev < 35:
         return "受潮", 0.75
     if edge_mean > 35:
@@ -99,44 +118,50 @@ def _grade_by_stats(img: Image.Image) -> Tuple[str, float]:
     return "完好", 0.88
 
 
-# ---------- 主分类：torch 路径 ----------
-def _predict_with_torch(img: Image.Image) -> Tuple[str, float]:
+# ---------- 层级 1：微调四分类模型 ----------
+def _predict_finetuned(img: Image.Image) -> Tuple[str, float]:
     import torch
-    x = _transform(img.convert("RGB")).unsqueeze(0)
+    x = _finetuned_transform(img.convert("RGB")).unsqueeze(0)
     with torch.no_grad():
-        logits = _model(x)
+        logits = _finetuned_model(x)
+        probs = torch.softmax(logits, dim=1)[0]
+    best_idx = int(torch.argmax(probs))
+    score = round(float(probs[best_idx]), 3)
+    category = _finetuned_classes[best_idx] if best_idx < len(_finetuned_classes) else "无法识别"
+    return category, score
+
+
+# ---------- 层级 2：ImageNet 聚合 ----------
+def _predict_imagenet(img: Image.Image) -> Tuple[str, float]:
+    import torch
+    x = _imagenet_transform(img.convert("RGB")).unsqueeze(0)
+    with torch.no_grad():
+        logits = _imagenet_model(x)
         probs = torch.softmax(logits, dim=1)[0]
 
-    # 聚合到三品类
     cat_scores = {c: 0.0 for c in CATEGORIES}
     for idx, cat in _imagenet_idx_to_cat.items():
         cat_scores[cat] += float(probs[idx])
 
     total = sum(cat_scores.values())
-
-    # 如果三类总分极低，说明图片不是回收物 → 拒绝识别
     if total < 0.02:
         return "unknown", round(total, 4)
 
-    # 归一化，保留真实置信度（不再人为抬高）
     best = max(cat_scores, key=cat_scores.get)
     score = cat_scores[best] / max(total, 1e-6)
     return best, round(min(score, 0.99), 3)
 
 
-# ---------- 主分类：mock 路径 ----------
+# ---------- 层级 3：mock ----------
 def _predict_mock(img: Image.Image) -> Tuple[str, float]:
     r, g, b = ImageStat.Stat(img.convert("RGB").resize((64, 64))).mean
     brightness = (r + g + b) / 3
     if max(r, g, b) - min(r, g, b) < 10:
         return "unknown", round(random.uniform(0.05, 0.15), 3)
-    # 暖色系 → 外卖厨余
     if r > g and g > b and brightness < 180:
         return "外卖厨余", round(random.uniform(0.65, 0.85), 3)
-    # 棕色/土色 → 快递纸箱
     if r > g + 5 and r > b + 5:
         return "快递纸箱", round(random.uniform(0.65, 0.85), 3)
-    # 蓝/白 → 塑料
     if b > r:
         return "塑料", round(random.uniform(0.60, 0.82), 3)
     return "快递纸箱", round(random.uniform(0.58, 0.80), 3)
@@ -144,15 +169,15 @@ def _predict_mock(img: Image.Image) -> Tuple[str, float]:
 
 # ---------- 对外主函数 ----------
 def predict_image(image_bytes: bytes) -> dict:
-    """主入口：输入图片字节，返回识别结果 dict"""
     img = Image.open(io.BytesIO(image_bytes))
 
-    if _TORCH_OK:
-        category, cat_score = _predict_with_torch(img)
+    if _FINETUNED_OK:
+        category, cat_score = _predict_finetuned(img)
+    elif _IMAGENET_OK:
+        category, cat_score = _predict_imagenet(img)
     else:
         category, cat_score = _predict_mock(img)
 
-    # 非回收物：直接返回低置信度，提示重拍
     if category == "unknown":
         return {
             "category": "无法识别",
@@ -182,7 +207,6 @@ def predict_image(image_bytes: bytes) -> dict:
 
 
 def _estimate_co2(category: str, recommend: str) -> float:
-    """前端预览用减碳估算: 品类每吨因子 × 单次重量 / 1000"""
     ton_factor = {
         "外卖厨余": 90.82, "快递纸箱": 1200.0, "塑料": 2000.0, "有害": 700.0,
         "纸箱": 1200.0, "玻璃": 500.0,
@@ -192,12 +216,17 @@ def _estimate_co2(category: str, recommend: str) -> float:
 
 
 def ai_status() -> dict:
-    """暴露当前 AI 模式，便于前端展示"""
-    return {
-        "mode": "torch-mobilenetv3" if _TORCH_OK else "mock-heuristic",
-        "categories": CATEGORIES,
-        "grades": GRADES,
-    }
+    """暴露当前 AI 模式"""
+    if _FINETUNED_OK:
+        mode = f"finetuned-{len(_finetuned_classes)}class"
+        extra = {"trained_classes": _finetuned_classes, "val_acc_approx": "best"}
+    elif _IMAGENET_OK:
+        mode = "imagenet-mobilenetv3"
+        extra = {}
+    else:
+        mode = "mock-heuristic"
+        extra = {}
+    return {"mode": mode, "categories": CATEGORIES, "grades": GRADES, **extra}
 
 
 # ---------- 感知哈希：用于图片相似度去重 ----------

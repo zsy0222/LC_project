@@ -57,7 +57,7 @@
   .login-poem .lp-sub { display: block; position: fixed; left: 0; right: 0; bottom: 19%; font-size: .72rem; color: #5C3D2E; opacity: 1; letter-spacing: .12em; font-weight: 300; }
 
   /* 登录卡片 */
-  .login-float { position: absolute; bottom: 8%; left: 50%; transform: translateX(-50%) translateY(30px); width: min(300px, 82vw); background: rgba(255,255,255,.78); backdrop-filter: blur(24px) saturate(1.4); -webkit-backdrop-filter: blur(24px) saturate(1.4); border-radius: 18px; padding: 24px 22px 22px; box-shadow: 0 12px 48px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.08) inset; border: 1px solid rgba(255,255,255,.18); text-align: center; z-index: 3; opacity: 0; visibility: hidden; transition: opacity .5s ease-out, transform .5s cubic-bezier(.22,1,.36,1), visibility .5s; }
+  .login-float { position: absolute; bottom: 8%; left: 50%; transform: translateX(-50%) translateY(30px); width: min(340px, 86vw); background: rgba(255,255,255,.78); backdrop-filter: blur(24px) saturate(1.4); -webkit-backdrop-filter: blur(24px) saturate(1.4); border-radius: 18px; padding: 24px 22px 22px; box-shadow: 0 12px 48px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.08) inset; border: 1px solid rgba(255,255,255,.18); text-align: center; z-index: 3; opacity: 0; visibility: hidden; transition: opacity .5s ease-out, transform .5s cubic-bezier(.22,1,.36,1), visibility .5s; }
   .login-float.revealed { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
   .login-float h2 { font-size: .78rem; margin-bottom: 16px; color: var(--bark); font-weight: 400; letter-spacing: .08em; }
   .login-float select { width: 100%; padding: 12px 14px; border: 1.5px solid rgba(139,115,85,.12); border-radius: 12px; font-size: .84rem; margin-bottom: 16px; background: rgba(250,247,242,.7); color: var(--ink); font-family: inherit; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238B7355' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 38px; transition: border-color .25s, box-shadow .25s, background .25s; }
@@ -274,7 +274,7 @@
   @keyframes overlayFade { from { opacity: 1; } to { opacity: 0; } }
   .welcome-card {
     background: #FFFDF7; border-radius: 28px; padding: 32px 24px 24px;
-    width: 86vw; max-width: 360px; text-align: center;
+    width: min(340px, 86vw); text-align: center;
     box-shadow: 0 16px 48px rgba(27,43,20,.18), 0 2px 8px rgba(27,43,20,.06);
     border: 1.5px solid rgba(139,195,74,.22);
     position: relative; overflow: hidden;
@@ -383,7 +383,7 @@
     .wn-skip:hover { opacity:1; }
 
     /* 取消报名确认弹窗 */
-    .cn-modal { position:relative; max-width:360px; width:88vw; padding:28px 22px 18px; text-align:center; overflow:visible; background:linear-gradient(175deg, #FFF8F6 0%, #FFF 30%, #FEF9F8 100%); border:1px solid rgba(180,120,110,.12); box-shadow:0 20px 56px rgba(120,60,40,.12), 0 4px 12px rgba(0,0,0,.04); }
+    .cn-modal { position:relative; width: min(340px, 86vw); padding:28px 22px 18px; text-align:center; overflow:visible; background:linear-gradient(175deg, #FFF8F6 0%, #FFF 30%, #FEF9F8 100%); border:1px solid rgba(180,120,110,.12); box-shadow:0 20px 56px rgba(120,60,40,.12), 0 4px 12px rgba(0,0,0,.04); }
     .cn-top { margin-bottom:8px; }
     .cn-icon-wrap { display:inline-flex; align-items:center; justify-content:center; width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #FFF0ED 0%, #FDE8E3 100%); border:2px solid rgba(200,120,100,.15); animation:cnPulse 2s ease-in-out infinite; }
     .cn-icon-wrap svg { width:26px; height:26px; color:var(--bark); }
@@ -400,6 +400,18 @@
     .cn-btn-confirm:hover { transform:translateY(-1px); box-shadow:0 5px 18px rgba(180,100,70,.35); }
     .cn-btn-confirm:active { transform:scale(.97); }
     .cn-btn:disabled { opacity:.5; pointer-events:none; }
+
+    /* AI品类不匹配弹窗 */
+    .mm-modal { position:relative; width: min(340px, 86vw); padding:28px 22px 18px; text-align:center; overflow:visible; background:linear-gradient(175deg, #F8FFF6 0%, #FFF 30%, #F5FEF5 100%); border:1px solid rgba(122,157,112,.14); box-shadow:0 20px 56px rgba(45,80,30,.12), 0 4px 12px rgba(0,0,0,.04); }
+    .mm-top { margin-bottom:8px; }
+    .mm-icon-wrap { display:inline-flex; align-items:center; justify-content:center; width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #EDF7E8 0%, #D8EFCF 100%); border:2px solid rgba(122,157,112,.15); animation:mmPulse 2s ease-in-out infinite; }
+    .mm-icon-wrap svg { width:26px; height:26px; color:var(--moss); }
+    @keyframes mmPulse { 0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(122,157,112,.15)} 50%{transform:scale(1.04);box-shadow:0 0 0 8px rgba(122,157,112,0)} }
+    .mm-title { margin-bottom:4px !important; font-size:1rem !important; color:var(--ink) !important; font-weight:600 !important; letter-spacing:.02em; }
+    .mm-desc { font-size:.78rem; color:var(--bark); margin-bottom:2px; line-height:1.7; }
+    .mm-desc strong { color:var(--ink); }
+    .mm-note { font-size:.6rem; color:var(--bark); opacity:.4; margin-bottom:16px; }
+    .mm-actions { display:flex; gap:10px; }
 
   .timeline { position: relative; padding-left: 20px; margin-top: 10px; }
   .timeline::before { content: ''; position: absolute; left: 5px; top: 0; bottom: 0; width: 1.5px; background: var(--moss); }
@@ -585,7 +597,7 @@
   <!-- 成果 tab -->
   <div class="tab-content" id="tab-reward">
     <section id="rewardCard" style="border-radius: var(--radius); padding: 24px; text-align: center; min-height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-      <div style="width:100%; max-width: 360px;">
+      <div style="width:100%; max-width: min(340px, 86vw);">
         <h2 style="font-size:1.2rem;margin-bottom:12px;"><img src="/image/icons/ico_gift.png" style="width:1.1em;height:1.1em;vertical-align:-.16em;display:inline-block;opacity:.85;" alt=""> 碳积分奖励</h2>
         <div id="rewardSection"><div class="empty">加载中...</div></div>
       </div>
@@ -754,6 +766,31 @@
   </div>
 </div>
 
+<!-- AI品类不匹配弹窗 -->
+<div class="modal-overlay" id="mismatchModal">
+  <div class="modal mm-modal">
+    <button class="close" onclick="closeModal('mismatchModal')" aria-label="关闭品类不匹配弹窗">&times;</button>
+    <div class="mm-top">
+      <span class="mm-icon-wrap" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M3 11v6c0 1.7 3.6 3 8 3"/><path d="M3 11v-1"/></svg>
+      </span>
+    </div>
+    <h3 class="mm-title">AI 识别结果不同</h3>
+    <p class="mm-desc">你选择了 <strong id="mmUserPick">-</strong>，但 AI 识别为 <strong id="mmAiPick">-</strong></p>
+    <p class="mm-note">AI 模型经过 5361 张图片训练，准确率 96%</p>
+    <div class="mm-actions">
+      <button class="cn-btn cn-btn-back" onclick="closeModal('mismatchModal')" aria-label="保持原选择">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        保持不变
+      </button>
+      <button class="cn-btn cn-btn-confirm" id="mmSwitchBtn" onclick="doSwitchCategory()" aria-label="切换为AI识别结果" style="background:linear-gradient(135deg, var(--moss) 0%, #1B5E20 100%); box-shadow:0 3px 12px rgba(45,90,39,.25);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v7"/><path d="M10 20h9a2 2 0 0 0 2-2v-4"/><path d="m15 4 4 4"/><path d="m9 20 4-4"/></svg>
+        切换为 AI 结果
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- 取消报名确认弹窗 -->
 <div class="modal-overlay" id="cancelJoinModal">
   <div class="modal cn-modal">
@@ -781,7 +818,7 @@
 
 <!-- 兑换确认弹窗 -->
 <div class="modal-overlay" id="shopBuyModal">
-  <div class="modal" style="max-width:380px;width:90vw;padding:20px;text-align:center;">
+  <div class="modal" style="width: min(340px, 86vw);padding:20px;text-align:center;">
     <button class="close" onclick="closeModal('shopBuyModal')" aria-label="关闭兑换确认弹窗">&times;</button>
     <div style="font-size:3rem;margin-bottom:4px;color:var(--moss);" id="buyIcon" aria-hidden="true">
       <svg class="icon" viewBox="0 0 24 24" style="width:48px;height:48px;"><path d="M20 12v10H4V12"/><path d="M2 7h20v5H2Z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 1 1 2.2-3.7L12 7Z"/><path d="M12 7h4.5a2.5 2.5 0 1 0-2.2-3.7L12 7Z"/></svg>
@@ -811,7 +848,7 @@
 
 <!-- 发布活动弹窗 -->
 <div class="modal-overlay" id="createActivityModal">
-  <div class="modal" style="max-width:380px;width:90vw;">
+  <div class="modal" style="width: min(340px, 86vw);">
     <button class="close" onclick="closeModal('createActivityModal')" aria-label="关闭">&times;</button>
     <h3>发布活动招募</h3>
     <label>活动标题</label>
@@ -1296,6 +1333,14 @@ async function handleFile(e) {
   document.getElementById('aiWarn').style.display = currentAiResult.need_recheck ? 'block' : 'none';
   document.getElementById('aiResult').classList.add('show');
 
+  // AI品类与用户选择不匹配 → 弹出切换建议
+  var aiCat = currentAiResult.category;
+  if (aiCat !== '无法识别' && aiCat !== currentWasteType) {
+    document.getElementById('mmUserPick').textContent = currentWasteType;
+    document.getElementById('mmAiPick').textContent = aiCat;
+    document.getElementById('mismatchModal').classList.add('show');
+  }
+
   checkSubmitReady();
 }
 function checkSubmitReady() {
@@ -1362,6 +1407,68 @@ function resetDelivery() {
   document.getElementById('uploadZone').classList.remove('has-image');
   document.getElementById('aiResult').classList.remove('show');
   document.getElementById('fileInput').value = '';
+}
+
+// AI品类不匹配 → 用户确认切换（保留照片/位置/GPS等已有状态）
+function doSwitchCategory() {
+  var aiCat = currentAiResult ? currentAiResult.category : '';
+  if (!aiCat || aiCat === '无法识别') { closeModal('mismatchModal'); return; }
+  closeModal('mismatchModal');
+
+  // 保存已有状态
+  var savedPhotoUrl = currentPhotoUrl;
+  var savedPhotoHash = photoHash;
+  var savedAiResult = currentAiResult;
+  var savedPoint = currentPoint;
+  var savedLocationVerified = locationVerified;
+  var savedCooldown = cooldownRemain;
+  var savedPending = pendingSubId;
+
+  // 切换品类（仅更新 currentWasteType + UI高亮，不调用 selectWasteType 避免 resetDelivery 清零状态）
+  currentWasteType = aiCat;
+  document.querySelectorAll('#wasteTypeGrid .point-card').forEach(function(c) {
+    c.classList.remove('selected');
+    c.setAttribute('aria-pressed', 'false');
+  });
+  var card = document.getElementById('wt-' + aiCat);
+  if (card) { card.classList.add('selected'); card.setAttribute('aria-pressed', 'true'); }
+  document.getElementById('selectedWasteType').innerHTML = '✅ 已切换：<strong>' + aiCat + '</strong>';
+
+  // 恢复状态
+  currentPhotoUrl = savedPhotoUrl;
+  photoHash = savedPhotoHash;
+  currentAiResult = savedAiResult;
+  currentPoint = savedPoint;
+  locationVerified = savedLocationVerified;
+  cooldownRemain = savedCooldown;
+  pendingSubId = savedPending;
+
+  // UI适配：切换后品类不等于厨余则显示选点区
+  if (aiCat === '外卖厨余') {
+    document.getElementById('pointSection').style.display = 'none';
+    document.getElementById('pendingSection').style.display = 'block';
+    document.getElementById('photoSection').style.display = 'block';
+    document.getElementById('uploadZone').style.display = 'block';
+  } else {
+    document.getElementById('pendingSection').style.display = 'none';
+    document.getElementById('uploadZone').style.display = 'block';
+    document.getElementById('photoSection').style.display = 'block';
+    if (currentPoint) {
+      document.getElementById('pointSection').style.display = 'block';
+    }
+  }
+
+  // 更新 AI 结果显示品类名称
+  document.getElementById('aiCat').textContent = aiCat;
+
+  // 刷新提交按钮状态
+  checkSubmitReady();
+
+  // 检查冷却
+  if (aiCat !== '外卖厨余' && currentPoint) checkCooldown();
+
+  document.getElementById('aiResult').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  toast('已切换为 AI 识别的「' + aiCat + '」，状态已保留');
 }
 
 async function submitDelivery() {
