@@ -2238,7 +2238,9 @@ async function loadTracking() {
     const res = await fetch(`${API}/user/${currentUser.id}/tracking`);
     const d = await res.json();
     if (!d.items.length) { document.getElementById('trackingList').innerHTML = '<div class="empty">投递后将在此追踪回收物去向</div>'; return; }
-    document.getElementById('trackingList').innerHTML = d.items.map(item => {
+    var trackItems = d.items.slice(0, 3);
+  var trackRemain = d.items.length > 3 ? d.items.length - 3 : 0;
+  document.getElementById('trackingList').innerHTML = trackItems.map(item => {
       const stageIcons = ['', 'camera', 'box', 'hand', 'gift'];
       const stageIcon = icon(stageIcons[item.current_stage] || 'box');
       return `<div class="track-card">
@@ -2266,7 +2268,7 @@ async function loadTracking() {
         </div>
         ${item.has_product ? `<div style="margin-top:8px;text-align:center;font-size:0.7rem;color:var(--purple);display:flex;align-items:center;justify-content:center;gap:4px;">${icon('gift')} ${item.product_desc || '成品已生成'}</div>` : ''}
       </div>`;
-    }).join('');
+    }).join('') + (trackRemain > 0 ? '<div style="text-align:center;margin-top:8px;"><button class="btn btn-outline btn-sm" onclick="loadAllTracking()" style="font-size:.68rem;padding:4px 16px;">展开全部（+' + trackRemain + '条）</button></div>' : '') + '';
   } catch(e) { document.getElementById('trackingList').innerHTML = '<div class="empty">加载失败</div>'; }
 }
 
@@ -2292,19 +2294,15 @@ function dismissCelebrate() {
 
 async function loadMyGallery() {
   if (!currentUser) return;
-  var unlocked = localStorage.getItem(`lc_unlocked_${currentUser.id}`) === '1';
-  if (!unlocked) {
-    try {
-      var ur = await fetch(`${API}/unlock-status?user_id=${currentUser.id}`);
-      var ud = await ur.json();
-      unlocked = ud.unlocked;
-      if (unlocked) localStorage.setItem(`lc_unlocked_${currentUser.id}`, '1');
-    } catch(e) {}
-  }
   var sec = document.getElementById('myGallerySection');
-  if (!unlocked) { sec.style.display = 'none'; return; }
-  sec.style.display = 'block';
   var grid = document.getElementById('myGalleryGrid');
+  try {
+    var ur = await fetch(`${API}/unlock-status?user_id=${currentUser.id}`);
+    var ud = await ur.json();
+    if (!ud.unlocked) { sec.style.display = 'none'; return; }
+    localStorage.setItem(`lc_unlocked_${currentUser.id}`, '1');
+    sec.style.display = 'block';
+  } catch(e) { sec.style.display = 'none'; return; }
   try {
     const res = await fetch(`${API}/gallery/mine?user_id=${currentUser.id}`);
     const d = await res.json();
@@ -2314,7 +2312,7 @@ async function loadMyGallery() {
         ? '<img class="gc-img" src="' + item.product_photo + '" alt="' + (item.product_desc||'') + '" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" loading="lazy"><div class="gc-img-fallback" style="display:none;">' + icon('gift') + '</div>'
         : '<div class="gc-img-fallback">' + icon('gift') + '</div>';
       return '<div class="gallery-card">' + photoHtml
-        + '<button class="gc-feature ' + (item.featured ? 'on' : 'off') + '" onclick="event.stopPropagation();openFeatureModal(' + item.reuse_id + ',\'' + (item.product_desc||'').replace(/'/g,'') + '\',' + item.featured + ')" title="' + (item.featured ? '点击取消精选' : '精选到橱窗') + '">' + icon('star') + '</button>'+ '<div class="gc-body">'
+        + (item.reuser_name === '我' ? '<button class="gc-feature ' + (item.featured ? 'on' : 'off') + '" onclick="event.stopPropagation();openFeatureModal(' + item.reuse_id + ',\'' + (item.product_desc||'').replace(/'/g,'') + '\',' + item.featured + ')" title="' + (item.featured ? '点击取消精选' : '精选到橱窗') + '">' + icon('star') + '</button>' : '')+ '<div class="gc-body">'
         + '<div class="gc-desc">' + (item.product_desc || '环保再生物品') + '</div>'
         + '<div class="gc-meta">' + icon('factory','inline-icon') + ' ' + item.reuser_name + ' · ' + icon('calendar','inline-icon') + ' ' + item.date + '</div>'
         + '<div class="gc-meta">' + icon('box','inline-icon') + ' ' + item.category + ' → ' + (item.destination||'') + '</div>'
@@ -2354,20 +2352,6 @@ async function doFeatureToggle() {
 }
 
 async function loadGallery() {
-  var sec = document.getElementById('gallerySection');
-  if (currentUser) {
-    var unlocked = localStorage.getItem(`lc_unlocked_${currentUser.id}`) === '1';
-    if (!unlocked) {
-      try {
-        var ur = await fetch(`${API}/unlock-status?user_id=${currentUser.id}`);
-        var ud = await ur.json();
-        unlocked = ud.unlocked;
-        if (unlocked) localStorage.setItem(`lc_unlocked_${currentUser.id}`, '1');
-      } catch(e) {}
-    }
-    if (!unlocked) { sec.style.opacity = '0.5'; sec.style.filter = 'grayscale(0.3)'; return; }
-  }
-  sec.style.opacity = '1'; sec.style.filter = 'none';
   const uid = currentUser ? currentUser.id : null;
   try {
     const url = uid ? `${API}/gallery?user_id=${uid}` : `${API}/gallery`;
@@ -2530,6 +2514,7 @@ async function confirmWorkName(skip) {
     toast(d.msg);
     if (d.new_score) { currentUser.carbon_score = d.new_score; updateCarbonDisplay(); }
     checkUnlockAndCelebrate();
+    loadMyGallery();
     loadActivities();
     _pendingWork = null;
   } catch(ex) { toast('上传失败'); btn.disabled = false; btn.innerHTML = '<span class="wn-btn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m8 7 4-4 4 4"/><path d="M4 17v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg></span>确认上传'; }
