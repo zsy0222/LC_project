@@ -88,6 +88,7 @@ class ReuseItem(Base):
     reuser_id = Column(Integer, ForeignKey("users.id"))
     product_photo = Column(String(256))
     product_desc = Column(String(256))
+    featured = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     batch = relationship("Batch", back_populates="reuse_items")

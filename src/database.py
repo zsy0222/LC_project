@@ -36,6 +36,12 @@ def init_db():
             if "password_hash" not in cols:
                 conn.execute(text("ALTER TABLE users ADD COLUMN password_hash VARCHAR(128)"))
             conn.commit()
+    if insp.has_table("reuse_items"):
+        cols = {c["name"] for c in insp.get_columns("reuse_items")}
+        with engine.connect() as conn:
+            if "featured" not in cols:
+                conn.execute(text("ALTER TABLE reuse_items ADD COLUMN featured BOOLEAN DEFAULT 0"))
+            conn.commit()
     if insp.has_table("submissions"):
         cols = {c["name"] for c in insp.get_columns("submissions")}
         with engine.connect() as conn:

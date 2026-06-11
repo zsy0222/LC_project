@@ -112,18 +112,18 @@ def user_tracking(user_id: int, db: Session = Depends(get_db)):
 
 @router.get("/gallery")
 def product_gallery(user_id: int | None = None, db: Session = Depends(get_db)):
-    """成品橱窗——所有已完成的成品照片"""
+    """成品橱窗——仅精选成品（featured=True）"""
     done_batches = db.query(Batch).filter(Batch.status == "done").order_by(Batch.created_at.desc()).limit(30).all()
     if not done_batches:
         return {"items": []}
 
     batch_ids = [b.id for b in done_batches]
-    reuse_items = {
-        r.batch_id: r
-        for r in db.query(ReuseItem).filter(ReuseItem.batch_id.in_(batch_ids)).all()
-    }
+    batch_map = {b.id: b for b in done_batches}
+    all_reuse = db.query(ReuseItem).filter(
+        ReuseItem.batch_id.in_(batch_ids),
+        ReuseItem.featured == True,
+    ).order_by(ReuseItem.created_at.desc()).all()
 
-    # 查找当前用户投递过的批次
     my_batch_ids = set()
     if user_id:
         my_subs = db.query(Submission).filter(
@@ -134,9 +134,9 @@ def product_gallery(user_id: int | None = None, db: Session = Depends(get_db)):
         my_batch_ids = set(s.batch_id for s in my_subs)
 
     items = []
-    for b in done_batches:
-        r = reuse_items.get(b.id)
-        if not r:
+    for r in all_reuse:
+        b = batch_map.get(r.batch_id)
+        if not b:
             continue
         reuser = db.query(User).get(r.reuser_id) if r.reuser_id else None
         items.append({
@@ -150,6 +150,41 @@ def product_gallery(user_id: int | None = None, db: Session = Depends(get_db)):
             "is_mine": b.id in my_batch_ids,
         })
 
+    return {"items": items}
+
+
+@router.get("/unlock-status")
+def unlock_status(user_id: int, db: Session = Depends(get_db)):
+    """成果页解锁 — 用户上传作品后解锁"""
+    count = db.query(ReuseItem).filter(ReuseItem.reuser_id == user_id).count()
+    return {"unlocked": count > 0, "product_count": count}
+
+
+@router.get("/gallery/mine")
+def my_product_gallery(user_id: int, db: Session = Depends(get_db)):
+    """我的作品 — 当前用户自己上传的成品"""
+    my_items = db.query(ReuseItem).filter(
+        ReuseItem.reuser_id == user_id,
+    ).order_by(ReuseItem.created_at.desc()).all()
+    if not my_items:
+        return {"items": []}
+
+    batch_ids = list(set(r.batch_id for r in my_items))
+    batches = {b.id: b for b in db.query(Batch).filter(Batch.id.in_(batch_ids)).all()}
+
+    items = []
+    for r in my_items:
+        b = batches.get(r.batch_id)
+        items.append({
+            "batch_id": r.batch_id,
+            "category": b.category if b else "活动作品",
+            "destination": b.destination if b else "",
+            "product_photo": r.product_photo,
+            "product_desc": r.product_desc,
+            "reuser_name": "我",
+            "date": datetime.strftime(r.created_at, "%Y-%m-%d") if r.created_at else "",
+            "is_mine": True,
+        })
     return {"items": items}
 
 

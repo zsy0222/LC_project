@@ -390,6 +390,34 @@
     .wn-skip { display:block; width:100%; margin-top:8px; padding:8px; border:none; background:none; color:var(--bark); font-size:.72rem; cursor:pointer; font-family:inherit; opacity:.6; transition:opacity .2s; }
     .wn-skip:hover { opacity:1; }
 
+  /* 解锁庆祝弹窗 */
+  #celebrateModal.show { display:flex; justify-content:center; align-items:center; z-index:350; }
+  .cb-card { position:relative; width:min(340px,86vw); background:linear-gradient(175deg,#FFFDF5 0%,#FFF 30%,#F8FFF5 100%); border-radius:22px; padding:36px 22px 24px; text-align:center; overflow:hidden; border:1.5px solid rgba(139,195,74,.22); box-shadow:0 24px 72px rgba(45,80,20,.18),0 0 0 1px rgba(139,195,74,.08) inset; animation:cbBounceIn .6s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes cbBounceIn { from{opacity:0;transform:scale(.7) translateY(30px)} 60%{transform:scale(1.03) translateY(-4px)} to{opacity:1;transform:scale(1) translateY(0)} }
+  .cb-sparkles { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+  .cb-spk { position:absolute; animation:cbFloat 2.5s ease-in-out infinite; opacity:.6; }
+  .cb-spk svg { width:16px; height:16px; display:block; }
+  .cb-spk.s1 { top:12%; left:10%; animation-delay:0s; color:var(--moss); }
+  .cb-spk.s2 { top:8%; right:14%; animation-delay:.4s; color:#8BC34A; }
+  .cb-spk.s3 { bottom:20%; left:8%; animation-delay:.8s; color:#FFB74D; }
+  @keyframes cbFloat { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-12px) rotate(8deg)} }
+  .cb-icon-wrap { display:inline-flex; align-items:center; justify-content:center; width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,#EDF7E8 0%,#D8EFCF 100%); border:2px solid rgba(122,157,112,.15); margin:0 auto 14px; animation:cbPulse 2s ease-in-out infinite; }
+  .cb-icon-wrap svg { width:30px; height:30px; color:var(--moss); }
+  @keyframes cbPulse { 0%,100%{box-shadow:0 0 0 0 rgba(122,157,112,.2)} 50%{box-shadow:0 0 0 14px rgba(122,157,112,0)} }
+  .cb-title { font-size:1.2rem !important; color:var(--moss) !important; margin-bottom:4px !important; font-weight:600 !important; letter-spacing:.03em; }
+  .cb-desc { font-size:.78rem; color:var(--bark); margin-bottom:18px; line-height:1.6; }
+  .cb-features { display:flex; gap:10px; margin-bottom:20px; }
+  .cb-feat { flex:1; background:#F5FAF2; border-radius:14px; padding:14px 10px; text-align:center; border:1px solid rgba(139,195,74,.1); }
+  .cb-feat-icon { font-size:1.8rem; display:block; margin-bottom:6px; }
+  .cb-feat-text { font-size:.75rem; color:var(--ink); font-weight:600; line-height:1.4; }
+  .cb-feat-text small { display:block; font-weight:400; color:var(--bark); opacity:.6; font-size:.6rem; margin-top:2px; }
+  .cb-btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:13px; border:none; border-radius:13px; background:linear-gradient(135deg,var(--moss) 0%,#1B5E20 100%); color:#FFF; font-size:.9rem; font-weight:600; cursor:pointer; font-family:inherit; box-shadow:0 4px 18px rgba(45,90,39,.28); transition:all .2s; letter-spacing:.04em; }
+  .cb-btn:hover { transform:translateY(-2px); box-shadow:0 6px 24px rgba(45,90,39,.38); }
+  .cb-btn:active { transform:scale(.97); }
+  .cb-btn svg { width:20px; height:20px; }
+  .cb-skip { display:block; width:100%; margin-top:10px; padding:8px; border:none; background:none; color:var(--bark); font-size:.7rem; cursor:pointer; font-family:inherit; opacity:.5; transition:opacity .2s; }
+  .cb-skip:hover { opacity:.8; }
+
     /* 取消报名确认弹窗 */
     .cn-modal { position:relative; width: min(340px, 86vw); padding:28px 22px 18px; text-align:center; overflow:visible; background:linear-gradient(175deg, #FFF8F6 0%, #FFF 30%, #FEF9F8 100%); border:1px solid rgba(180,120,110,.12); box-shadow:0 20px 56px rgba(120,60,40,.12), 0 4px 12px rgba(0,0,0,.04); }
     .cn-top { margin-bottom:8px; }
@@ -640,7 +668,11 @@
       <h2><img src="/image/icons/ico_tracking.png" style="width:1.1em;height:1.1em;vertical-align:-.16em;display:inline-block;opacity:.85;" alt=""> 回收物追踪</h2>
       <div id="trackingList"><div class="empty">暂无投递记录</div></div>
     </section>
-    <section>
+    <section id="myGallerySection" style="display:none;">
+      <h2>✨ 我的作品</h2>
+      <div id="myGalleryGrid"><div class="empty">上传作品后解锁</div></div>
+    </section>
+    <section id="gallerySection">
       <h2><img src="/image/icons/ico_gallery.png" style="width:1.1em;height:1.1em;vertical-align:-.16em;display:inline-block;opacity:.85;" alt=""> 成品橱窗</h2>
       <div id="galleryGrid"><div class="empty">暂无成品</div></div>
     </section>
@@ -751,6 +783,26 @@
 </div>
 
 <!-- 作品命名弹窗 -->
+<!-- 解锁庆祝弹窗 -->
+<div class="modal-overlay" id="celebrateModal">
+  <div class="cb-card" onclick="event.stopPropagation()">
+    <div class="cb-sparkles" aria-hidden="true">
+      <span class="cb-spk s1"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.5 6.5L20 7l-5 4.5 3.5 5.5L12 14l-6.5 3L9 11.5 4 7l6.5-1.5Z"/></svg></span>
+      <span class="cb-spk s2"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg></span>
+      <span class="cb-spk s3"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.5 6.5L20 7l-5 4.5 3.5 5.5L12 14l-6.5 3L9 11.5 4 7l6.5-1.5Z"/></svg></span>
+    </div>
+    <div class="cb-icon-wrap" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="m8 12 2 2 4-4"/></svg></div>
+    <h2 class="cb-title">新功能已解锁</h2>
+    <p class="cb-desc" id="cbDesc">你已上传第1件作品！快去成果页查看</p>
+    <div class="cb-features">
+      <div class="cb-feat"><span class="cb-feat-icon">📦</span><span class="cb-feat-text">我的作品<small>查看自己上传的成品</small></span></div>
+      <div class="cb-feat"><span class="cb-feat-icon">🖼️</span><span class="cb-feat-text">成品橱窗<small>精选校园再生产品展示</small></span></div>
+    </div>
+    <button class="cb-btn" onclick="dismissCelebrate()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>前往成果页查看</button>
+    <button class="cb-skip" onclick="dismissCelebrate()">知道了</button>
+  </div>
+</div>
+
 <div class="modal-overlay" id="workNameModal">
   <div class="modal work-name-modal">
     <button class="close" onclick="closeModal('workNameModal')" aria-label="关闭作品命名弹窗">&times;</button>
@@ -1150,7 +1202,7 @@ async function loadTabContent(tabId) {
     case 'tab-reuser': await loadBatches(); break;
     case 'tab-rank': await loadRank(); break;
     case 'tab-shop': await loadShop(); break;
-    case 'tab-reward': await Promise.all([loadRewardStatus(), loadMySubmissions(), loadTracking(), loadGallery(), loadBadges()]); break;
+    case 'tab-reward': await Promise.all([loadRewardStatus(), loadMySubmissions(), loadTracking(), loadMyGallery(), loadGallery(), loadBadges()]); break;
   }
 }
 
@@ -2185,7 +2237,74 @@ async function loadTracking() {
   } catch(e) { document.getElementById('trackingList').innerHTML = '<div class="empty">加载失败</div>'; }
 }
 
+let _celebrateShown = false;
+
+async function checkUnlockAndCelebrate() {
+  if (!currentUser || _celebrateShown) return;
+  try {
+    var r = await fetch(`${API}/unlock-status?user_id=${currentUser.id}`);
+    var d = await r.json();
+    if (!d.unlocked || d.product_count !== 1) return;
+    _celebrateShown = true;
+    localStorage.setItem(`lc_unlocked_${currentUser.id}`, '1');
+    document.getElementById('celebrateModal').classList.add('show');
+  } catch(e) {}
+}
+
+function dismissCelebrate() {
+  document.getElementById('celebrateModal').classList.remove('show');
+  switchTab('tab-reward');
+  loadTabContent('tab-reward');
+}
+
+async function loadMyGallery() {
+  if (!currentUser) return;
+  var unlocked = localStorage.getItem(`lc_unlocked_${currentUser.id}`) === '1';
+  if (!unlocked) {
+    try {
+      var ur = await fetch(`${API}/unlock-status?user_id=${currentUser.id}`);
+      var ud = await ur.json();
+      unlocked = ud.unlocked;
+      if (unlocked) localStorage.setItem(`lc_unlocked_${currentUser.id}`, '1');
+    } catch(e) {}
+  }
+  var sec = document.getElementById('myGallerySection');
+  if (!unlocked) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+  var grid = document.getElementById('myGalleryGrid');
+  try {
+    const res = await fetch(`${API}/gallery/mine?user_id=${currentUser.id}`);
+    const d = await res.json();
+    if (!d.items.length) { grid.innerHTML = '<div class="empty">暂无作品，参加活动上传作品后在此展示</div>'; return; }
+    grid.innerHTML = '<div class="gallery-grid">' + d.items.map(function(item) {
+      var photoHtml = item.product_photo
+        ? '<img class="gc-img" src="' + item.product_photo + '" alt="' + (item.product_desc||'') + '" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" loading="lazy"><div class="gc-img-fallback" style="display:none;">' + icon('gift') + '</div>'
+        : '<div class="gc-img-fallback">' + icon('gift') + '</div>';
+      return '<div class="gallery-card">' + photoHtml
+        + '<div class="gc-body">'
+        + '<div class="gc-desc">' + (item.product_desc || '环保再生物品') + '</div>'
+        + '<div class="gc-meta">' + icon('factory','inline-icon') + ' ' + item.reuser_name + ' · ' + icon('calendar','inline-icon') + ' ' + item.date + '</div>'
+        + '<div class="gc-meta">' + icon('box','inline-icon') + ' ' + item.category + ' → ' + (item.destination||'') + '</div>'
+        + '</div></div>';
+    }).join('') + '</div>';
+  } catch(e) { grid.innerHTML = '<div class="empty">加载失败</div>'; }
+}
+
 async function loadGallery() {
+  var sec = document.getElementById('gallerySection');
+  if (currentUser) {
+    var unlocked = localStorage.getItem(`lc_unlocked_${currentUser.id}`) === '1';
+    if (!unlocked) {
+      try {
+        var ur = await fetch(`${API}/unlock-status?user_id=${currentUser.id}`);
+        var ud = await ur.json();
+        unlocked = ud.unlocked;
+        if (unlocked) localStorage.setItem(`lc_unlocked_${currentUser.id}`, '1');
+      } catch(e) {}
+    }
+    if (!unlocked) { sec.style.opacity = '0.5'; sec.style.filter = 'grayscale(0.3)'; return; }
+  }
+  sec.style.opacity = '1'; sec.style.filter = 'none';
   const uid = currentUser ? currentUser.id : null;
   try {
     const url = uid ? `${API}/gallery?user_id=${uid}` : `${API}/gallery`;
@@ -2347,6 +2466,7 @@ async function confirmWorkName(skip) {
     closeModal('workNameModal');
     toast(d.msg);
     if (d.new_score) { currentUser.carbon_score = d.new_score; updateCarbonDisplay(); }
+    checkUnlockAndCelebrate();
     loadActivities();
     _pendingWork = null;
   } catch(ex) { toast('上传失败'); btn.disabled = false; btn.innerHTML = '<span class="wn-btn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m8 7 4-4 4 4"/><path d="M4 17v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg></span>确认上传'; }
