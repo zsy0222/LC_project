@@ -232,28 +232,24 @@ def reward_status(user_id: int, db: Session = Depends(get_db)):
         Submission.status == "confirmed",
     ).count()
 
-    # 查已有未读奖励通知
-    existing = db.query(Notification).filter(
-        Notification.user_id == user_id,
-        Notification.content.like("%奖励%"),
-        Notification.read == False,
+    # 查是否已领取
+    already_claimed = db.query(ShopOrder).filter(
+        ShopOrder.user_id == user_id,
+        ShopOrder.item_id.like("reward_%"),
     ).first()
 
     stage = min(20, total)
     progress_pct = min(100, round(stage / REWARD_THRESHOLD * 100))
 
-    if stage == 0:
-        phase_name = "空地"; phase_emoji = ""; phase_idx = 0
-    elif stage <= 3:
-        phase_name = "种子"; phase_emoji = "🌰"; phase_idx = 0
-    elif stage <= 7:
-        phase_name = "发芽"; phase_emoji = "🌱"; phase_idx = 1
-    elif stage <= 12:
-        phase_name = "树苗"; phase_emoji = "🌿"; phase_idx = 2
-    elif stage <= 17:
-        phase_name = "小树"; phase_emoji = "🪴"; phase_idx = 3
-    else:
-        phase_name = "大树"; phase_emoji = "🌳"; phase_idx = 4
+    if stage == 0: phase_name = "空地"; phase_emoji = ""; phase_idx = 0
+    elif stage <= 3: phase_name = "种子"; phase_emoji = "🌰"; phase_idx = 0
+    elif stage <= 7: phase_name = "发芽"; phase_emoji = "🌱"; phase_idx = 1
+    elif stage <= 12: phase_name = "树苗"; phase_emoji = "🌿"; phase_idx = 2
+    elif stage <= 17: phase_name = "小树"; phase_emoji = "🪴"; phase_idx = 3
+    else: phase_name = "大树"; phase_emoji = "🌳"; phase_idx = 4
+
+    stage_map = {1:"acorn_sprout",2:"acorn_crack",3:"acorn_root",4:"seedling_emerge",5:"seedling_leaf",6:"seedling_grow",7:"seedling_strong",8:"sapling_young",9:"sapling_branch",10:"sapling_tall",11:"sapling_crown",12:"sapling_vigorous",13:"tree_small",14:"tree_growing",15:"tree_bloom",16:"tree_shade",17:"tree_majestic",18:"giant_mature",19:"giant_grand",20:"giant_ancient"}
+    stage_image = "/image/tree/tree_stage_00_empty.png" if stage == 0 else f"/image/tree/tree_stage_{stage:02d}_{stage_map.get(stage,'acorn_sprout')}.png"
 
     return {
         "total_submissions": total,
@@ -263,19 +259,13 @@ def reward_status(user_id: int, db: Session = Depends(get_db)):
         "phase_name": phase_name,
         "phase_emoji": phase_emoji,
         "phase_idx": phase_idx,
-        "stage_image": ("/image/tree/tree_stage_00_empty.png" if stage == 0 else
-            f"/image/tree/tree_stage_{stage:02d}_" + {
-                1: "acorn_sprout", 2: "acorn_crack", 3: "acorn_root",
-                4: "seedling_emerge", 5: "seedling_leaf", 6: "seedling_grow", 7: "seedling_strong",
-                8: "sapling_young", 9: "sapling_branch", 10: "sapling_tall", 11: "sapling_crown", 12: "sapling_vigorous",
-                13: "tree_small", 14: "tree_growing", 15: "tree_bloom", 16: "tree_shade", 17: "tree_majestic",
-                18: "giant_mature", 19: "giant_grand", 20: "giant_ancient",
-            }[stage] + ".png"),
+        "stage_image": stage_image,
         "eligible": total >= REWARD_THRESHOLD,
-        "has_notification": bool(existing),
+        "already_claimed": bool(already_claimed),
+        "claimed_item": already_claimed.item_name if already_claimed else None,
         "message": f"还差 {max(0, REWARD_THRESHOLD - total)} 次投递即可获得奖励！"
         if total < REWARD_THRESHOLD
-        else "🎉 恭喜！你已达标，可从成品橱窗中选取一件实物成品作为奖励！",
+        else ("🎁 已领取奖励，新一轮回收开始！" if already_claimed else "🎉 恭喜！你已达标，可从成品橱窗中选取一件实物成品作为奖励！"),
     }
 
 
@@ -318,6 +308,17 @@ def claim_reward(user_id: int, address: str = "", db: Session = Depends(get_db))
     batch = db.query(Batch).get(picked.batch_id)
     reuser = db.query(User).get(picked.reuser_id)
 
+    # 创建物流订单（兑换记录）
+    order = ShopOrder(
+        user_id=user_id,
+        item_id=f"reward_{picked.id}",
+        item_name=picked.product_desc or "盲盒奖励",
+        price=0,  # 免费领取
+        address=address or "回收点领取",
+        status="pending",
+    )
+    db.add(order)
+
     notif = Notification(
         user_id=user_id,
         batch_id=picked.batch_id,
@@ -326,6 +327,13 @@ def claim_reward(user_id: int, address: str = "", db: Session = Depends(get_db))
         ts=datetime.utcnow(),
     )
     db.add(notif)
+
+    # 重置投递计数：将所有已确认投递标记为 expired
+    db.query(Submission).filter(
+        Submission.user_id == user_id,
+        Submission.status == "confirmed",
+    ).update({Submission.status: "expired"}, synchronize_session=False)
+
     db.commit()
 
     return {

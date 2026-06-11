@@ -455,45 +455,40 @@
 
     /* 盲盒抽奖弹窗 */
     #blindBoxModal.show { display:flex; justify-content:center; align-items:center; z-index:360; }
-    .bb-card { position:relative; width:min(340px,86vw); background:linear-gradient(175deg,#FEFDF8 0%,#FFF 30%,#FFF8F0 100%); border-radius:22px; padding:32px 22px 24px; text-align:center; overflow:hidden; border:2px solid rgba(220,170,90,.18); box-shadow:0 28px 80px rgba(60,40,10,.18),0 0 0 1px rgba(220,170,90,.06) inset; animation:bbBounceIn .5s cubic-bezier(.22,1,.36,1) both; }
-    @keyframes bbBounceIn { from{opacity:0;transform:scale(.8) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
-    .bb-icon-wrap { display:inline-flex; align-items:center; justify-content:center; width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#FFF8E1 0%,#FFE0B2 100%); border:2px solid rgba(220,170,90,.15); margin:0 auto 14px; }
-    .bb-icon-wrap svg { width:28px; height:28px; color:#C7913B; }
-    .bb-title { font-size:1.2rem !important; color:var(--ink) !important; margin-bottom:2px !important; font-weight:600 !important; }
-    .bb-desc { font-size:.76rem; color:var(--bark); margin-bottom:16px; line-height:1.6; }
-    .bb-field { display:flex; align-items:center; gap:8px; margin-bottom:16px; }
-    .bb-field-icon { width:18px; height:18px; color:var(--bark); opacity:.5; flex-shrink:0; }
-    .bb-field .lf-input { margin-bottom:0; flex:1; }
-    .bb-start-btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:14px; border:none; border-radius:14px; background:linear-gradient(135deg,#C7913B 0%,#A06A2A 100%); color:#FFF; font-size:.95rem; font-weight:600; cursor:pointer; font-family:inherit; box-shadow:0 4px 20px rgba(180,140,60,.35); transition:all .2s; letter-spacing:.04em; }
-    .bb-start-btn:hover { transform:translateY(-2px); box-shadow:0 6px 28px rgba(180,140,60,.45); }
+    .bb-card { position:relative; width:min(340px,86vw); background:linear-gradient(175deg,#F5F2EC 0%,#FFF 25%,#FAF7F2 100%); border-radius:20px; padding:36px 24px 24px; text-align:center; overflow:hidden; border:1.5px solid rgba(180,150,110,.12); box-shadow:0 24px 64px rgba(40,25,10,.14),0 2px 8px rgba(0,0,0,.04); animation:bbBounceIn .5s cubic-bezier(.22,1,.36,1) both; }
+    @keyframes bbBounceIn { from{opacity:0;transform:scale(.85) translateY(16px)} to{opacity:1;transform:scale(1) translateY(0)} }
+    .bb-title { font-size:1.15rem !important; color:var(--ink) !important; margin-bottom:4px !important; font-weight:600 !important; letter-spacing:.03em; }
+    .bb-desc { font-size:.76rem; color:var(--bark); margin-bottom:18px; line-height:1.6; opacity:.75; }
+    .bb-field { display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+    .bb-field-icon { width:18px; height:18px; color:var(--bark); opacity:.4; flex-shrink:0; }
+    .bb-field .lf-input { margin-bottom:0; flex:1; border-radius:12px; }
+    .bb-start-btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:14px; border:none; border-radius:14px; background:linear-gradient(135deg,var(--moss) 0%,#1B5E20 100%); color:#FFF; font-size:.92rem; font-weight:600; cursor:pointer; font-family:inherit; box-shadow:0 4px 18px rgba(45,90,39,.25); transition:all .2s; letter-spacing:.04em; }
+    .bb-start-btn:hover { transform:translateY(-2px); box-shadow:0 6px 24px rgba(45,90,39,.35); }
     .bb-start-btn:active { transform:scale(.97); }
-    .bb-start-btn svg { width:20px; height:20px; animation:bbSpinIcon 3s linear infinite; }
-    @keyframes bbSpinIcon { to{transform:rotate(360deg)} }
     /* Step 2 - spinning box */
-    .bb-spin-wrap { position:relative; width:120px; height:120px; margin:0 auto 20px; }
-    .bb-spin-box { width:100%; height:100%; display:flex; align-items:center; justify-content:center; animation:bbBoxRock .3s ease-in-out infinite; }
-    .bb-spin-box svg { width:64px; height:64px; color:#C7913B; }
-    @keyframes bbBoxRock { 0%,100%{transform:rotate(-5deg) scale(1)} 50%{transform:rotate(5deg) scale(1.08)} }
-    .bb-spin-sparkles { position:absolute; inset:-20px; }
-    .bb-spin-text { font-size:.82rem; color:var(--bark); font-weight:500; letter-spacing:.04em; animation:bbTextPulse 1.5s ease-in-out infinite; }
-    @keyframes bbTextPulse { 0%,100%{opacity:.6} 50%{opacity:1} }
+    .bb-spin-wrap { position:relative; width:100px; height:100px; margin:20px auto 24px; }
+    .bb-spin-box { width:100%; height:100%; display:flex; align-items:center; justify-content:center; animation:bbBoxRock .25s ease-in-out infinite; }
+    .bb-spin-box svg { width:56px; height:56px; color:var(--moss); opacity:.7; }
+    @keyframes bbBoxRock { 0%,100%{transform:rotate(-6deg) scale(1)} 50%{transform:rotate(6deg) scale(1.06)} }
+    .bb-spin-sparkles { position:absolute; inset:-16px; }
+    .bb-spin-text { font-size:.8rem; color:var(--bark); font-weight:500; letter-spacing:.04em; }
     /* Step 3 - reveal */
-    .bb-reveal { animation:bbRevealIn .6s cubic-bezier(.22,1,.36,1) both; }
-    @keyframes bbRevealIn { from{opacity:0;transform:scale(.6)} 60%{transform:scale(1.05)} to{opacity:1;transform:scale(1)} }
-    .bb-reveal-img-wrap { width:140px; height:140px; margin:0 auto 14px; border-radius:20px; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,.12); position:relative; }
+    .bb-reveal { animation:bbRevealIn .5s cubic-bezier(.22,1,.36,1) both; position:relative; }
+    @keyframes bbRevealIn { from{opacity:0;transform:scale(.5)} 65%{transform:scale(1.04)} to{opacity:1;transform:scale(1)} }
+    .bb-reveal-img-wrap { width:150px; height:150px; margin:0 auto 16px; border-radius:18px; overflow:hidden; box-shadow:0 6px 28px rgba(0,0,0,.1); position:relative; }
     .bb-reveal-img-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
-    .bb-reveal-fallback { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:3rem; background:#F5F0E8; }
+    .bb-reveal-fallback { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:3rem; background:#F0EBE0; }
     .bb-reveal-confetti { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
-    .bb-confetti { position:absolute; width:8px; height:8px; border-radius:50%; animation:bbConfettiFall 1.5s ease-out both; }
-    .bb-confetti.c1 { top:-10px; left:20%; background:#C7913B; animation-delay:.3s; }
+    .bb-confetti { position:absolute; width:8px; height:8px; border-radius:50%; animation:bbConfettiFall 1.8s ease-out both; }
+    .bb-confetti.c1 { top:-10px; left:20%; background:var(--moss); animation-delay:.3s; }
     .bb-confetti.c2 { top:-10px; left:50%; background:#8BC34A; animation-delay:.1s; }
-    .bb-confetti.c3 { top:-10px; right:20%; background:#E88; animation-delay:.5s; }
-    .bb-confetti.c4 { top:-10px; left:35%; background:#88C; animation-delay:.2s; width:6px;height:6px; }
-    .bb-confetti.c5 { top:-10px; right:35%; background:#EE8; animation-delay:.4s; width:6px;height:6px; }
-    @keyframes bbConfettiFall { 0%{transform:translateY(0) rotate(0deg);opacity:1} 100%{transform:translateY(220px) rotate(720deg);opacity:0} }
-    .bb-reveal-title { font-size:1.1rem !important; color:var(--moss) !important; margin-bottom:4px !important; font-weight:600 !important; }
+    .bb-confetti.c3 { top:-10px; right:20%; background:#FFB74D; animation-delay:.5s; }
+    .bb-confetti.c4 { top:-10px; left:35%; background:var(--moss); animation-delay:.2s; width:6px;height:6px; }
+    .bb-confetti.c5 { top:-10px; right:35%; background:#AED581; animation-delay:.4s; width:6px;height:6px; }
+    @keyframes bbConfettiFall { 0%{transform:translateY(0) rotate(0deg);opacity:1} 100%{transform:translateY(240px) rotate(720deg);opacity:0} }
+    .bb-reveal-title { font-size:1.1rem !important; color:var(--moss) !important; margin-bottom:6px !important; font-weight:600 !important; }
     .bb-reveal-desc { font-size:.9rem; color:var(--ink); font-weight:600; margin-bottom:4px; line-height:1.5; }
-    .bb-reveal-meta { font-size:.7rem; color:var(--bark); opacity:.6; letter-spacing:.03em; }
+    .bb-reveal-meta { font-size:.7rem; color:var(--bark); opacity:.55; letter-spacing:.03em; }
 
     /* AI品类不匹配弹窗 */
     .mm-modal { position:relative; width: min(340px, 86vw); padding:28px 22px 18px; text-align:center; overflow:visible; background:linear-gradient(175deg, #F8FFF6 0%, #FFF 30%, #F5FEF5 100%); border:1px solid rgba(122,157,112,.14); box-shadow:0 20px 56px rgba(45,80,30,.12), 0 4px 12px rgba(0,0,0,.04); }
@@ -864,22 +859,16 @@
 <!-- 盲盒抽奖弹窗 -->
 <div class="modal-overlay" id="blindBoxModal">
   <div class="bb-card" onclick="event.stopPropagation()">
+    <button class="close" onclick="closeModal('blindBoxModal')" aria-label="关闭" style="position:absolute;top:12px;right:14px;z-index:5;font-size:1.4rem;">&times;</button>
     <!-- 第一步：地址填写 -->
     <div id="bbStep1">
-      <button class="close" onclick="closeModal('blindBoxModal')" aria-label="关闭">&times;</button>
-      <div class="bb-icon-wrap" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v10H4V12"/><path d="M2 7h20v5H2Z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 1 1 2.2-3.7L12 7Z"/><path d="M12 7h4.5a2.5 2.5 0 1 0-2.2-3.7L12 7Z"/></svg>
-      </div>
-      <h3 class="bb-title">🎁 盲盒抽奖</h3>
-      <p class="bb-desc">恭喜达到 20 次投递！请填写领取地址，开启你的盲盒</p>
+      <h3 class="bb-title">盲盒抽奖</h3>
+      <p class="bb-desc">恭喜达到 20 次投递！填写地址，开启专属盲盒</p>
       <div class="bb-field">
         <svg class="bb-field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
         <input type="text" id="bbAddress" class="lf-input" placeholder="如：南园3舍 412" maxlength="60" onkeydown="if(event.key==='Enter')startBlindBox()">
       </div>
-      <button class="bb-start-btn" onclick="startBlindBox()" aria-label="开启盲盒">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7"/></svg>
-        开启盲盒
-      </button>
+      <button class="bb-start-btn" onclick="startBlindBox()" aria-label="开启盲盒">开启盲盒</button>
     </div>
     <!-- 第二步：开盒动画 -->
     <div id="bbStep2" style="display:none;">
@@ -901,14 +890,11 @@
         <div class="bb-reveal-confetti" aria-hidden="true">
           <span class="bb-confetti c1"></span><span class="bb-confetti c2"></span><span class="bb-confetti c3"></span><span class="bb-confetti c4"></span><span class="bb-confetti c5"></span>
         </div>
-        <h3 class="bb-reveal-title">🎉 恭喜获得</h3>
+        <h3 class="bb-reveal-title">恭喜获得</h3>
         <p class="bb-reveal-desc" id="bbRevealDesc"></p>
         <p class="bb-reveal-meta" id="bbRevealMeta"></p>
       </div>
-      <button class="cb-btn" onclick="closeModal('blindBoxModal');loadRewardStatus();loadMySubmissions();loadBadges();" style="margin-top:16px;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m5 12 5 5L20 7"/></svg>
-        太棒了
-      </button>
+      <button class="cb-btn" onclick="closeModal('blindBoxModal');loadRewardStatus();loadMySubmissions();loadBadges();loadShop();" style="margin-top:16px;">太棒了</button>
     </div>
   </div>
 </div>
@@ -2337,7 +2323,12 @@ async function loadRewardStatus() {
       '<div class="reward-bar-wrap"><div class="reward-bar-fill" style="width:' + pct + '%"></div></div>' +
       '<div class="reward-bar-label">' + stage + ' / 20</div>' +
       '<p style=\"margin-top:8px;font-size:0.75rem;\">' + (d.message || '') + '</p>' +
-      (stage >= 20 ? '<button class=\"btn btn-accent\" onclick=\"claimReward()\" style=\"margin-top:10px;padding:12px;font-size:1rem;\" aria-label=\"领取实物奖励\">' + buttonLabel('领取实物奖励','gift') + '</button>' : '<p style=\"font-size:0.65rem;color:var(--gray);margin-top:4px;\">投递满 20 次可领取环保再生物品</p>') +
+      (stage >= 20
+        ? (d.already_claimed
+           ? '<button class=\"btn btn-accent\" disabled style=\"margin-top:10px;padding:12px;font-size:1rem;opacity:.5;\" aria-label=\"已领取\">' + buttonLabel('已领取 ✓','gift') + '</button>' +
+             '<p style=\"font-size:.65rem;color:var(--bark);margin-top:4px;\">新一轮回收已开始，查看兑换记录跟踪物流</p>'
+           : '<button class=\"btn btn-accent\" onclick=\"claimReward()\" style=\"margin-top:10px;padding:12px;font-size:1rem;\" aria-label=\"领取实物奖励\">' + buttonLabel('开启盲盒','gift') + '</button>')
+        : '<p style=\"font-size:0.65rem;color:var(--gray);margin-top:4px;\">投递满 20 次可领取环保再生物品</p>') +
       '</div>';
   } catch(e) { document.getElementById('rewardSection').innerHTML = '<div class=\"empty\">加载失败</div>'; }
 }
