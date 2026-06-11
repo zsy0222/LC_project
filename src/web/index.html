@@ -2158,7 +2158,10 @@ async function openStory(batchId) {
       var k = await kres.json();
       _stackData.knowledge = k;
       renderKnowledgeCard(k);
-    } catch(e) { _stackData.knowledge = null; }
+    } catch(e) { _stackData.knowledge = null; renderKnowledgeCard(null); }
+  } else {
+    _stackData.knowledge = null;
+    renderKnowledgeCard(null);
   }
 
   renderStack();
@@ -2219,22 +2222,33 @@ async function openKnowledge(key) {
 }
 
 function renderKnowledgeCard(k) {
+  if (!k || !k.title) {
+    document.getElementById('skBackInner').innerHTML =
+      '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:32px 16px;text-align:center;">' +
+      '<div style="font-size:2.4rem;margin-bottom:10px;opacity:.5;">📋</div>' +
+      '<div style="font-size:.85rem;font-weight:600;color:var(--bark);margin-bottom:4px;">尚未确定处理方案</div>' +
+      '<div style="font-size:.72rem;color:var(--bark);opacity:.5;line-height:1.6;">该批次还未被去向端认领<br>认领后将显示具体的工艺知识与减排数据</div>' +
+      '</div>';
+    document.getElementById('skBackTabIcon').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+    document.getElementById('skBackTabLabel').textContent = '工艺知识';
+    return;
+  }
   document.getElementById('skBackInner').innerHTML =
     '<div style="margin-bottom:12px;">' +
-    '<div style="font-size:1.1rem;font-weight:700;color:var(--ink);margin-bottom:2px;">' + k.title + '</div>' +
-    '<div style="font-size:1.4rem;font-weight:700;color:var(--green);">' + k.co2_per_ton + ' ' + k.unit + '</div>' +
+    '<div style="font-size:1.1rem;font-weight:700;color:var(--ink);margin-bottom:2px;">' + (k.title || '') + '</div>' +
+    '<div style="font-size:1.4rem;font-weight:700;color:var(--green);">' + (k.co2_per_ton != null ? k.co2_per_ton : '?') + ' ' + (k.unit || 'kg CO₂e/吨') + '</div>' +
     '</div>' +
     '<div style="margin:10px 0;">' +
     '<div style="font-size:.75rem;font-weight:600;color:var(--bark);margin-bottom:3px;display:flex;align-items:center;gap:4px;">' + icon('lightbulb','inline-icon') + ' 减排原理</div>' +
-    '<div style="font-size:.8rem;color:var(--ink);line-height:1.7;">' + (k.principle || '-') + '</div>' +
+    '<div style="font-size:.8rem;color:var(--ink);line-height:1.7;">' + (k.principle || '暂无数据') + '</div>' +
     '</div>' +
     '<div style="margin:10px 0;">' +
     '<div style="font-size:.75rem;font-weight:600;color:var(--bark);margin-bottom:3px;display:flex;align-items:center;gap:4px;">' + icon('check','inline-icon') + ' 技术优势</div>' +
-    '<div style="font-size:.8rem;color:var(--ink);line-height:1.7;">' + (k.advantage || '-') + '</div>' +
+    '<div style="font-size:.8rem;color:var(--ink);line-height:1.7;">' + (k.advantage || '暂无数据') + '</div>' +
     '</div>' +
     '<div style="margin:10px 0;font-size:.68rem;color:var(--bark);">' +
     '<div style="font-weight:600;margin-bottom:2px;display:flex;align-items:center;gap:4px;">' + icon('document','inline-icon') + ' 数据来源</div>' +
-    '<span>' + (k.source || '-') + '</span>' +
+    '<span>' + (k.source || '暂无数据') + '</span>' +
     '</div>';
 
   document.getElementById('skBackTabIcon').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
@@ -2248,7 +2262,7 @@ function renderStack() {
   var back = document.getElementById('skBack');
 
   front.style.display = '';
-  back.style.display = _stackData.knowledge ? '' : 'none';
+  back.style.display = '';
 
   if (_stackData.story || _stackData.knowledge) {
     front.querySelector('.sk-card-inner').scrollTop = 0;
