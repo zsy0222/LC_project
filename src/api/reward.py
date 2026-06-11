@@ -280,8 +280,10 @@ def reward_status(user_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/user/{user_id}/claim-reward")
-def claim_reward(user_id: int, db: Session = Depends(get_db)):
-    """领取奖励：在成品橱窗选一件成品，发通知"""
+def claim_reward(user_id: int, address: str = "", db: Session = Depends(get_db)):
+    """盲盒抽奖：随机选取一件精选成品作为奖励"""
+    import random as _random
+
     user = db.query(User).get(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="用户不存在")
@@ -294,23 +296,32 @@ def claim_reward(user_id: int, db: Session = Depends(get_db)):
     if total < REWARD_THRESHOLD:
         raise HTTPException(status_code=400, detail=f"还差 {REWARD_THRESHOLD - total} 次投递，加油！")
 
-    # 获取最新完成的成品
-    latest = (
+    # 已经领过的检查
+    already = db.query(Notification).filter(
+        Notification.user_id == user_id,
+        Notification.content.like("%碳积分奖励%"),
+    ).first()
+    if already:
+        raise HTTPException(status_code=400, detail="你已经领取过奖励了，每期只能领取一次")
+
+    # 随机抽取一件精选成品
+    pool = (
         db.query(ReuseItem)
         .join(Batch, ReuseItem.batch_id == Batch.id)
-        .filter(Batch.status == "done")
-        .order_by(ReuseItem.created_at.desc())
-        .first()
+        .filter(Batch.status == "done", ReuseItem.featured == True)
+        .all()
     )
-
-    if not latest:
+    if not pool:
         raise HTTPException(status_code=404, detail="暂无可领取的成品")
 
-    # 发通知
+    picked = _random.choice(pool)
+    batch = db.query(Batch).get(picked.batch_id)
+    reuser = db.query(User).get(picked.reuser_id)
+
     notif = Notification(
         user_id=user_id,
-        batch_id=latest.batch_id,
-        content=f"🎁 碳积分奖励！你累计投递 {total} 次，获得实物成品「{latest.product_desc or '环保再生物品'}」一件，请到回收点领取！",
+        batch_id=picked.batch_id,
+        content=f"🎁 碳积分奖励！你累计投递 {total} 次，抽中「{picked.product_desc or '环保再生物品'}」（{reuser.nickname if reuser else '去向端'}出品），请到{address or '回收点'}领取！",
         read=False,
         ts=datetime.utcnow(),
     )
@@ -319,9 +330,12 @@ def claim_reward(user_id: int, db: Session = Depends(get_db)):
 
     return {
         "ok": True,
-        "msg": f"奖励已发放！请查收通知，前往领取「{latest.product_desc or '环保再生物品'}」",
-        "product_photo": latest.product_photo,
-        "product_desc": latest.product_desc,
+        "msg": f"🎉 恭喜抽中「{picked.product_desc or '环保再生物品'}」！",
+        "product_photo": picked.product_photo,
+        "product_desc": picked.product_desc,
+        "reuser_name": reuser.nickname if reuser else "去向端",
+        "category": batch.category if batch else "未知",
+        "pool_size": len(pool),
     }
 
 

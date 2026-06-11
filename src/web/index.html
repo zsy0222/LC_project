@@ -453,6 +453,48 @@
     .gc-feature.off svg { color:var(--bark); opacity:.35; }
     .gc-feature:hover { transform:scale(1.1); }
 
+    /* 盲盒抽奖弹窗 */
+    #blindBoxModal.show { display:flex; justify-content:center; align-items:center; z-index:360; }
+    .bb-card { position:relative; width:min(340px,86vw); background:linear-gradient(175deg,#FEFDF8 0%,#FFF 30%,#FFF8F0 100%); border-radius:22px; padding:32px 22px 24px; text-align:center; overflow:hidden; border:2px solid rgba(220,170,90,.18); box-shadow:0 28px 80px rgba(60,40,10,.18),0 0 0 1px rgba(220,170,90,.06) inset; animation:bbBounceIn .5s cubic-bezier(.22,1,.36,1) both; }
+    @keyframes bbBounceIn { from{opacity:0;transform:scale(.8) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
+    .bb-icon-wrap { display:inline-flex; align-items:center; justify-content:center; width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#FFF8E1 0%,#FFE0B2 100%); border:2px solid rgba(220,170,90,.15); margin:0 auto 14px; }
+    .bb-icon-wrap svg { width:28px; height:28px; color:#C7913B; }
+    .bb-title { font-size:1.2rem !important; color:var(--ink) !important; margin-bottom:2px !important; font-weight:600 !important; }
+    .bb-desc { font-size:.76rem; color:var(--bark); margin-bottom:16px; line-height:1.6; }
+    .bb-field { display:flex; align-items:center; gap:8px; margin-bottom:16px; }
+    .bb-field-icon { width:18px; height:18px; color:var(--bark); opacity:.5; flex-shrink:0; }
+    .bb-field .lf-input { margin-bottom:0; flex:1; }
+    .bb-start-btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:14px; border:none; border-radius:14px; background:linear-gradient(135deg,#C7913B 0%,#A06A2A 100%); color:#FFF; font-size:.95rem; font-weight:600; cursor:pointer; font-family:inherit; box-shadow:0 4px 20px rgba(180,140,60,.35); transition:all .2s; letter-spacing:.04em; }
+    .bb-start-btn:hover { transform:translateY(-2px); box-shadow:0 6px 28px rgba(180,140,60,.45); }
+    .bb-start-btn:active { transform:scale(.97); }
+    .bb-start-btn svg { width:20px; height:20px; animation:bbSpinIcon 3s linear infinite; }
+    @keyframes bbSpinIcon { to{transform:rotate(360deg)} }
+    /* Step 2 - spinning box */
+    .bb-spin-wrap { position:relative; width:120px; height:120px; margin:0 auto 20px; }
+    .bb-spin-box { width:100%; height:100%; display:flex; align-items:center; justify-content:center; animation:bbBoxRock .3s ease-in-out infinite; }
+    .bb-spin-box svg { width:64px; height:64px; color:#C7913B; }
+    @keyframes bbBoxRock { 0%,100%{transform:rotate(-5deg) scale(1)} 50%{transform:rotate(5deg) scale(1.08)} }
+    .bb-spin-sparkles { position:absolute; inset:-20px; }
+    .bb-spin-text { font-size:.82rem; color:var(--bark); font-weight:500; letter-spacing:.04em; animation:bbTextPulse 1.5s ease-in-out infinite; }
+    @keyframes bbTextPulse { 0%,100%{opacity:.6} 50%{opacity:1} }
+    /* Step 3 - reveal */
+    .bb-reveal { animation:bbRevealIn .6s cubic-bezier(.22,1,.36,1) both; }
+    @keyframes bbRevealIn { from{opacity:0;transform:scale(.6)} 60%{transform:scale(1.05)} to{opacity:1;transform:scale(1)} }
+    .bb-reveal-img-wrap { width:140px; height:140px; margin:0 auto 14px; border-radius:20px; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,.12); position:relative; }
+    .bb-reveal-img-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
+    .bb-reveal-fallback { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:3rem; background:#F5F0E8; }
+    .bb-reveal-confetti { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+    .bb-confetti { position:absolute; width:8px; height:8px; border-radius:50%; animation:bbConfettiFall 1.5s ease-out both; }
+    .bb-confetti.c1 { top:-10px; left:20%; background:#C7913B; animation-delay:.3s; }
+    .bb-confetti.c2 { top:-10px; left:50%; background:#8BC34A; animation-delay:.1s; }
+    .bb-confetti.c3 { top:-10px; right:20%; background:#E88; animation-delay:.5s; }
+    .bb-confetti.c4 { top:-10px; left:35%; background:#88C; animation-delay:.2s; width:6px;height:6px; }
+    .bb-confetti.c5 { top:-10px; right:35%; background:#EE8; animation-delay:.4s; width:6px;height:6px; }
+    @keyframes bbConfettiFall { 0%{transform:translateY(0) rotate(0deg);opacity:1} 100%{transform:translateY(220px) rotate(720deg);opacity:0} }
+    .bb-reveal-title { font-size:1.1rem !important; color:var(--moss) !important; margin-bottom:4px !important; font-weight:600 !important; }
+    .bb-reveal-desc { font-size:.9rem; color:var(--ink); font-weight:600; margin-bottom:4px; line-height:1.5; }
+    .bb-reveal-meta { font-size:.7rem; color:var(--bark); opacity:.6; letter-spacing:.03em; }
+
     /* AI品类不匹配弹窗 */
     .mm-modal { position:relative; width: min(340px, 86vw); padding:28px 22px 18px; text-align:center; overflow:visible; background:linear-gradient(175deg, #F8FFF6 0%, #FFF 30%, #F5FEF5 100%); border:1px solid rgba(122,157,112,.14); box-shadow:0 20px 56px rgba(45,80,30,.12), 0 4px 12px rgba(0,0,0,.04); }
     .mm-top { margin-bottom:8px; }
@@ -816,6 +858,58 @@
     </div>
     <button class="cb-btn" onclick="dismissCelebrate()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>前往成果页查看</button>
     <button class="cb-skip" onclick="dismissCelebrate()">知道了</button>
+  </div>
+</div>
+
+<!-- 盲盒抽奖弹窗 -->
+<div class="modal-overlay" id="blindBoxModal">
+  <div class="bb-card" onclick="event.stopPropagation()">
+    <!-- 第一步：地址填写 -->
+    <div id="bbStep1">
+      <button class="close" onclick="closeModal('blindBoxModal')" aria-label="关闭">&times;</button>
+      <div class="bb-icon-wrap" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v10H4V12"/><path d="M2 7h20v5H2Z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 1 1 2.2-3.7L12 7Z"/><path d="M12 7h4.5a2.5 2.5 0 1 0-2.2-3.7L12 7Z"/></svg>
+      </div>
+      <h3 class="bb-title">🎁 盲盒抽奖</h3>
+      <p class="bb-desc">恭喜达到 20 次投递！请填写领取地址，开启你的盲盒</p>
+      <div class="bb-field">
+        <svg class="bb-field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        <input type="text" id="bbAddress" class="lf-input" placeholder="如：南园3舍 412" maxlength="60" onkeydown="if(event.key==='Enter')startBlindBox()">
+      </div>
+      <button class="bb-start-btn" onclick="startBlindBox()" aria-label="开启盲盒">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7"/></svg>
+        开启盲盒
+      </button>
+    </div>
+    <!-- 第二步：开盒动画 -->
+    <div id="bbStep2" style="display:none;">
+      <div class="bb-spin-wrap" aria-hidden="true">
+        <div class="bb-spin-box" id="bbSpinBox">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 12v10H4V12"/><path d="M2 7h20v5H2Z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 1 1 2.2-3.7L12 7Z"/><path d="M12 7h4.5a2.5 2.5 0 1 0-2.2-3.7L12 7Z"/></svg>
+        </div>
+        <div class="bb-spin-sparkles" id="bbSparkles"></div>
+      </div>
+      <p class="bb-spin-text">正在抽取你的专属成品...</p>
+    </div>
+    <!-- 第三步：揭晓 -->
+    <div id="bbStep3" style="display:none;">
+      <div class="bb-reveal" id="bbReveal">
+        <div class="bb-reveal-img-wrap">
+          <img id="bbRevealImg" src="" alt="" style="display:none">
+          <div class="bb-reveal-fallback" id="bbRevealFallback"></div>
+        </div>
+        <div class="bb-reveal-confetti" aria-hidden="true">
+          <span class="bb-confetti c1"></span><span class="bb-confetti c2"></span><span class="bb-confetti c3"></span><span class="bb-confetti c4"></span><span class="bb-confetti c5"></span>
+        </div>
+        <h3 class="bb-reveal-title">🎉 恭喜获得</h3>
+        <p class="bb-reveal-desc" id="bbRevealDesc"></p>
+        <p class="bb-reveal-meta" id="bbRevealMeta"></p>
+      </div>
+      <button class="cb-btn" onclick="closeModal('blindBoxModal');loadRewardStatus();loadMySubmissions();loadBadges();" style="margin-top:16px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m5 12 5 5L20 7"/></svg>
+        太棒了
+      </button>
+    </div>
   </div>
 </div>
 
@@ -1736,21 +1830,49 @@ async function submitDelivery() {
   } catch(e) { toast('[X] ' + e.message); btn.disabled = false; btn.textContent = '确认投递'; }
 }
 
-async function loadMySubmissions() {
-  if (!currentUser) return;
-  const res = await fetch(`${API}/user/${currentUser.id}/submissions`);
-  const subs = await res.json();
-  const confirmed = subs.filter(s => s.status === 'confirmed');
-  const c = document.getElementById('mySubmissions');
-  if (!confirmed.length) { c.innerHTML = '<div class="empty">还没有投递记录 📸</div>'; return; }
+let _subExpanded = false;
+
+function renderSubs(items) {
   const icons = {'外卖厨余':'leaf','快递纸箱':'box','塑料':'recycle','有害':'spark'};
-  c.innerHTML = confirmed.map(s => `
+  return items.map(s => `
     <div class="sub-item">
       <img class="sub-thumb" src="${s.photo}" alt="${s.waste_type || s.category}照片" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22><rect fill=%22%23f0ebe0%22 width=%2244%22 height=%2244%22/><path d=%22m8 14 14 8 14-8M8 14l14-8 14 8v16l-14 8-14-8Z%22 fill=%22none%22 stroke=%22%232d5a27%22 stroke-width=%222%22/></svg>'">
       <div class="sub-info"><div><strong>${icon(icons[s.waste_type] || 'box','inline-icon')} ${s.waste_type||s.category}</strong> · ${s.grade||''}</div><div class="meta">${s.batch_id} | ${new Date(s.ts).toLocaleString('zh-CN')}</div></div>
       <div class="sub-co2">-${s.co2_saved?.toFixed(3)} kg</div>
       <button class="btn btn-outline btn-sm" onclick="openStory('${s.batch_id}')" aria-label="查看批次 ${s.batch_id} 故事">${icon('story')}</button>
     </div>`).join('');
+}
+
+async function loadMySubmissions() {
+  if (!currentUser) return;
+  const res = await fetch(`${API}/user/${currentUser.id}/submissions`);
+  const subs = await res.json();
+  const confirmed = subs.filter(s => s.status === 'confirmed');
+  const c = document.getElementById('mySubmissions');
+  if (!confirmed.length) { c.innerHTML = '<div class="empty">还没有投递记录</div>'; return; }
+  _subExpanded = false;
+  var sliced = confirmed.slice(0, 3);
+  var remain = confirmed.length > 3 ? confirmed.length - 3 : 0;
+  c.innerHTML = renderSubs(sliced)
+    + (remain > 0 ? '<div style="text-align:center;margin-top:8px;"><button class="btn btn-outline btn-sm" onclick="toggleSubmissions()" style="font-size:.68rem;padding:4px 16px;">展开全部（+' + remain + '条）</button></div>' : '');
+}
+
+async function toggleSubmissions() {
+  if (!currentUser) return;
+  _subExpanded = !_subExpanded;
+  var res = await fetch(`${API}/user/${currentUser.id}/submissions`);
+  var subs = await res.json();
+  var confirmed = subs.filter(s => s.status === 'confirmed');
+  var c = document.getElementById('mySubmissions');
+  if (_subExpanded) {
+    c.innerHTML = renderSubs(confirmed)
+      + '<div style="text-align:center;margin-top:8px;"><button class="btn btn-outline btn-sm" onclick="toggleSubmissions()" style="font-size:.68rem;padding:4px 16px;">收起</button></div>';
+  } else {
+    var sliced = confirmed.slice(0, 3);
+    var remain = confirmed.length > 3 ? confirmed.length - 3 : 0;
+    c.innerHTML = renderSubs(sliced)
+      + (remain > 0 ? '<div style="text-align:center;margin-top:8px;"><button class="btn btn-outline btn-sm" onclick="toggleSubmissions()" style="font-size:.68rem;padding:4px 16px;">展开全部（+' + remain + '条）</button></div>' : '');
+  }
 }
 
 async function loadRank() {
@@ -2220,16 +2342,46 @@ async function loadRewardStatus() {
   } catch(e) { document.getElementById('rewardSection').innerHTML = '<div class=\"empty\">加载失败</div>'; }
 }
 
-async function claimReward() {
+function claimReward() {
   if (!currentUser) return;
+  document.getElementById('blindBoxModal').classList.add('show');
+  document.getElementById('bbStep1').style.display = 'block';
+  document.getElementById('bbStep2').style.display = 'none';
+  document.getElementById('bbStep3').style.display = 'none';
+  document.getElementById('bbAddress').value = '';
+}
+
+async function startBlindBox() {
+  var addr = document.getElementById('bbAddress').value.trim();
+  if (!addr) { toast('请填写领取地址'); return; }
+  // Step 1 -> 2
+  document.getElementById('bbStep1').style.display = 'none';
+  document.getElementById('bbStep2').style.display = 'block';
+  // Create sparkle dots
+  var sparkle = document.getElementById('bbSparkles');
+  sparkle.innerHTML = '';
+  for (var i = 0; i < 12; i++) {
+    var dot = document.createElement('span');
+    dot.style.cssText = 'position:absolute;width:6px;height:6px;border-radius:50%;background:' + (['#C7913B','#8BC34A','#E88','#88C','#EE8','#F9A'][i%6]) + ';animation:cbFloat ' + (1.5 + Math.random()*2) + 's ease-in-out infinite;animation-delay:' + (Math.random()*.8) + 's;left:' + (10+Math.random()*80) + '%;top:' + (10+Math.random()*80) + '%;';
+    sparkle.appendChild(dot);
+  }
   try {
-    const res = await fetch(`${API}/user/${currentUser.id}/claim-reward`, { method: 'POST' });
-    if (!res.ok) { const e = await res.json(); toast('[X] ' + e.detail); return; }
-    const d = await res.json();
-    toast('🎉 ' + d.msg);
-    loadRewardStatus();
-    loadMySubmissions();
-  } catch(e) { toast('❌ 领取失败'); }
+    var res = await fetch(`${API}/user/${currentUser.id}/claim-reward?address=${encodeURIComponent(addr)}`, { method:'POST' });
+    if (!res.ok) { var e = await res.json(); toast('[X] ' + e.detail); document.getElementById('bbStep1').style.display='block'; document.getElementById('bbStep2').style.display='none'; return; }
+    var d = await res.json();
+    // Simulate spin delay
+    setTimeout(function() {
+      document.getElementById('bbStep2').style.display = 'none';
+      document.getElementById('bbStep3').style.display = 'block';
+      document.getElementById('bbRevealDesc').textContent = d.product_desc || '环保再生物品';
+      document.getElementById('bbRevealMeta').textContent = (d.reuser_name||'去向端') + '出品 · ' + (d.category||'') + ' · 共' + (d.pool_size||'?') + '件可抽';
+      var img = document.getElementById('bbRevealImg');
+      img.src = d.product_photo || '';
+      img.style.display = 'block';
+      img.onerror = function(){this.style.display='none';document.getElementById('bbRevealFallback').innerHTML='&#x1F4E6;';};
+      document.getElementById('bbRevealFallback').style.display = d.product_photo ? 'none' : 'flex';
+    }, 1800);
+  } catch(ex) { toast('网络错误'); document.getElementById('bbStep1').style.display='block'; document.getElementById('bbStep2').style.display='none'; }
 }
 
 async function loadTracking() {
@@ -2268,8 +2420,33 @@ async function loadTracking() {
         </div>
         ${item.has_product ? `<div style="margin-top:8px;text-align:center;font-size:0.7rem;color:var(--purple);display:flex;align-items:center;justify-content:center;gap:4px;">${icon('gift')} ${item.product_desc || '成品已生成'}</div>` : ''}
       </div>`;
-    }).join('') + (trackRemain > 0 ? '<div style="text-align:center;margin-top:8px;"><button class="btn btn-outline btn-sm" onclick="loadAllTracking()" style="font-size:.68rem;padding:4px 16px;">展开全部（+' + trackRemain + '条）</button></div>' : '') + '';
+    }).join('') + (trackRemain > 0 ? '<div style="text-align:center;margin-top:8px;" id="trackToggleWrap"><button class="btn btn-outline btn-sm" onclick="loadAllTracking()" style="font-size:.68rem;padding:4px 16px;">展开全部（+' + trackRemain + '条）</button></div>' : '') + '';
   } catch(e) { document.getElementById('trackingList').innerHTML = '<div class="empty">加载失败</div>'; }
+}
+
+let _trackExpanded = false;
+
+async function loadAllTracking() {
+  if (!currentUser) return;
+  if (_trackExpanded) {
+    _trackExpanded = false;
+    loadTracking();
+    return;
+  }
+  _trackExpanded = true;
+  var res = await fetch(`${API}/user/${currentUser.id}/tracking`);
+  var d = await res.json();
+  if (!d.items.length) return;
+  var stageIcons = ['', 'camera', 'box', 'hand', 'gift'];
+  document.getElementById('trackingList').innerHTML = d.items.map(item => {
+    var stageIcon = icon(stageIcons[item.current_stage] || 'box');
+    var stages = item.stages.map((s,i) => {
+      var stageCls = i + 1 < item.current_stage ? 'done' : (i + 1 === item.current_stage ? 'active' : '');
+      var dotIcon = stageCls === 'done' ? 'check' : (stageIcons[i+1] || 'box');
+      return '<div class="track-step ' + stageCls + '"><div class="step-dot">' + icon(dotIcon) + '</div><div class="step-label">' + s.label + '</div><div class="step-detail">' + (s.detail||'') + '</div></div>';
+    }).join('');
+    return '<div class="track-card"><div class="track-header"><span class="track-cat" style="display:inline-flex;align-items:center;gap:4px;">' + stageIcon + ' ' + item.category + '</span><span class="track-dest">' + (item.destination||'待认领') + '</span></div><div class="track-progress">' + stages + '</div>' + (item.has_product ? '<div style="margin-top:8px;text-align:center;font-size:0.7rem;color:var(--purple);display:flex;align-items:center;justify-content:center;gap:4px;">' + icon('gift') + ' ' + (item.product_desc||'成品已生成') + '</div>' : '') + '</div>';
+  }).join('') + '<div style="text-align:center;margin-top:8px;"><button class="btn btn-outline btn-sm" onclick="loadAllTracking()" style="font-size:.68rem;padding:4px 16px;">收起</button></div>';
 }
 
 let _celebrateShown = false;
@@ -2284,32 +2461,6 @@ async function checkUnlockAndCelebrate() {
     localStorage.setItem(`lc_unlocked_${currentUser.id}`, '1');
     document.getElementById('celebrateModal').classList.add('show');
   } catch(e) {}
-}
-
-let _trackingAll = false;
-let _trackingFull = null;
-
-async function loadAllTracking() {
-  if (!currentUser) return;
-  var grid = document.getElementById('trackingList');
-  if (_trackingFull) {
-    grid.innerHTML = _trackingFull;
-    _trackingFull = null;
-    return;
-  }
-  var res = await fetch(`${API}/user/${currentUser.id}/tracking`);
-  var d = await res.json();
-  if (!d.items.length) return;
-  grid.innerHTML = d.items.map(item => {
-    var stageIcons = ['', 'camera', 'box', 'hand', 'gift'];
-    var stageIcon = icon(stageIcons[item.current_stage] || 'box');
-    var stages = item.stages.map((s,i) => {
-      var stageCls = i + 1 < item.current_stage ? 'done' : (i + 1 === item.current_stage ? 'active' : '');
-      var dotIcon = stageCls === 'done' ? 'check' : (stageIcons[i+1] || 'box');
-      return '<div class="track-step ' + stageCls + '"><div class="step-dot">' + icon(dotIcon) + '</div><div class="step-label">' + s.label + '</div><div class="step-detail">' + (s.detail||'') + '</div></div>';
-    }).join('');
-    return '<div class="track-card"><div class="track-header"><span class="track-cat" style="display:inline-flex;align-items:center;gap:4px;">' + stageIcon + ' ' + item.category + '</span><span class="track-dest">' + (item.destination||'待认领') + '</span></div><div class="track-progress">' + stages + '</div>' + (item.has_product ? '<div style="margin-top:8px;text-align:center;font-size:0.7rem;color:var(--purple);display:flex;align-items:center;justify-content:center;gap:4px;">' + icon('gift') + ' ' + (item.product_desc||'成品已生成') + '</div>' : '') + '</div>';
-  }).join('');
 }
 
 function dismissCelebrate() {
