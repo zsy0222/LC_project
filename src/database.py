@@ -30,6 +30,12 @@ def init_db():
     # 轻量迁移：为已有数据库补充新增列
     from sqlalchemy import text, inspect
     insp = inspect(engine)
+    if insp.has_table("users"):
+        cols = {c["name"] for c in insp.get_columns("users")}
+        with engine.connect() as conn:
+            if "password_hash" not in cols:
+                conn.execute(text("ALTER TABLE users ADD COLUMN password_hash VARCHAR(128)"))
+            conn.commit()
     if insp.has_table("submissions"):
         cols = {c["name"] for c in insp.get_columns("submissions")}
         with engine.connect() as conn:

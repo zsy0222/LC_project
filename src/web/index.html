@@ -56,17 +56,25 @@
   .login-poem .lp-line { display: block; font-family: \"Playfair Display\", Georgia, serif; font-size: 2.8rem; font-style: italic; font-weight: 400; color: #5C3D2E; text-shadow: 0 2px 6px rgba(0,0,0,.12); line-height: 1.2; letter-spacing: .04em; }
   .login-poem .lp-sub { display: block; position: fixed; left: 0; right: 0; bottom: 19%; font-size: .72rem; color: #5C3D2E; opacity: 1; letter-spacing: .12em; font-weight: 300; }
 
-  /* 登录卡片 */
-  .login-float { position: absolute; bottom: 8%; left: 50%; transform: translateX(-50%) translateY(30px); width: min(340px, 86vw); background: rgba(255,255,255,.78); backdrop-filter: blur(24px) saturate(1.4); -webkit-backdrop-filter: blur(24px) saturate(1.4); border-radius: 18px; padding: 24px 22px 22px; box-shadow: 0 12px 48px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.08) inset; border: 1px solid rgba(255,255,255,.18); text-align: center; z-index: 3; opacity: 0; visibility: hidden; transition: opacity .5s ease-out, transform .5s cubic-bezier(.22,1,.36,1), visibility .5s; }
-  .login-float.revealed { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
-  .login-float h2 { font-size: .78rem; margin-bottom: 16px; color: var(--bark); font-weight: 400; letter-spacing: .08em; }
-  .login-float select { width: 100%; padding: 12px 14px; border: 1.5px solid rgba(139,115,85,.12); border-radius: 12px; font-size: .84rem; margin-bottom: 16px; background: rgba(250,247,242,.7); color: var(--ink); font-family: inherit; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238B7355' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 38px; transition: border-color .25s, box-shadow .25s, background .25s; }
-  .login-float select:hover { border-color: rgba(139,115,85,.25); }
-  .login-float select:focus { outline: none; border-color: var(--moss); box-shadow: 0 0 0 4px rgba(45,90,39,.06); background: rgba(255,255,255,.95); }
-  .login-float .btn { margin-top: 0; border-radius: 12px; font-size: .9rem; padding: 12px; letter-spacing: .06em; font-weight: 500; box-shadow: 0 3px 14px rgba(45,90,39,.25), 0 1px 3px rgba(0,0,0,.08); }
-  .login-float .btn:not(:disabled):hover { box-shadow: 0 5px 20px rgba(45,90,39,.35); transform: translateY(-1px); }
-
-  /* Main shell */
+  /* 登录卡片 - 三模式 */
+  .login-float { position: absolute; bottom: 6%; left: 50%; transform: translateX(-50%) translateY(30px); width: min(340px, 86vw); background: rgba(255,255,255,.78); backdrop-filter: blur(24px) saturate(1.4); -webkit-backdrop-filter: blur(24px) saturate(1.4); border-radius: 18px; padding: 0; box-shadow: 0 12px 48px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.08) inset; border: 1px solid rgba(255,255,255,.18); text-align: center; z-index: 3; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .5s ease-out, transform .5s cubic-bezier(.22,1,.36,1), visibility .5s; overflow: hidden; }
+  .login-float.revealed { opacity: 1; visibility: visible; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+  .lf-tabs { display: flex; border-bottom: 1px solid rgba(139,115,85,.08); }
+  .lf-tab { flex:1; padding:14px 8px; border:none; background:none; font-family:inherit; font-size:.76rem; color:var(--bark); opacity:.45; cursor:pointer; transition:all .2s; letter-spacing:.04em; font-weight:500; position:relative; }
+  .lf-tab.active { opacity:1; color:var(--moss); }
+  .lf-tab.active::after { content:''; position:absolute; bottom:0; left:30%; right:30%; height:2px; background:var(--moss); border-radius:2px; }
+  .lf-tab:hover { opacity:.75; }
+  .lf-body { padding:22px 22px 20px; }
+  .lf-body h2 { font-size:.78rem; margin-bottom:14px; color:var(--bark); font-weight:400; letter-spacing:.06em; }
+  .lf-input { width:100%; padding:12px 14px; border:1.5px solid rgba(139,115,85,.12); border-radius:12px; font-size:.84rem; margin-bottom:10px; background:rgba(250,247,242,.7); color:var(--ink); font-family:inherit; box-sizing:border-box; transition:border-color .25s, box-shadow .25s; }
+  .lf-input:focus { outline:none; border-color:var(--moss); box-shadow:0 0 0 4px rgba(45,90,39,.06); background:#FFF; }
+  .lf-input::placeholder { color:rgba(139,115,85,.3); }
+  .lf-select { width:100%; padding:12px 14px; border:1.5px solid rgba(139,115,85,.12); border-radius:12px; font-size:.84rem; margin-bottom:14px; background:rgba(250,247,242,.7); color:var(--ink); font-family:inherit; cursor:pointer; appearance:none; -webkit-appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238B7355' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:38px; }
+  .lf-select:focus { outline:none; border-color:var(--moss); box-shadow:0 0 0 4px rgba(45,90,39,.08); }
+  .lf-body .btn { margin-top:4px; border-radius:12px; font-size:.88rem; padding:12px; letter-spacing:.06em; font-weight:500; width:100%; box-shadow:0 3px 14px rgba(45,90,39,.25),0 1px 3px rgba(0,0,0,.08); }
+  .lf-body .btn:not(:disabled):hover { box-shadow:0 5px 20px rgba(45,90,39,.35); transform:translateY(-1px); }
+  .lf-error { font-size:.67rem; color:#c44; margin-top:6px; min-height:18px; letter-spacing:.03em; }
+  .lf-hint { font-size:.64rem; color:var(--bark); opacity:.4; margin-top:8px; letter-spacing:.03em; }  /* Main shell */
   #appPage { display: none; flex-direction: column; min-height: 100vh; padding-bottom: 96px; }
   #appPage.show { display: flex; }
   .app-header { position: sticky; top: 0; z-index: 10; background: linear-gradient(135deg, #1B3B1A 0%, #2D5A27 60%, #3C6E35 100%); color: #FFF; padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; height: 50px; gap: 10px; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
@@ -466,10 +474,32 @@
 
   <!-- 登录卡片 -->
   <div class="login-float" id="loginFloat">
-    <h2>选择身份进入</h2>
-    <select id="loginUserSelect"><option value="">-- 选择用户 --</option></select>
-    <button class="btn btn-primary" onclick="doLogin()" disabled id="loginBtn" aria-label="进入系统">进入系统</button>
-  </div>
+    <div class="lf-tabs">
+      <button class="lf-tab active" onclick="switchLoginTab('login')" id="lfTabLogin">登录</button>
+      <button class="lf-tab" onclick="switchLoginTab('register')" id="lfTabRegister">注册</button>
+      <button class="lf-tab" onclick="switchLoginTab('guest')" id="lfTabGuest">游客</button>
+    </div>
+    <div class="lf-body">
+      <div id="lfLogin">
+        <input type="text" id="loginNick" class="lf-input" placeholder="昵称" maxlength="20" onkeydown="if(event.key==='Enter')doLogin()">
+        <input type="password" id="loginPass" class="lf-input" placeholder="密码" maxlength="32" onkeydown="if(event.key==='Enter')doLogin()">
+        <div class="lf-error" id="loginError"></div>
+        <button class="btn btn-primary" onclick="doLogin()">登录</button>
+      </div>
+      <div id="lfRegister" style="display:none;">
+        <input type="text" id="regNick" class="lf-input" placeholder="昵称（2-20字）" maxlength="20" onkeydown="if(event.key==='Enter')doRegister()">
+        <input type="password" id="regPass" class="lf-input" placeholder="密码（4-32位）" maxlength="32" onkeydown="if(event.key==='Enter')doRegister()">
+        <input type="password" id="regPass2" class="lf-input" placeholder="确认密码" maxlength="32" onkeydown="if(event.key==='Enter')doRegister()">
+        <div class="lf-error" id="regError"></div>
+        <button class="btn btn-primary" onclick="doRegister()">注册</button>
+      </div>
+      <div id="lfGuest" style="display:none;">
+        <select id="loginUserSelect" class="lf-select"><option value="">-- 选择 NPC 用户 --</option></select>
+        <div class="lf-hint">无需密码，即刻体验回收闭环全流程</div>
+        <button class="btn btn-primary" onclick="doGuestLogin()" disabled id="loginBtn">进入系统</button>
+      </div>
+    </div>
+  </div></div>
 </div>
 
 <!-- ==================== 主界面 ==================== -->
@@ -922,20 +952,46 @@ function buttonLabel(text, iconName) {
   return `${icon(iconName)}${text}`;
 }
 
-// ==================== 登录 ====================
+// ==================== 登录 / 注册 / 游客 ====================
+var _loginMode = 'login';
+function switchLoginTab(mode) {
+  _loginMode = mode;
+  document.querySelectorAll('.lf-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('lfTab' + (mode==='guest'?'Guest':mode==='register'?'Register':'Login')).classList.add('active');
+  document.getElementById('lfLogin').style.display = mode==='login' ? 'block' : 'none';
+  document.getElementById('lfRegister').style.display = mode==='register' ? 'block' : 'none';
+  document.getElementById('lfGuest').style.display = mode==='guest' ? 'block' : 'none';
+  document.getElementById('loginError').textContent = '';
+  document.getElementById('regError').textContent = '';
+}
 
 async function initLogin() {
-  const res = await fetch(`${API}/users`);
-  const users = await res.json();
-  const sel = document.getElementById('loginUserSelect');
-  sel.innerHTML = '<option value="">-- 选择用户 --</option>';
-  users.forEach(u => {
-    const opt = document.createElement('option');
-    opt.value = JSON.stringify({id: u.id, nickname: u.nickname, role: u.role, carbon_score: u.carbon_score});
-    opt.textContent = `${u.nickname} (${u.role === 'student' ? '学生' : u.role === 'reuser' ? '去向端' : '管理员'})`;
-    sel.appendChild(opt);
-  });
-  sel.onchange = () => { document.getElementById('loginBtn').disabled = !sel.value; };
+  try {
+    const r = await fetch(`${API}/auth/guests`);
+    const d = await r.json();
+    const sel = document.getElementById('loginUserSelect');
+    sel.innerHTML = '<option value="">-- 选择 NPC 用户 --</option>';
+    d.guests.forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = JSON.stringify({id: u.id, nickname: u.nickname, role: u.role, carbon_score: u.carbon_score});
+      opt.textContent = `${u.nickname} (${u.role === 'student' ? '学生' : u.role === 'reuser' ? '去向端' : '管理员'})`;
+      sel.appendChild(opt);
+    });
+    sel.onchange = () => { document.getElementById('loginBtn').disabled = !sel.value; };
+  } catch(e) {}
+}
+
+function _afterLogin() {
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('loginFloat').classList.remove('revealed');
+  document.getElementById('appNickname').textContent = currentUser.nickname;
+  var roleText = currentUser.role === 'student' ? '学生' : currentUser.role === 'reuser' ? '去向端' : '管理员';
+  document.getElementById('appRole').textContent = roleText;
+  updateCarbonDisplay();
+  setupTabs();
+  switchTab(currentUser.role === 'reuser' ? 'tab-reuser' : 'tab-activity');
+  loadTabContent();
+  showWelcomeModal();
 }
 
 // 点击封面任意处 → 卡片浮现
@@ -949,22 +1005,45 @@ async function initLogin() {
   });
 })();
 
-function doLogin() {
-  const val = document.getElementById('loginUserSelect').value;
+async function doLogin() {
+  var nick = document.getElementById('loginNick').value.trim();
+  var pass = document.getElementById('loginPass').value;
+  var err = document.getElementById('loginError');
+  if (!nick || !pass) { err.textContent = '请填写昵称和密码'; return; }
+  try {
+    var r = await fetch(`${API}/auth/login?nickname=${encodeURIComponent(nick)}&password=${encodeURIComponent(pass)}`);
+    if (!r.ok) { var e = await r.json(); err.textContent = e.detail; return; }
+    var d = await r.json();
+    err.textContent = '';
+    currentUser = d.user;
+    _afterLogin();
+  } catch(ex) { err.textContent = '网络错误，请重试'; }
+}
+
+async function doRegister() {
+  var nick = document.getElementById('regNick').value.trim();
+  var pass = document.getElementById('regPass').value;
+  var pass2 = document.getElementById('regPass2').value;
+  var err = document.getElementById('regError');
+  if (nick.length < 2) { err.textContent = '昵称至少 2 个字符'; return; }
+  if (pass.length < 4) { err.textContent = '密码至少 4 位'; return; }
+  if (pass !== pass2) { err.textContent = '两次密码不一致'; return; }
+  try {
+    var r = await fetch(`${API}/auth/register?nickname=${encodeURIComponent(nick)}&password=${encodeURIComponent(pass)}`, {method:'POST'});
+    if (!r.ok) { var e = await r.json(); err.textContent = e.detail; return; }
+    var d = await r.json();
+    err.textContent = '';
+    toast(d.msg);
+    currentUser = d.user;
+    _afterLogin();
+  } catch(ex) { err.textContent = '网络错误，请重试'; }
+}
+
+function doGuestLogin() {
+  var val = document.getElementById('loginUserSelect').value;
   if (!val) return;
   currentUser = JSON.parse(val);
-  document.getElementById('loginPage').style.display = 'none';
-  document.getElementById('loginFloat').classList.remove('revealed');
-  // 主界面先不显示，等弹窗消失后再出现
-  document.getElementById('appNickname').textContent = currentUser.nickname;
-  const roleText = currentUser.role === 'student' ? '学生' : currentUser.role === 'reuser' ? '去向端' : '管理员';
-  document.getElementById('appRole').textContent = roleText;
-  updateCarbonDisplay();
-  setupTabs();
-  switchTab(currentUser.role === 'reuser' ? 'tab-reuser' : 'tab-activity');
-  loadTabContent();
-  // 立即弹出欢迎弹窗（不先显示界面）
-  showWelcomeModal();
+  _afterLogin();
 }
 
 function showWelcomeModal() {
@@ -1012,16 +1091,22 @@ function doLogout() {
   document.getElementById('loginPage').style.display = 'block';
   document.getElementById('loginBtn').disabled = true;
   document.getElementById('loginUserSelect').value = '';
+  document.getElementById('loginNick').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('regNick').value = '';
+  document.getElementById('regPass').value = '';
+  document.getElementById('regPass2').value = '';
+  document.getElementById('loginError').textContent = '';
+  document.getElementById('regError').textContent = '';
+  switchLoginTab('login');
   document.getElementById('previewImg').style.display = 'none';
   document.getElementById('uploadHint').style.display = 'block';
   document.getElementById('uploadZone').classList.remove('has-image');
   document.getElementById('aiResult').classList.remove('show');
   document.getElementById('submitBtn').disabled = true;
   document.getElementById('fileInput').value = '';
-  // 刷新排行预览
   initLogin();
 }
-
 function updateCarbonDisplay() {
   if (!currentUser) return;
   document.getElementById('appCarbon').textContent = `⊹ ${(currentUser.carbon_score || 0).toFixed(3)} kg`;

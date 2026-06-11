@@ -1,7 +1,9 @@
 """种子数据初始化"""
+import hashlib
 from .database import SessionLocal
 from .models import User, Point, CarbonFactor, Activity
 
+def _hash_pw(pw): return hashlib.sha256((pw+"lc_recycle_2026").encode()).hexdigest()
 
 SEED_USERS = [
     {"openid": "stu001", "nickname": "小南", "role": "student"},
@@ -22,7 +24,7 @@ SEED_USERS = [
     {"openid": "reuser08", "nickname": "宠保社", "role": "reuser"},
     {"openid": "reuser09", "nickname": "手工社", "role": "reuser"},
     {"openid": "reuser10", "nickname": "食监委", "role": "reuser"},
-    {"openid": "admin01", "nickname": "管理员", "role": "admin", "carbon_score": 100.0},
+    {"openid": "admin01", "nickname": "chenmu", "role": "admin", "carbon_score": 100.0, "password_hash": _hash_pw("543210")},
 ]
 
 SEED_POINTS = [

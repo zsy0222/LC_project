@@ -19,6 +19,7 @@ class User(Base):
     nickname = Column(String(64))
     role = Column(String(16), default="student")  # student / reuser / admin
     carbon_score = Column(Float, default=0.0)     # 累计减碳量 kg CO2e
+    password_hash = Column(String(128), nullable=True)  # NULL=NPC游客
     created_at = Column(DateTime, default=datetime.utcnow)
 
     submissions = relationship("Submission", back_populates="user")
