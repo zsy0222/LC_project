@@ -191,7 +191,7 @@
 
   /* Gallery */
   .gallery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .gallery-card { background: #FFF; border: 1px solid rgba(0,0,0,.04); border-radius: 16px 6px 16px 6px; overflow: hidden; transform: rotate(-.8deg); }
+  .gallery-card { background: #FFF; border: 1px solid rgba(0,0,0,.04); border-radius: 16px 6px 16px 6px; overflow: hidden; transform: rotate(-.8deg); position: relative; }
   .gallery-card img.gc-img { width: 100%; height: 140px; object-fit: cover; display: block; }
 .gallery-card .gc-img-fallback { width: 100%; height: 140px; display: flex; align-items: center; justify-content: center; font-size: 2rem; mix-blend-mode: multiply; color: var(--moss); }
   .gallery-card .gc-body { padding: 8px 10px; }
@@ -436,6 +436,22 @@
     .cn-btn-confirm:hover { transform:translateY(-1px); box-shadow:0 5px 18px rgba(180,100,70,.35); }
     .cn-btn-confirm:active { transform:scale(.97); }
     .cn-btn:disabled { opacity:.5; pointer-events:none; }
+
+    /* 精选到橱窗确认弹窗 */
+    .ft-card { position:relative; width:min(340px,86vw); padding:24px 22px 18px; text-align:center; overflow:visible; background:linear-gradient(175deg, #FFFCF5 0%, #FFF 30%, #FDFAF0 100%); border:1.5px solid rgba(180,160,110,.14); box-shadow:0 24px 64px rgba(60,40,20,.12), 0 4px 12px rgba(0,0,0,.04); border-radius:20px; }
+    .ft-icon-wrap { display:inline-flex; align-items:center; justify-content:center; width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #FFF8E1 0%, #FFF0B3 100%); border:2px solid rgba(180,160,100,.15); margin-bottom:10px; animation:ftPulse 2s ease-in-out infinite; }
+    .ft-icon-wrap svg { width:26px; height:26px; color:var(--bark); }
+    @keyframes ftPulse { 0%,100%{box-shadow:0 0 0 0 rgba(200,170,80,.15)} 50%{box-shadow:0 0 0 8px rgba(200,170,80,0)} }
+    .ft-title { font-size:1rem !important; color:var(--ink) !important; margin-bottom:4px !important; font-weight:600 !important; letter-spacing:.02em; }
+    .ft-desc { font-size:.78rem; color:var(--bark); margin-bottom:2px; line-height:1.6; padding:4px 12px; background:rgba(0,0,0,.02); border-radius:8px; display:inline-block; }
+    .ft-note { font-size:.62rem; color:var(--bark); opacity:.45; margin-bottom:16px; line-height:1.5; }
+    .ft-actions { display:flex; gap:10px; }
+    .gc-feature { position:absolute; top:6px; right:6px; width:30px; height:30px; border-radius:50%; border:none; background:rgba(255,255,255,.85); backdrop-filter:blur(4px); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .2s; box-shadow:0 1px 4px rgba(0,0,0,.08); z-index:2; }
+    .gc-feature svg { width:14px; height:14px; }
+    .gc-feature.on { background:rgba(255,245,200,.9); }
+    .gc-feature.on svg { color:#E6A817; }
+    .gc-feature.off svg { color:var(--bark); opacity:.35; }
+    .gc-feature:hover { transform:scale(1.1); }
 
     /* AI品类不匹配弹窗 */
     .mm-modal { position:relative; width: min(340px, 86vw); padding:28px 22px 18px; text-align:center; overflow:visible; background:linear-gradient(175deg, #F8FFF6 0%, #FFF 30%, #F5FEF5 100%); border:1px solid rgba(122,157,112,.14); box-shadow:0 20px 56px rgba(45,80,30,.12), 0 4px 12px rgba(0,0,0,.04); }
@@ -849,6 +865,23 @@
 </div>
 
 <!-- AI品类不匹配弹窗 -->
+<!-- 精选到橱窗确认弹窗 -->
+<div class="modal-overlay" id="featureModal">
+  <div class="ft-card">
+    <button class="close" onclick="closeModal('featureModal')" aria-label="关闭">&times;</button>
+    <div class="ft-icon-wrap" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18"/><path d="M12 12v6"/><path d="m8 16 4 2 4-2"/><path d="M8 4v2"/><path d="M16 4v2"/></svg>
+    </div>
+    <h3 class="ft-title" id="ftTitle">精选到成品橱窗</h3>
+    <p class="ft-desc" id="ftDesc">确定要将「作品名」展示在成品橱窗中吗？</p>
+    <p class="ft-note">精选后所有人可在成果页看到，取消精选则移回我的作品</p>
+    <div class="ft-actions">
+      <button class="cn-btn cn-btn-back" onclick="closeModal('featureModal')">取消</button>
+      <button class="cn-btn cn-btn-confirm" id="ftConfirmBtn" onclick="doFeatureToggle()" style="background:linear-gradient(135deg, var(--moss) 0%, #1B5E20 100%); box-shadow:0 3px 12px rgba(45,90,39,.25);">确认精选</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="mismatchModal">
   <div class="modal mm-modal">
     <button class="close" onclick="closeModal('mismatchModal')" aria-label="关闭品类不匹配弹窗">&times;</button>
@@ -2281,13 +2314,43 @@ async function loadMyGallery() {
         ? '<img class="gc-img" src="' + item.product_photo + '" alt="' + (item.product_desc||'') + '" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" loading="lazy"><div class="gc-img-fallback" style="display:none;">' + icon('gift') + '</div>'
         : '<div class="gc-img-fallback">' + icon('gift') + '</div>';
       return '<div class="gallery-card">' + photoHtml
-        + '<div class="gc-body">'
+        + '<button class="gc-feature ' + (item.featured ? 'on' : 'off') + '" onclick="event.stopPropagation();openFeatureModal(' + item.reuse_id + ',\'' + (item.product_desc||'').replace(/'/g,'') + '\',' + item.featured + ')" title="' + (item.featured ? '点击取消精选' : '精选到橱窗') + '">' + icon('star') + '</button>'+ '<div class="gc-body">'
         + '<div class="gc-desc">' + (item.product_desc || '环保再生物品') + '</div>'
         + '<div class="gc-meta">' + icon('factory','inline-icon') + ' ' + item.reuser_name + ' · ' + icon('calendar','inline-icon') + ' ' + item.date + '</div>'
         + '<div class="gc-meta">' + icon('box','inline-icon') + ' ' + item.category + ' → ' + (item.destination||'') + '</div>'
         + '</div></div>';
     }).join('') + '</div>';
   } catch(e) { grid.innerHTML = '<div class="empty">加载失败</div>'; }
+}
+
+
+let _featTarget = null;
+
+function openFeatureModal(reuseId, desc, currentFeatured) {
+  _featTarget = { reuseId: reuseId, featured: currentFeatured };
+  document.getElementById('ftTitle').textContent = currentFeatured ? '取消橱窗精选' : '精选到成品橱窗';
+  document.getElementById('ftDesc').textContent = currentFeatured
+    ? '确定要将「' + desc + '」从橱窗移除吗？'
+    : '确定要将「' + desc + '」展示在成品橱窗中吗？';
+  document.getElementById('ftConfirmBtn').textContent = currentFeatured ? '确认移除' : '确认精选';
+  document.getElementById('featureModal').classList.add('show');
+}
+
+async function doFeatureToggle() {
+  if (!_featTarget || !currentUser) return;
+  var btn = document.getElementById('ftConfirmBtn');
+  btn.disabled = true; btn.textContent = '处理中...';
+  try {
+    var r = await fetch(`${API}/gallery/feature?user_id=${currentUser.id}&reuse_id=${_featTarget.reuseId}`, {method:'POST'});
+    if (!r.ok) { var e = await r.json(); toast(e.detail); btn.disabled = false; btn.textContent = _featTarget.featured ? '确认移除' : '确认精选'; return; }
+    var d = await r.json();
+    closeModal('featureModal');
+    toast(d.msg);
+    _featTarget = null;
+    btn.disabled = false;
+    loadMyGallery();
+    loadGallery();
+  } catch(ex) { toast('操作失败'); btn.disabled = false; }
 }
 
 async function loadGallery() {

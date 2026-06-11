@@ -176,16 +176,32 @@ def my_product_gallery(user_id: int, db: Session = Depends(get_db)):
     for r in my_items:
         b = batches.get(r.batch_id)
         items.append({
+            "reuse_id": r.id,
             "batch_id": r.batch_id,
             "category": b.category if b else "活动作品",
             "destination": b.destination if b else "",
             "product_photo": r.product_photo,
             "product_desc": r.product_desc,
+            "featured": r.featured,
             "reuser_name": "我",
             "date": datetime.strftime(r.created_at, "%Y-%m-%d") if r.created_at else "",
             "is_mine": True,
         })
     return {"items": items}
+
+
+@router.post("/gallery/feature")
+def feature_product(user_id: int, reuse_id: int, db: Session = Depends(get_db)):
+    """切换成品精选状态"""
+    item = db.query(ReuseItem).filter(
+        ReuseItem.id == reuse_id,
+        ReuseItem.reuser_id == user_id,
+    ).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="作品不存在")
+    item.featured = not item.featured
+    db.commit()
+    return {"ok": True, "featured": item.featured, "msg": "已精选到橱窗" if item.featured else "已取消精选"}
 
 
 @router.get("/user/{user_id}/reward-status")
