@@ -344,9 +344,9 @@
     .sk-back .sk-card-tab { opacity:.45; }
     .sk-card-tab svg { width:16px; height:16px; display:block; }
 
-  .modal { background: #FFF; border-radius: 18px; padding: 20px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; border: 1px solid rgba(0,0,0,.04); box-shadow: 0 20px 60px rgba(0,0,0,.12); }
+  .modal { position: relative; background: #FFF; border-radius: 18px; padding: 20px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; border: 1px solid rgba(0,0,0,.04); box-shadow: 0 20px 60px rgba(0,0,0,.12); }
   .modal h3 { margin-bottom: 12px; color: var(--moss); font-weight: 400; }
-  .modal .close { float: right; background: rgba(139,115,85,.08); border: none; width: 32px; height: 32px; border-radius: 999px; font-size: 1.4rem; line-height: 1; cursor: pointer; color: var(--bark); transition: background-color .16s var(--ease-out), color .16s var(--ease-out), transform .16s var(--ease-out); }
+  .modal .close { position: absolute; top: 12px; right: 14px; background: rgba(139,115,85,.08); border: none; width: 32px; height: 32px; border-radius: 999px; font-size: 1.4rem; line-height: 1; cursor: pointer; color: var(--bark); transition: background-color .16s var(--ease-out), color .16s var(--ease-out), transform .16s var(--ease-out); z-index: 5; }
   .modal .close:hover { background: rgba(139,115,85,.16); color: var(--ink); transform: rotate(8deg); }
   .modal label { display: block; font-weight: 600; font-size: .78rem; margin: 10px 0 4px; color: var(--bark); }
   .modal select, .modal textarea, .modal input[type=text] { width: 100%; padding: 10px; border: 1px solid var(--stone); border-radius: 8px; font-size: .88rem; background: #FFF; font-family: inherit; }
