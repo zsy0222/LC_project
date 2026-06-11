@@ -2286,6 +2286,32 @@ async function checkUnlockAndCelebrate() {
   } catch(e) {}
 }
 
+let _trackingAll = false;
+let _trackingFull = null;
+
+async function loadAllTracking() {
+  if (!currentUser) return;
+  var grid = document.getElementById('trackingList');
+  if (_trackingFull) {
+    grid.innerHTML = _trackingFull;
+    _trackingFull = null;
+    return;
+  }
+  var res = await fetch(`${API}/user/${currentUser.id}/tracking`);
+  var d = await res.json();
+  if (!d.items.length) return;
+  grid.innerHTML = d.items.map(item => {
+    var stageIcons = ['', 'camera', 'box', 'hand', 'gift'];
+    var stageIcon = icon(stageIcons[item.current_stage] || 'box');
+    var stages = item.stages.map((s,i) => {
+      var stageCls = i + 1 < item.current_stage ? 'done' : (i + 1 === item.current_stage ? 'active' : '');
+      var dotIcon = stageCls === 'done' ? 'check' : (stageIcons[i+1] || 'box');
+      return '<div class="track-step ' + stageCls + '"><div class="step-dot">' + icon(dotIcon) + '</div><div class="step-label">' + s.label + '</div><div class="step-detail">' + (s.detail||'') + '</div></div>';
+    }).join('');
+    return '<div class="track-card"><div class="track-header"><span class="track-cat" style="display:inline-flex;align-items:center;gap:4px;">' + stageIcon + ' ' + item.category + '</span><span class="track-dest">' + (item.destination||'待认领') + '</span></div><div class="track-progress">' + stages + '</div>' + (item.has_product ? '<div style="margin-top:8px;text-align:center;font-size:0.7rem;color:var(--purple);display:flex;align-items:center;justify-content:center;gap:4px;">' + icon('gift') + ' ' + (item.product_desc||'成品已生成') + '</div>' : '') + '</div>';
+  }).join('');
+}
+
 function dismissCelebrate() {
   document.getElementById('celebrateModal').classList.remove('show');
   switchTab('tab-reward');

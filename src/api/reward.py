@@ -155,18 +155,8 @@ def product_gallery(user_id: int | None = None, db: Session = Depends(get_db)):
 
 @router.get("/unlock-status")
 def unlock_status(user_id: int, db: Session = Depends(get_db)):
-    """成果页解锁 — 学生有done批次的成品/去向端有上传作品"""
-    user = db.query(User).get(user_id)
-    if not user:
-        return {"unlocked": False, "product_count": 0}
-    if user.role in ("reuser", "admin"):
-        count = db.query(ReuseItem).filter(ReuseItem.reuser_id == user_id).count()
-        return {"unlocked": count > 0, "product_count": count}
-    # 学生: 找投递过的done批次中有成品的
-    my_batch_ids = set(r[0] for r in db.query(Submission.batch_id).filter(
-        Submission.user_id == user_id, Submission.status == "confirmed").distinct().all())
-    count = db.query(ReuseItem).filter(
-        ReuseItem.batch_id.in_(my_batch_ids) if my_batch_ids else False).count() if my_batch_ids else 0
+    """成果页解锁 — 有自己上传的作品即解锁"""
+    count = db.query(ReuseItem).filter(ReuseItem.reuser_id == user_id).count()
     return {"unlocked": count > 0, "product_count": count}
 
 
@@ -177,27 +167,16 @@ def my_product_gallery(user_id: int, db: Session = Depends(get_db)):
     if not user:
         return {"items": []}
 
-    if user.role in ("reuser", "admin"):
-        my_items = db.query(ReuseItem).filter(ReuseItem.reuser_id == user_id).order_by(ReuseItem.created_at.desc()).all()
-    else:
-        # 学生: 批次成品 + 自己上传的活动作品
-        my_batch_ids = set(r[0] for r in db.query(Submission.batch_id).filter(
-            Submission.user_id == user_id, Submission.status == "confirmed").distinct().all())
-        batch_items = db.query(ReuseItem).filter(
-            ReuseItem.batch_id.in_(my_batch_ids)
-        ).all() if my_batch_ids else []
-        activity_items = db.query(ReuseItem).filter(
+    if user.role in ("student",):
+        # 学生: 只查自己上传的活动作品
+        my_items = db.query(ReuseItem).filter(
             ReuseItem.reuser_id == user_id
-        ).all()
-        my_items = batch_items + activity_items
-        # dedup by id
-        seen = set()
-        dedup = []
-        for r in my_items:
-            if r.id not in seen:
-                seen.add(r.id)
-                dedup.append(r)
-        my_items = sorted(dedup, key=lambda r: r.created_at, reverse=True)
+        ).order_by(ReuseItem.created_at.desc()).all()
+    else:
+        # 去向端/管理员: 自己上传的所有成品
+        my_items = db.query(ReuseItem).filter(
+            ReuseItem.reuser_id == user_id
+        ).order_by(ReuseItem.created_at.desc()).all()
 
     if not my_items:
         return {"items": []}
