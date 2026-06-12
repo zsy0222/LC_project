@@ -20,7 +20,7 @@ from typing import Tuple, Optional
 from PIL import Image, ImageFilter, ImageStat
 
 from ..config import (
-    AI_MOCK_MODE, AI_CONFIDENCE_THRESHOLD,
+    AI_MOCK_MODE, AI_CONFIDENCE_THRESHOLD, AI_NON_RECYCLABLE_THRESHOLD, AI_NON_RECYCLABLE_THRESHOLD_HAZARDOUS,
     CATEGORIES, GRADES, PATH_MAP, PATH_DESC,
     AI_MODEL_PATH, AI_CLASS_LABELS_PATH,
 )
@@ -128,6 +128,10 @@ def _predict_finetuned(img: Image.Image) -> Tuple[str, float]:
     best_idx = int(torch.argmax(probs))
     score = round(float(probs[best_idx]), 3)
     category = _finetuned_classes[best_idx] if best_idx < len(_finetuned_classes) else "无法识别"
+    # 有害垃圾分类更严格，需要 ≥85% 才放行
+    threshold = AI_NON_RECYCLABLE_THRESHOLD_HAZARDOUS if category == "有害" else AI_NON_RECYCLABLE_THRESHOLD
+    if score < threshold:
+        return "非回收物", score
     return category, score
 
 
@@ -178,13 +182,13 @@ def predict_image(image_bytes: bytes) -> dict:
     else:
         category, cat_score = _predict_mock(img)
 
-    if category == "unknown":
+    if category == "unknown" or category == "非回收物":
         return {
-            "category": "无法识别",
+            "category": "非回收物",
             "grade": "未知",
             "score": cat_score,
             "recommend": "C",
-            "recommend_desc": "无法识别，请重新拍摄回收物照片",
+            "recommend_desc": "当前检测非回收物，请确认是否投递",
             "co2_estimate": 0.0,
             "need_recheck": True,
         }

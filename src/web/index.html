@@ -117,6 +117,35 @@
   .btn .icon { margin-right: 5px; }
   .btn-primary { background: var(--moss); color: #FFF; }
   .btn-primary:disabled { background: #C4BDB5; border-bottom-color: #B0A89F; cursor: not-allowed; }
+
+  /* 手动确认位置卡片 */
+  .loc-confirm-card {
+    margin-top: 10px; padding: 14px 16px;
+    background: linear-gradient(135deg, #FFF8E1 0%, #FFF3E0 100%);
+    border: 1.5px dashed #E6A817; border-radius: 12px;
+    display: flex; flex-direction: column; gap: 8px;
+    animation: locCardIn .35s var(--ease-out);
+  }
+  @keyframes locCardIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+  .loc-confirm-card .loc-warn { display: flex; align-items: flex-start; gap: 8px; }
+  .loc-confirm-card .loc-warn svg { width: 20px; height: 20px; color: #E6A817; flex-shrink: 0; margin-top: 1px; }
+  .loc-confirm-card .loc-warn-text { font-size: 0.78rem; color: #8B6914; line-height: 1.55; }
+  .loc-confirm-card .loc-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%; padding: 10px 0;
+    background: linear-gradient(135deg, #E6A817 0%, #D4940E 100%);
+    color: #FFF; border: none; border-radius: 10px;
+    font-size: 0.85rem; font-weight: 600; font-family: inherit;
+    cursor: pointer; letter-spacing: .02em;
+    box-shadow: 0 3px 12px rgba(230,168,23,.30);
+    transition: transform .18s var(--ease-out), box-shadow .18s var(--ease-out);
+  }
+  .loc-confirm-card .loc-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 18px rgba(230,168,23,.40); }
+  .loc-confirm-card .loc-btn:active { transform: scale(.97); }
+
+  /* 菜汪小狗 SVG 眼珠转动 */
+  .loc-btn .doggo { display:inline-block; vertical-align:-.35em; margin:0 2px; }
+  .loc-btn .doggo img { width:24px; height:24px; }
   .btn-accent { background: #5C3D6E; color: #FFF; }
   .btn-outline { background: #FFF; color: var(--moss); border: 1px solid var(--moss); border-bottom-width: 2.5px; }
   .btn-sm { display: inline-block; width: auto; padding: 5px 14px; font-size: .7rem; border-radius: 8px; }
@@ -986,6 +1015,31 @@
   </div>
 </div>
 
+<!-- AI检测非回收物弹窗 -->
+<div class="modal-overlay" id="nonRecyclableModal">
+  <div class="modal mm-modal">
+    <button class="close" onclick="closeModal('nonRecyclableModal')" aria-label="关闭">&times;</button>
+    <div class="mm-top">
+      <span class="mm-icon-wrap" aria-hidden="true" style="background:linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%); border-color:rgba(230,140,60,.2);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#E67E22" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </span>
+    </div>
+    <h3 class="mm-title" style="color:#E67E22;">当前检测非回收物</h3>
+    <p class="mm-desc">AI 无法将此物品匹配到<strong>外卖厨余 / 快递纸箱 / 塑料 / 有害</strong>四类回收物</p>
+    <p class="mm-note">如果确认是回收物，可以坚持投递并自行选择品类</p>
+    <div class="mm-actions">
+      <button class="cn-btn cn-btn-back" onclick="closeModal('nonRecyclableModal'); resetDeliveryPhoto();" aria-label="重新拍照">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        重新拍照
+      </button>
+      <button class="cn-btn cn-btn-confirm" onclick="doForceNonRecyclable()" aria-label="坚持投递" style="background:linear-gradient(135deg, #E67E22 0%, #D35400 100%); box-shadow:0 3px 12px rgba(230,126,34,.25);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        坚持投递
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- 取消报名确认弹窗 -->
 <div class="modal-overlay" id="cancelJoinModal">
   <div class="modal cn-modal">
@@ -1081,7 +1135,7 @@
 const API = '/api';
 let currentUser = null, currentPoint = null, currentPhotoUrl = '', currentAiResult = null;
 let claimTarget = null, reuseTarget = null, reusePhotoUrl = '';
-let locationVerified = false, photoHash = '', cooldownRemain = 0;
+let locationVerified = false, locationManual = false, photoHash = '', cooldownRemain = 0;
 let demoMode = false;
 let currentWasteType = '';  // 当前选择的品类
 let pendingSubId = null;    // 外卖厨余待确认的记录ID
@@ -1251,7 +1305,7 @@ function dismissWelcome() {
 
 
 function doLogout() {
-  currentUser = null; currentPoint = null; currentAiResult = null; currentPhotoUrl = ''; photoHash = ''; locationVerified = false; cooldownRemain = 0;
+  currentUser = null; currentPoint = null; currentAiResult = null; currentPhotoUrl = ''; photoHash = ''; locationVerified = false; locationManual = false; cooldownRemain = 0;
   document.getElementById('appPage').classList.remove('show');
   document.getElementById('loginPage').style.display = 'block';
   document.getElementById('loginBtn').disabled = true;
@@ -1337,8 +1391,7 @@ function selectWasteType(wasteType, icon) {
   document.getElementById('submitBtn').disabled = true;
   document.querySelectorAll('#pointGrid .point-card').forEach(c => c.classList.remove('selected'));
   currentPoint = null;
-  locationVerified = false;
-
+  locationVerified = false; locationManual = false;
   // 所有品类都先选回收点，再拍照
   if (wasteType === '外卖厨余') {
     document.getElementById('pointSection').style.display = 'none';
@@ -1387,7 +1440,7 @@ async function loadPendingList() {
 
 function openConfirm(subId, wasteType, photo) {
   pendingSubId = subId;
-  locationVerified = false;  // 确认阶段需GPS
+  locationVerified = false; locationManual = false;  // 确认阶段需GPS
   currentPoint = null;
   document.getElementById('selectedPoint').innerHTML = '请选择分类回收点';
   document.getElementById('gpsDebug').style.display = 'none';
@@ -1428,8 +1481,7 @@ function selectPoint(idx) {
   const gpsPoints = parseGpsPoints(pd.gps);
   currentPoint = { qr_code: pd.qr, name: pd.name, gps: pd.gps, gps_points: gpsPoints };
   document.getElementById('selectedPoint').innerHTML = `✅ 已选择：<strong>${pd.name}</strong>`;
-  locationVerified = false;
-
+  locationVerified = false; locationManual = false;
   if (currentWasteType === '外卖厨余') {
     if (pendingSubId) {
       // 确认阶段：需要GPS验证
@@ -1494,8 +1546,8 @@ function verifyLocation() {
     return;
   }
   if (!navigator.geolocation) {
-    toast('⚠ 浏览器不支持定位，跳过位置校验');
-    locationVerified = true;
+    toast('⚠ 浏览器不支持定位，请手动确认');
+    showManualConfirmBtn('⚠ 浏览器不支持定位');
     checkSubmitReady();
     return;
   }
@@ -1530,17 +1582,19 @@ function verifyLocation() {
         }
         toast('✅ 位置验证通过，可进行投递');
       } else {
-        locationVerified = false;
+        locationVerified = false; locationManual = false;
         document.getElementById('selectedPoint').innerHTML = document.getElementById('selectedPoint').innerHTML.replace(' 📍 定位中...', '');
-        toast(`⚠ 位置偏差约 ${d.toFixed(0)} 米（限制 100 米），请到达回收点后再投递`);
+        toast(`⚠ 位置偏差约 ${d.toFixed(0)} 米（限制 100 米），可手动确认`);
+        showManualConfirmBtn(`⚠ 距离点位约 ${d.toFixed(0)}m（限制100m）`);
       }
       checkSubmitReady();
     },
     err => {
       console.warn('Geolocation error:', err);
-      toast('⚠ 无法获取位置，请确保已开启定位权限');
-      locationVerified = false;
+      toast('⚠ 无法获取位置，可手动确认');
+      locationVerified = false; locationManual = false;
       document.getElementById('selectedPoint').innerHTML = document.getElementById('selectedPoint').innerHTML.replace(' 📍 定位中...', '');
+      showManualConfirmBtn('⚠ 无法获取位置');
       checkSubmitReady();
     },
     { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 }
@@ -1551,6 +1605,38 @@ function haversine(lat1, lng1, lat2, lng2) {
   const R = 6371000, dLat = (lat2-lat1)*Math.PI/180, dLng = (lng2-lng1)*Math.PI/180;
   const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function showManualConfirmBtn(msg) {
+  document.getElementById('manualConfirmCard')?.remove();
+  const sp = document.getElementById('selectedPoint');
+  const card = document.createElement('div');
+  card.id = 'manualConfirmCard';
+  card.className = 'loc-confirm-card';
+  card.innerHTML = '' +
+    '<div class="loc-warn">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' +
+      '<span class="loc-warn-text">' + (msg || 'GPS 定位未能通过') + '。如果你确实已在回收点现场，可以手动确认继续投递。</span>' +
+    '</div>' +
+    '<button class="loc-btn" onclick="manualConfirmLocation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><polyline points="20 6 9 17 4 12"/></svg>我在现场，骗人是小狗 <span class="doggo"><img src="/image/ico_dog.gif" alt="菜汪" style="width:24px;height:24px;display:inline-block;"></span></button>';
+  sp.appendChild(card);
+}
+
+function manualConfirmLocation() {
+  locationVerified = true;
+  locationManual = true;  // 手动确认标记，提交时跳过GPS重取
+  document.getElementById('manualConfirmCard')?.remove();
+  document.getElementById('selectedPoint').innerHTML = document.getElementById('selectedPoint').innerHTML.replace(' 📍 定位中...', '');
+  var dot = document.getElementById('selectedPoint');
+  var span = document.createElement('span');
+  span.style.cssText = 'display:inline-block;margin-left:6px;padding:2px 10px;background:#E8F5E9;color:#2E7D32;border-radius:20px;font-size:0.72rem;font-weight:600;';
+  span.textContent = '✅ 已手动确认';
+  dot.appendChild(span);
+  if (currentWasteType !== '外卖厨余') {
+    document.getElementById('uploadZone').style.display = 'block';
+  }
+  toast('✅ 手动确认通过，可进行投递');
+  checkSubmitReady();
 }
 
 async function handleFile(e) {
@@ -1583,8 +1669,15 @@ async function handleFile(e) {
   document.getElementById('aiWarn').style.display = currentAiResult.need_recheck ? 'block' : 'none';
   document.getElementById('aiResult').classList.add('show');
 
-  // AI品类与用户选择不匹配 → 弹出切换建议
+  // AI检测为非回收物 → 弹出确认弹窗
   var aiCat = currentAiResult.category;
+  if (aiCat === '非回收物') {
+    document.getElementById('nonRecyclableModal').classList.add('show');
+    checkSubmitReady();
+    return;
+  }
+
+  // AI品类与用户选择不匹配 → 弹出切换建议
   if (aiCat !== '无法识别' && aiCat !== currentWasteType) {
     document.getElementById('mmUserPick').textContent = currentWasteType;
     document.getElementById('mmAiPick').textContent = aiCat;
@@ -1607,14 +1700,14 @@ function checkSubmitReady() {
       if (!currentPoint && !cooldownRemain) msg = '请选择回收点';
       else if (!locationVerified) msg = '请通过位置验证';
     } else if (!currentAiResult) { msg = '请先拍照'; disabled = true; }
-    else if (currentAiResult.category === '无法识别') { msg = '无法识别，请重新拍照'; disabled = true; }
+    else if (currentAiResult.category === '无法识别' || currentAiResult.category === '非回收物') { msg = '无法识别，请重新拍照'; disabled = true; }
     else { msg = '拍照记录'; disabled = false; }
   } else {
     // 其他品类：需要选点 + GPS + 拍照
     if (!currentPoint) { msg = '请选择回收点'; disabled = true; }
     else if (!locationVerified) { msg = '请先通过位置验证'; disabled = true; }
     else if (!currentAiResult) { msg = '请拍照'; disabled = true; }
-    else if (currentAiResult.category === '无法识别') { msg = '无法识别'; disabled = true; }
+    else if (currentAiResult.category === '无法识别' || currentAiResult.category === '非回收物') { msg = '非回收物，请确认'; disabled = true; }
     else if (cooldownRemain > 0) { msg = `<img src="/image/icons/ico_clock.png" style="width:1em;height:1em;vertical-align:-.14em;display:inline-block;opacity:.85;"> 冷却 (${cooldownRemain.toFixed(0)}s)`; disabled = true; }
   }
   document.getElementById('submitBtn').disabled = disabled;
@@ -1648,7 +1741,7 @@ async function checkCooldown() {
 }
 
 function resetDelivery() {
-  currentAiResult = null; currentPhotoUrl = ''; photoHash = ''; locationVerified = false; pendingSubId = null;
+  currentAiResult = null; currentPhotoUrl = ''; photoHash = ''; locationVerified = false; locationManual = false; pendingSubId = null;
   document.getElementById('cooldownBar').style.display = 'none';
   document.getElementById('foodConfirmBar').style.display = 'none';
   document.getElementById('uploadZone').style.display = 'none';
@@ -1659,10 +1752,35 @@ function resetDelivery() {
   document.getElementById('fileInput').value = '';
 }
 
+// 仅重置照片/AI结果，保留品类/点位/GPS等状态（"重新拍照"用）
+function resetDeliveryPhoto() {
+  currentAiResult = null; currentPhotoUrl = ''; photoHash = '';
+  document.getElementById('previewImg').style.display = 'none';
+  document.getElementById('uploadHint').style.display = 'block';
+  document.getElementById('uploadZone').classList.remove('has-image');
+  document.getElementById('fileInput').value = '';
+  document.getElementById('aiResult').classList.remove('show');
+  document.getElementById('aiSpinner').classList.remove('show');
+  checkSubmitReady();
+}
+
+// 非回收物 → 用户坚持投递
+function doForceNonRecyclable() {
+  closeModal('nonRecyclableModal');
+  if (!currentAiResult) return;
+  // 使用用户选择的品类覆盖AI结果
+  currentAiResult.category = currentWasteType;
+  document.getElementById('aiCat').textContent = currentWasteType;
+  document.getElementById('aiPath').textContent = '→ 用户坚持投递';
+  document.getElementById('aiWarn').style.display = 'none';
+  toast('✅ 已确认为「' + currentWasteType + '」，可继续投递');
+  checkSubmitReady();
+}
+
 // AI品类不匹配 → 用户确认切换（保留照片/位置/GPS等已有状态）
 function doSwitchCategory() {
   var aiCat = currentAiResult ? currentAiResult.category : '';
-  if (!aiCat || aiCat === '无法识别') { closeModal('mismatchModal'); return; }
+  if (!aiCat || aiCat === '无法识别' || aiCat === '非回收物') { closeModal('mismatchModal'); return; }
   closeModal('mismatchModal');
 
   // 保存已有状态
@@ -1762,7 +1880,7 @@ async function submitDelivery() {
     btn.disabled = true; btn.textContent = '确认中...';
     try {
       let userLat = 0, userLng = 0;
-      if (navigator.geolocation) {
+      if (!locationManual && navigator.geolocation) {
         try {
           const pos = await new Promise((resolve, reject) =>
             navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000, maximumAge: 60000 }));
@@ -1795,7 +1913,7 @@ async function submitDelivery() {
   try {
     const itemCount = 1;
     let userLat = 0, userLng = 0;
-    if (navigator.geolocation) {
+    if (!locationManual && navigator.geolocation) {
       try {
         const pos = await new Promise((resolve, reject) =>
           navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000, maximumAge: 60000 }));
@@ -2338,10 +2456,8 @@ async function loadRewardStatus() {
       '<div class="reward-bar-label">' + stage + ' / 20</div>' +
       '<p style=\"margin-top:8px;font-size:0.75rem;\">' + (d.message || '') + '</p>' +
       (stage >= 20
-        ? (d.already_claimed
-           ? '<button class=\"btn btn-accent\" disabled style=\"margin-top:10px;padding:12px;font-size:1rem;opacity:.5;\" aria-label=\"已领取\">' + buttonLabel('已领取 ✓','gift') + '</button>' +
-             '<p style=\"font-size:.65rem;color:var(--bark);margin-top:4px;\">新一轮回收已开始，查看兑换记录跟踪物流</p>'
-           : '<button class=\"btn btn-accent\" onclick=\"claimReward()\" style=\"margin-top:10px;padding:12px;font-size:1rem;\" aria-label=\"领取实物奖励\">' + buttonLabel('开启盲盒','gift') + '</button>')
+        ? '<button class=\"btn btn-accent\" onclick=\"claimReward()\" style=\"margin-top:10px;padding:12px;font-size:1rem;\" aria-label=\"领取实物奖励\">' + buttonLabel(d.already_claimed ? '再开盲盒' : '开启盲盒','gift') + '</button>' +
+          (d.already_claimed ? '<p style=\"font-size:.65rem;color:var(--bark);margin-top:4px;\">第 ' + (d.claim_count || 1) + ' 轮达成，继续投递可再领</p>' : '')
         : '<p style=\"font-size:0.65rem;color:var(--gray);margin-top:4px;\">投递满 20 次可领取环保再生物品</p>') +
       '</div>';
   } catch(e) { document.getElementById('rewardSection').innerHTML = '<div class=\"empty\">加载失败</div>'; }

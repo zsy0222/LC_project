@@ -227,18 +227,30 @@ def reward_status(user_id: int, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="用户不存在")
 
-    total = db.query(Submission).filter(
-        Submission.user_id == user_id,
-        Submission.status == "confirmed",
-    ).count()
-
-    # 查是否已领取
-    already_claimed = db.query(ShopOrder).filter(
+    # 查是否已领取过奖励（取最近一次领取时间）
+    last_claim = db.query(ShopOrder).filter(
         ShopOrder.user_id == user_id,
         ShopOrder.item_id.like("reward_%"),
-    ).first()
+    ).order_by(ShopOrder.created_at.desc()).first()
 
-    stage = min(20, total)
+    already_claimed = bool(last_claim)
+
+    # 统计总领取次数
+    claim_count = db.query(ShopOrder).filter(
+        ShopOrder.user_id == user_id,
+        ShopOrder.item_id.like("reward_%"),
+    ).count()
+
+    # 仅统计上次领取之后新产生的投递（未领取过则统计全部）
+    base_q = db.query(Submission).filter(
+        Submission.user_id == user_id,
+        Submission.status == "confirmed",
+    )
+    if last_claim:
+        base_q = base_q.filter(Submission.ts > last_claim.created_at)
+    total = base_q.count()
+
+    stage = min(REWARD_THRESHOLD, total)
     progress_pct = min(100, round(stage / REWARD_THRESHOLD * 100))
 
     if stage == 0: phase_name = "空地"; phase_emoji = ""; phase_idx = 0
@@ -263,6 +275,7 @@ def reward_status(user_id: int, db: Session = Depends(get_db)):
         "eligible": total >= REWARD_THRESHOLD,
         "already_claimed": bool(already_claimed),
         "claimed_item": already_claimed.item_name if already_claimed else None,
+        "claim_count": claim_count,
         "message": f"还差 {max(0, REWARD_THRESHOLD - total)} 次投递即可获得奖励！"
         if total < REWARD_THRESHOLD
         else ("🎁 已领取奖励，新一轮回收开始！" if already_claimed else "🎉 恭喜！你已达标，可从成品橱窗中选取一件实物成品作为奖励！"),
@@ -278,21 +291,22 @@ def claim_reward(user_id: int, address: str = "", db: Session = Depends(get_db))
     if not user:
         raise HTTPException(status_code=404, detail="用户不存在")
 
-    total = db.query(Submission).filter(
+    # 查上次领取时间，仅统计此后的新投递
+    last_claim = db.query(ShopOrder).filter(
+        ShopOrder.user_id == user_id,
+        ShopOrder.item_id.like("reward_%"),
+    ).order_by(ShopOrder.created_at.desc()).first()
+
+    base_q = db.query(Submission).filter(
         Submission.user_id == user_id,
         Submission.status == "confirmed",
-    ).count()
+    )
+    if last_claim:
+        base_q = base_q.filter(Submission.ts > last_claim.created_at)
+    total = base_q.count()
 
     if total < REWARD_THRESHOLD:
         raise HTTPException(status_code=400, detail=f"还差 {REWARD_THRESHOLD - total} 次投递，加油！")
-
-    # 已经领过的检查
-    already = db.query(Notification).filter(
-        Notification.user_id == user_id,
-        Notification.content.like("%碳积分奖励%"),
-    ).first()
-    if already:
-        raise HTTPException(status_code=400, detail="你已经领取过奖励了，每期只能领取一次")
 
     # 随机抽取一件精选成品
     pool = (
@@ -328,12 +342,7 @@ def claim_reward(user_id: int, address: str = "", db: Session = Depends(get_db))
     )
     db.add(notif)
 
-    # 重置投递计数：将所有已确认投递标记为 expired
-    db.query(Submission).filter(
-        Submission.user_id == user_id,
-        Submission.status == "confirmed",
-    ).update({Submission.status: "expired"}, synchronize_session=False)
-
+    # 不再标记投递为 expired，改为通过 ShopOrder.created_at 时间窗口区分新旧轮次
     db.commit()
 
     return {

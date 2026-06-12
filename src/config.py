@@ -13,6 +13,8 @@ DB_URL = f"sqlite:///{DB_PATH}"
 # AI 配置
 AI_MOCK_MODE = False           # True: 强制使用 mock；False: 优先用 torch，失败再降级
 AI_CONFIDENCE_THRESHOLD = 0.6  # 低于该置信度提示重拍
+AI_NON_RECYCLABLE_THRESHOLD = 0.80  # 四分类最高概率低于此值→判定为非回收物（通用）
+AI_NON_RECYCLABLE_THRESHOLD_HAZARDOUS = 0.85  # 有害垃圾专用更严格阈值
 AI_MODEL_DIR = BASE_DIR / "model"          # 微调模型存放目录
 AI_MODEL_PATH = AI_MODEL_DIR / "recycle_classifier.pth"  # 训练好的四分类模型
 AI_CLASS_LABELS_PATH = AI_MODEL_DIR / "class_labels.json"
